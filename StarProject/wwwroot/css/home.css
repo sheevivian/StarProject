@@ -1,0 +1,414 @@
+* {
+    padding: 0;
+    margin: 0;
+
+}
+
+/* 字型 */
+@font-face {
+    src: url(../fonts/ChironGoRoundTC-Regular.ttf);
+    font-family: font1;
+}
+
+/* 公司廣播響應式 */
+@media (max-width: 1140px) {
+    .nav-item .flex-grow-1 {
+        visibility: hidden; /* 內容隱藏，但保留元素尺寸 */
+    }
+}
+
+@media (max-width: 1100px) {
+    .dn1100px {
+        display: none;
+    }
+
+    /* 小於 1000px 時改成左邊對齊 */
+    .dropdown-menu-1000px-end {
+        right: 0 !important;
+        left: auto !important;
+    }
+}
+
+/* sidebar響應式 */
+@media (max-width: 1588px) {
+    .dn1588px {
+        display: none;
+    }
+}
+
+@media (max-width: 580px) {
+    .dn580px {
+        display: none;
+    }
+}
+
+
+/* body設置 */
+body {
+    background-color: #f5f5f5;
+    font-family: font1;
+}
+
+main {
+    flex: 1; /* 主體內容自動撐開，footer 就會被推到底 */
+}
+
+.content{
+    padding: 30px 50px;
+}
+
+.w100per{
+    width: 100%;
+    display: flex;
+    flex-direction: column;    /* 垂直排列 */
+    min-height: 100vh;         /* 至少要滿版 */
+}
+
+.logo {
+    width: 60px;
+    height: 60px;
+}
+
+.logotxt {
+    font-size: 22px;
+    letter-spacing: 1px;
+}
+
+/* 上方bar */
+.topbar {
+    width: 100%;
+    height: 65px;
+    background-color: #FFB84C;
+    box-shadow: 0 5px 10px #afaeae91;
+}
+
+/* topbar會員選單樣式+動畫 */
+.topbar .nav-item .dropdownlist {
+    -webkit-animation-name: growIn;
+    animation-name: growIn;
+    -webkit-animation-duration: 200ms;
+    animation-duration: 200ms;
+    -webkit-animation-timing-function: transform cubic-bezier(0.18, 1.25, 0.4, 1), opacity cubic-bezier(0, 1, 0.4, 1);
+    animation-timing-function: transform cubic-bezier(0.18, 1.25, 0.4, 1), opacity cubic-bezier(0, 1, 0.4, 1);
+
+    border: 0;
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* UserName前面分隔線 */
+.topbar-divider {
+    width: 1px;
+    height: 2.5rem;
+    background-color: #55595e;
+    margin: 0 0.5rem;
+}
+
+/* topbar文字顏色 */
+.topbar .nav-item .nav-link {
+    color: #524d459a;
+}
+
+/* topbar文字hover時顏色 */
+.topbar .nav-item .nav-link:hover {
+    color: #524D45;
+}
+
+/* User照片設置 */
+.topbar .nav-item .nav-link .img-profile {
+    height: 50px;
+    width: 50px;
+}
+
+/* topbar文字粗度 */
+.topbar .nav-item .nav-link .fw900 {
+    font-weight: 900;
+}
+
+/* 使用者名稱與右側間距 */
+.topbar .nav-item .nav-link .username {
+    margin-right: 15px;
+    margin-left: 5px;
+}
+
+/* 下拉選單選項樣式 */
+.topbar .nav-item .dropdown-menu .dropdown-item {
+    letter-spacing: 1px;
+    color: #524D45;
+}
+
+/* 下拉選單中的 icon 與文字間距 */
+.topbar .nav-item .dropdown-menu .dropdown-item i {
+    margin-right: 5px;
+
+}
+
+/* 小鈴鐺通知樣式 */
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.4em;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+}
+
+.px0{
+    padding-right: 0;
+    padding-left: 0;
+}
+
+/* 紅色警示用的 badge */
+.badge-danger {
+    color: #fff;
+    background-color: #e74a3b;
+}
+
+/* collapse 子選單 item */
+.collapse-item {
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    display: block;
+    color: #3a3b45;
+    text-decoration: none;
+    border-radius: 0.35rem;
+    white-space: nowrap;
+}
+
+/* 左側sidebar */
+.sidebar {
+    width: 250px;
+    height: auto;
+    min-height: 100vh;
+    /* 至少撐滿整個視窗高度 */
+    background-color: #041E40;
+}
+
+/* sidebar 標題 */
+.sidebar .sidebar-brand {
+    height: 80px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    color: white;
+    letter-spacing: 0.05rem;
+    z-index: 1;
+}
+
+/* sidebar中每個 li */
+.sidebar .nav-item {
+    position: relative;
+    /* 相對定位，方便子元素定位 */
+    margin-bottom: 3px;
+}
+
+/* sidebar_li的icon包裹容器 */
+.sidebar .icon-wrapper {
+    display: inline-flex;
+    justify-content: center;
+    /* 水平置中 icon */
+    align-items: center;
+    /* 垂直置中 icon */
+    width: 2rem;
+    /* 固定寬度，確保文字齊頭 */
+    margin-right: 0;
+}
+
+/* sidebar li 裡的 icon */
+.sidebar .nav-link i {
+    font-size: 20px;
+}
+
+/* sidebar 文字部分 */
+.sidebar .link-text {
+    flex: 1;
+    /* 佔滿剩餘空間 */
+    padding-left: 0.5rem;
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+/* 收縮後的 sidebar */
+.sidebar.toggled {
+    width: 100px;
+    height: auto;
+    /* 高度撐滿 */
+    min-height: 100vh;
+    /* 最小高度撐滿視窗 */
+}
+
+/* 收縮後隱藏 logo */
+.sidebar.toggled .collapsed-logo {
+    display: none;
+}
+
+/* 收縮後的 nav-link 文字和 icon 垂直排列 */
+.sidebar.toggled .nav-link {
+    display: flex;
+    flex-direction: column;
+    /* 垂直排列 */
+    justify-content: center !important;
+    /* 置中 */
+    text-align: center;
+    /* 文字置中 */
+}
+
+/* 收縮後文字樣式 */
+.sidebar.toggled .nav-link .link-text {
+    font-size: 14px;
+    padding-left: 0;
+    padding-top: 5px;
+    letter-spacing: 0;
+    /* 取消字母間距 */
+}
+
+/* 收縮後 icon */
+.sidebar.toggled .icon-wrapper i {
+    font-size: 1.75rem;
+    display: flex;
+    /* 使用 flex 置中 */
+    justify-content: center;
+    width: 100%;
+    /* 讓 icon-wrapper 撐滿，裡面的 icon 才能置中 */
+}
+
+/* 收縮 sidebar 時 hover 效果 */
+.sidebar.toggled .nav-item:hover {
+    border-right: 4px solid #eaecf4;
+}
+
+/* 收縮 sidebar 時 nav-item 被選中時的線條 */
+.sideline {
+    border-right: 4px solid rgba(255, 255, 255, 0.616);
+}
+
+/* 收縮 sidebar 下的 collapse 子選單+動畫 */
+.sidebar.toggled .nav-item .collapse {
+    position: absolute;
+    left: calc(100px + 20px / 2);
+    z-index: 1;
+    top: 2px;
+    -webkit-animation-name: growIn;
+    animation-name: growIn;
+    -webkit-animation-duration: 200ms;
+    animation-duration: 200ms;
+    -webkit-animation-timing-function: transform cubic-bezier(0.18, 1.25, 0.4, 1), opacity cubic-bezier(0, 1, 0.4, 1);
+    animation-timing-function: transform cubic-bezier(0.18, 1.25, 0.4, 1), opacity cubic-bezier(0, 1, 0.4, 1);
+}
+
+/* collapse 動畫過程隱藏 */
+.sidebar.toggled .nav-item .collapsing {
+    display: none;
+    transition: none;
+}
+
+
+/* toggle 按鈕 */
+#sidebarToggle {
+    width: 2.5rem;
+    height: 2.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    border: none;
+    background: rgba(255, 255, 255, 0.315);
+    color: white;
+    border-radius: 50%;
+}
+
+#sidebarToggle:hover {
+    background: rgba(255, 255, 255, 0.411);
+}
+
+
+/* toggle 按鈕箭頭 */
+#sidebarToggle::after {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f104";
+    /* ← */
+}
+
+/* 收縮後箭頭 */
+.sidebar.toggled #sidebarToggle::after {
+    content: "\f105";
+    /* → */
+}
+
+
+
+.navbar-nav {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
+.sidebar hr.sidebar-divider {
+    margin: 0 1rem 1rem;
+    border-top: 2px dotted rgb(248, 249, 250);
+}
+
+.txtWhite {
+    color: rgba(255, 255, 255, 0.616);
+}
+
+/* collapse 子選單內層 */
+.sidebar .nav-item .collapse .collapse-inner {
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* collapse 子選單 item */
+.collapse-item {
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    display: block;
+    color: #3a3b45;
+    text-decoration: none;
+    border-radius: 0.35rem;
+    white-space: nowrap;
+}
+
+.collapse-item:hover {
+    background-color: #eaecf4;
+}
+
+/* nav-link hover/focus 字體顏色 */
+.navbar-nav .nav-link:hover {
+    color: #ffffff;
+}
+
+/* nav-link 箭頭動畫 */
+.nav-link .arrow {
+    transition: transform 0.3s ease;
+}
+
+/* 如果 aria-expanded="true"，代表展開 → 箭頭轉下 */
+.nav-link[aria-expanded="true"] .arrow {
+    transform: rotate(90deg);
+}
+
+/* 選單打開時的動畫 */
+@keyframes growIn {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+footer.sticky-footer {
+  padding: 1.5rem 0;
+  flex-shrink: 0;
+}

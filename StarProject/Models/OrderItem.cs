@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace StarProject.Models;
+
+public partial class OrderItem
+{
+    public string OrderNo { get; set; } = null!;
+
+    public string Name { get; set; } = null!;
+
+    public string Category { get; set; } = null!;
+
+    public string Image { get; set; } = null!;
+
+    public decimal UnitPrice { get; set; }
+
+    public int Quantity { get; set; }
+
+    public decimal? Discount { get; set; }
+
+    public decimal? DiscountedPrice { get; set; }
+
+    public string? CouponCode { get; set; }
+
+    public virtual OrderMaster OrderNoNavigation { get; set; } = null!;
+}

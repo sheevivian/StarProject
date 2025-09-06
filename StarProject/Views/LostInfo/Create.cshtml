@@ -1,0 +1,96 @@
+﻿@model StarProject.ViewModel.LostInfoVM
+
+@{
+    ViewData["Title"] = "新增遺失物";
+}
+
+<head>
+    <style>
+        .btn-topbar {
+            --bs-btn-color: #000;
+            --bs-btn-bg: #FFB84C;
+            --bs-btn-border-color: #FFB84C;
+            --bs-btn-hover-color: #000;
+            --bs-btn-hover-bg: #ffca2c;
+            --bs-btn-hover-border-color: #FFB84C;
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-color: #000;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #FFB84C;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-btn-disabled-color: #000;
+            --bs-btn-disabled-bg: #ffc107;
+            --bs-btn-disabled-border-color: #ffc107;
+        }
+    </style>
+</head>
+
+<h1 class="fw-bold">新增遺失物</h1>
+<hr />
+<div class="row">
+    <div class="d-flex align-items-center gap-3">
+        <form asp-action="Create" method="post" enctype="multipart/form-data" class="col-md-5">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<div class="form-group mb-2">
+                <label asp-for="Name" class="control-label fw-bold fs-5"></label><span asp-validation-for="Name" class="text-danger ms-3"></span>
+				<input asp-for="Name" class="form-control" />
+            </div>
+            <div class="form-group mb-2">
+                <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger  ms-3"></span>
+                <select asp-for="Category" class="form-select">
+                    <option value="一般物品">一般物品</option>
+                    <option value="電子產品">電子產品</option>
+                    <option value="證件">證件</option>
+                    <option value="金融票證">金融票證</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="form-group mb-2">
+                <label asp-for="Desc" class="control-label fw-bold fs-5"></label><span asp-validation-for="Desc" class="text-danger  ms-3"></span>
+                <textarea asp-for="Desc" class="form-control" rows="10" placeholder="輸入物品描述..." style="resize: none;"></textarea>
+            </div>
+            <div class="form-group mb-2">
+                <label asp-for="ImageFile" class="control-label fw-bold fs-5"></label><span asp-validation-for="ImageFile" class="text-danger  ms-3"></span>
+                <input asp-for="ImageFile" class="form-control" type="file" onchange="previewImage(event)" />
+            </div>
+            <div class="form-group mb-2">
+                <label asp-for="Status" class="control-label fw-bold fs-5"></label><span asp-validation-for="Status" class="text-danger  ms-3"></span>
+                <select asp-for="Status" class="form-select">
+                    <option value="待領取">待領取</option>
+                    <option value="已領取">已領取</option>
+                </select>
+            </div>
+            <div class="form-group mb-2">
+                <label asp-for="FoundDate" class="control-label fs-5 fw-bold"></label><span asp-validation-for="FoundDate" class="text-danger  ms-3"></span>
+                <input asp-for="FoundDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5">
+                    <i class="fa-solid fa-plus me-2"></i>新增
+                </button>
+                <a asp-action="Index" class="btn btn-outline-danger flex-fill fw-bold fs-5">返回列表</a>
+            </div>
+        </form>
+
+        <!-- 預覽區域 -->
+        <div class="mt-2" style="width:600px; height:600px; border:1px solid #ccc; padding:4px;">
+            <img id="preview" src="#" alt="圖片預覽" style="width:600px; height:600px; display:none;" />
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const preview = document.getElementById('preview');
+            preview.src = URL.createObjectURL(file); // 建立臨時 URL
+            preview.style.display = 'block';         // 顯示圖片
+        }
+    }
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -49,12 +49,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.CreatedDate)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.OwnerName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.OwnerPhone)
-            </th>
         </tr>
     </thead>
     <tbody>
@@ -79,17 +73,68 @@
                 @Html.DisplayFor(modelItem => item.CreatedDate)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.OwnerName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OwnerPhone)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.No">編輯</a> |
-                <a asp-action="Details" asp-route-id="@item.No">詳細</a> |
-                <a asp-action="Delete" asp-route-id="@item.No">刪除</a>
+                    <!-- 按鈕觸發 Modal -->
+                    <button type="button" class="btn btn-info btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#detailsModal-@item.No">
+                        詳細內容
+                    </button>
             </td>
         </tr>
+
+      @*   <tr class="collapse" id="details-@item.No">
+            <td colspan="8">
+                <div class="p-3 border bg-light">
+                    <p><strong>建立日期:</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
+                    <p><strong>擁有者姓名:</strong> @item.OwnerName</p>
+                    <p><strong>擁有者電話:</strong> @item.OwnerPhone</p>
+                    <p><strong>描述:</strong> @item.Desc</p>
+
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@item.No" class="btn btn-sm btn-primary">編輯</a>
+                        <form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                        </form>
+                    </div>
+                </div>
+            </td>
+        </tr> *@
 }
     </tbody>
 </table>
+
+@foreach (var item in Model)
+{
+    <div class="modal fade" id="detailsModal-@item.No" tabindex="-1" aria-labelledby="detailsModalLabel-@item.No" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel-@item.No">@item.Name 詳細資料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="img-box">
+                                <img src="@item.Image" alt="圖片" />
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <p><strong>建立日期:</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
+                            <p><strong>擁有者姓名:</strong> @item.OwnerName</p>
+                            <p><strong>擁有者電話:</strong> @item.OwnerPhone</p>
+                            <p><strong>描述:</strong> @item.Desc</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary">編輯</a>
+                    <form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">刪除</button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

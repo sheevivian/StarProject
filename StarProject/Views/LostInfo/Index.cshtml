@@ -5,9 +5,20 @@
 }
 <head>
     <style>
-        .img-box {
-            width: 200px; /* 固定寬度 */
-            height: 200px; /* 固定高度 */
+        *{
+            padding:0;
+            margin:0;
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* cover = 等比縮放填滿框架，多的裁掉 */
+        }
+
+        .img550px{
+            width: 550px; /* 固定寬度 */
+            height: 550px; /* 固定高度 */
             overflow: hidden; /* 超出的部分裁掉 */
             display: flex;
             justify-content: center;
@@ -15,126 +26,189 @@
             border: 1px solid #ddd; /* 可選，看框線 */
         }
 
-        .img-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* cover = 等比縮放填滿框架，多的裁掉 */
+        .offcanvas{
+            --bs-offcanvas-width: 600px;
+            --bs-offcanvas-padding-x: 1rem;
+            --bs-offcanvas-padding-y: 0rem;
         }
+
+        .form-check-input{
+            border: var(--bs-border-width) solid gray;
+        }
+
+        .table > tbody > tr.active > td {
+            background-color: #f7f3de !important;
+        }
+
+        .search:hover {
+            background-color: #f7f3de;
+        }
+
+
     </style>
 </head>
 
-<h1 class="fw-bold">遺失物列表</h1>
+<main class="flex-fill position-relative">
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">遺失物列表</h1>
+        <a asp-action="Create" class="btn btn-success"><i class="fa-solid fa-plus"></i> 新增</a>
+    </div>
 
-<p>
-    <a asp-action="Create">新增</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Image)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FoundDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedDate)
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                    @Html.DisplayFor(modelItem => item.Category)
-            </td>
-            <td>
-                <div class="img-box"><img src="@Html.DisplayFor(modelItem => item.Image)" alt=""/></div>
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FoundDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedDate)
-            </td>
-            <td>
-                    <!-- 按鈕觸發 Modal -->
-                    <button type="button" class="btn btn-info btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#detailsModal-@item.No">
+    <div class="input-group input-group-lg mb-3">
+        <input type="text" class="form-control" aria-label="Sizing example input">
+        <button type="button" class="input-group-text search" id="" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button type="button" class="input-group-text search" id="">進階篩選</button>
+
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    <input class="form-check-input" type="checkbox" value="" id="checkAll">
+                    <label class="form-check-label" for="checkDefault">
+                        全選
+                    </label>
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Category)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Status)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.FoundDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.CreatedDate)
+                </th>
+                <th>
+                    
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+    @foreach (var item in Model) {
+            <tr>
+                <td>
+                    <input type="checkbox" class="checkbox form-check-input">
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                     @Html.DisplayFor(modelItem => item.Category)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FoundDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedDate)
+                </td>
+                <td>
+                    <button class="btn btn-info btn-sm" type="button"
+                            data-bs-toggle="offcanvas"
+                            data-bs-target="#details-@item.No"
+                            aria-controls="details-@item.No">
                         詳細內容
                     </button>
-            </td>
-        </tr>
+                </td>
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
+                    <div class="offcanvas-header">
+                        <h3 class="offcanvas-title pt-3 fw-bolder">詳細內容</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <p><div class="img550px rounded"><img src="@item.Image" alt="物品照片" class="rounded" /></div></p>
+                        <p><strong>物品名稱：</strong>@item.Name</p>
+						<p><strong>描述：</strong> @item.Desc</p>
+                        <p><strong>拾獲日期：</strong> @item.FoundDate.ToString("yyyy-MM-dd HH:mm")</p>
+                        <p><strong>發布日期：</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
+                        <hr>
+                        <p><strong>狀態：</strong> @item.Status</p>
+                        @if (item.Status == "已領取")
+                        {
+                            <p><strong>擁有者姓名：</strong> @item.OwnerName</p>
+                            <p><strong>擁有者電話：</strong> @item.OwnerPhone</p>
+                        }
+                            
+                        <div class="d-flex justify-content-end gap-2">
+                                <a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
 
-      @*   <tr class="collapse" id="details-@item.No">
-            <td colspan="8">
-                <div class="p-3 border bg-light">
-                    <p><strong>建立日期:</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
-                    <p><strong>擁有者姓名:</strong> @item.OwnerName</p>
-                    <p><strong>擁有者電話:</strong> @item.OwnerPhone</p>
-                    <p><strong>描述:</strong> @item.Desc</p>
-
-                    <div>
-                        <a asp-action="Edit" asp-route-id="@item.No" class="btn btn-sm btn-primary">編輯</a>
-                        <form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger">刪除</button>
-                        </form>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No"><i class="fa-solid fa-trash-can"></i>刪除</button>
+                                <!-- Modal -->
+                                <div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                你確定要刪除這筆資料嗎？
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                                <!-- 真正的刪除表單 -->
+                                                <form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-danger">確定刪除</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                            
                     </div>
                 </div>
-            </td>
-        </tr> *@
-}
-    </tbody>
-</table>
+            </tr>
+    }
+        </tbody>
+    </table>
+</main>
 
-@foreach (var item in Model)
-{
-    <div class="modal fade" id="detailsModal-@item.No" tabindex="-1" aria-labelledby="detailsModalLabel-@item.No" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="detailsModalLabel-@item.No">@item.Name 詳細資料</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="img-box">
-                                <img src="@item.Image" alt="圖片" />
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <p><strong>建立日期:</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
-                            <p><strong>擁有者姓名:</strong> @item.OwnerName</p>
-                            <p><strong>擁有者電話:</strong> @item.OwnerPhone</p>
-                            <p><strong>描述:</strong> @item.Desc</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary">編輯</a>
-                    <form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-danger">刪除</button>
-                    </form>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
-                </div>
-            </div>
-        </div>
-    </div>
+@section Scripts {
+    <script>
+
+        $(function (){
+
+            $('.checkbox').click(function () {
+                let checked = $(this).prop('checked')
+
+                if (checked) {
+                    $(this).closest('tr').addClass('active')
+                }
+                else{
+                    $(this).closest('tr').removeClass('active')
+                }
+
+                if($('tr.active').length == $('.checkbox').length){
+                    $('#checkAll').prop('checked', true);
+                }
+                else{
+                    $('#checkAll').prop('checked', false);
+                }
+            })
+
+            $('#checkAll').click(function () {
+                if ($(this).prop('checked')){
+                    $('.checkbox').prop('checked', true);
+                    $('tbody tr').addClass('active');
+                }
+                else{
+                    $('.checkbox').prop('checked', false);
+                    $('tbody tr').removeClass('active');
+                }
+            })
+        })
+    </script>
 }

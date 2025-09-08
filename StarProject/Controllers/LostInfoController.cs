@@ -28,24 +28,6 @@ namespace StarProject.Controllers
             return View(await _context.LostInfos.ToListAsync());
         }
 
-        // GET: LostInfo/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var lostInfo = await _context.LostInfos
-                .FirstOrDefaultAsync(m => m.No == id);
-            if (lostInfo == null)
-            {
-                return NotFound();
-            }
-
-            return View(lostInfo);
-        }
-
         // GET: LostInfo/Create
         public IActionResult Create()
         {
@@ -68,6 +50,7 @@ namespace StarProject.Controllers
 					LostInfo lost = new LostInfo
 					{
 						Name = lostInfo.Name,
+                        Category = lostInfo.Category,
 						Desc = lostInfo.Desc,
 						Status = lostInfo.Status,
 						FoundDate = lostInfo.FoundDate,
@@ -102,17 +85,39 @@ namespace StarProject.Controllers
             {
                 return NotFound();
             }
-            return View(lostInfo);
-        }
+			// 轉成 ViewModel
+			var vm = new LostInfoVM
+			{
+				No = lostInfo.No,
+				Name = lostInfo.Name,
+				Category = lostInfo.Category,
+				Desc = lostInfo.Desc,
+				Image = lostInfo.Image,
+				Status = lostInfo.Status,
+				FoundDate = lostInfo.FoundDate,
+				CreatedDate = lostInfo.CreatedDate,
+				OwnerName = lostInfo.OwnerName,
+				OwnerPhone = lostInfo.OwnerPhone
+			};
+
+			return View(vm);
+		}
 
         // POST: LostInfo/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("No,Name,Desc,Image,Status,FoundDate,CreatedDate,OwnerName,OwnerPhone")] LostInfo lostInfo)
+        public async Task<IActionResult> Edit(int id, [Bind("No,Name,Category,Desc,Image,Status,FoundDate,CreatedDate,OwnerName,OwnerPhone,ImageFile")] LostInfoVM lostInfo)
         {
-            if (id != lostInfo.No)
+			var original = await _context.LostInfos.AsNoTracking().FirstOrDefaultAsync(x => x.No == id);
+			if (original == null) return NotFound();
+
+			// 保持原本的 CreatedDate，不讓它被編輯
+			lostInfo.CreatedDate = original.CreatedDate;
+			lostInfo.Image = original.Image;
+
+			if (id != lostInfo.No)
             {
                 return NotFound();
             }
@@ -121,7 +126,30 @@ namespace StarProject.Controllers
             {
                 try
                 {
-                    _context.Update(lostInfo);
+                    if (lostInfo.ImageFile != null)
+                    {
+						lostInfo.Image = await ImgUploadHelper.UploadToImgBB(lostInfo.ImageFile);
+                    }
+                    else
+                    {
+                        lostInfo.Image = original.Image;
+					}
+
+					LostInfo lost = new LostInfo
+					{
+                        No = id,
+						Name = lostInfo.Name,
+						Category = lostInfo.Category,
+						Desc = lostInfo.Desc,
+						Status = lostInfo.Status,
+						FoundDate = lostInfo.FoundDate,
+						CreatedDate = original.CreatedDate,
+						OwnerName = lostInfo.OwnerName,
+						OwnerPhone = lostInfo.OwnerPhone,
+						Image = lostInfo.Image
+					};
+
+					_context.Update(lost);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

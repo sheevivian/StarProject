@@ -22,13 +22,30 @@
             --bs-btn-disabled-bg: #ffc107;
             --bs-btn-disabled-border-color: #ffc107;
         }
+
+        .img500px img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* cover = 等比縮放填滿框架，多的裁掉 */
+            display: none;
+        }
+
+        .img500px {
+            width: 500px; /* 固定寬度 */
+            height: 500px; /* 固定高度 */
+            overflow: hidden; /* 超出的部分裁掉 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ddd; /* 可選，看框線 */
+        }
     </style>
 </head>
 
 <h1 class="fw-bold">新增遺失物</h1>
 <hr />
 <div class="row">
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex">
         <form asp-action="Create" method="post" enctype="multipart/form-data" class="col-md-5">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 			<div class="form-group mb-2">
@@ -49,21 +66,33 @@
                 <label asp-for="Desc" class="control-label fw-bold fs-5"></label><span asp-validation-for="Desc" class="text-danger  ms-3"></span>
                 <textarea asp-for="Desc" class="form-control" rows="10" placeholder="輸入物品描述..." style="resize: none;"></textarea>
             </div>
-            <div class="form-group mb-2">
-                <label asp-for="ImageFile" class="control-label fw-bold fs-5"></label><span asp-validation-for="ImageFile" class="text-danger  ms-3"></span>
+            <div class="form-group">
+                <label asp-for="ImageFile" class="control-label fw-bold fs-5"></label><span asp-validation-for="ImageFile" class="text-danger ms-3"></span>
                 <input asp-for="ImageFile" class="form-control" type="file" onchange="previewImage(event)" />
+            </div>
+            <div class="form-group mb-2"">
+                <label asp-for="FoundDate" class="control-label fs-5 fw-bold"></label><span asp-validation-for="FoundDate" class="text-danger  ms-3"></span>
+                <input asp-for="FoundDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
             <div class="form-group mb-2">
                 <label asp-for="Status" class="control-label fw-bold fs-5"></label><span asp-validation-for="Status" class="text-danger  ms-3"></span>
-                <select asp-for="Status" class="form-select">
+                <select asp-for="Status" class="form-select" id="status">
                     <option value="待領取">待領取</option>
                     <option value="已領取">已領取</option>
                 </select>
             </div>
-            <div class="form-group mb-2">
-                <label asp-for="FoundDate" class="control-label fs-5 fw-bold"></label><span asp-validation-for="FoundDate" class="text-danger  ms-3"></span>
-                <input asp-for="FoundDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            <div id="ownerInfo" style="display:none;">
+                <div class="form-group mb-2">
+                    <label asp-for="OwnerName" class="control-label fw-bold fs-5"></label><span asp-validation-for="OwnerName" class="text-danger"></span>
+                    <input asp-for="OwnerName" class="form-control" />
+                </div>
+
+                <div class="form-group mb-2">
+                    <label asp-for="OwnerPhone" class="control-label fw-bold fs-5"></label><span asp-validation-for="OwnerPhone" class="text-danger"></span>
+                    <input asp-for="OwnerPhone" class="form-control" />
+                </div>
             </div>
+
             <div class="form-group d-flex gap-2 mt-2">
                 <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5">
                     <i class="fa-solid fa-plus me-2"></i>新增
@@ -73,10 +102,11 @@
         </form>
 
         <!-- 預覽區域 -->
-        <div class="mt-2" style="width:600px; height:600px; border:1px solid #ccc; padding:4px;">
-            <img id="preview" src="#" alt="圖片預覽" style="width:600px; height:600px; display:none;" />
+        <div class="flex-fill d-flex justify-content-center">
+            <div class="img500px mb-3">
+                <img id="preview" src="#" alt="圖片預覽"/>
+            </div>
         </div>
-
     </div>
 </div>
 
@@ -92,5 +122,38 @@
 </script>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const preview = document.getElementById('preview');
+                preview.src = URL.createObjectURL(file); // 建立臨時 URL
+                preview.style.display = 'block';         // 顯示圖片
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let statusSelect = document.getElementById("status");
+            let ownerInfo = document.getElementById("ownerInfo");
+
+            function toggleOwnerInfo() {
+                if (statusSelect.value === "已領取") {
+                    ownerInfo.style.display = "block";
+                } else {
+                    ownerInfo.style.display = "none";
+                }
+            }
+
+            // 頁面載入時執行一次
+            toggleOwnerInfo();
+
+            // 下拉選單改變時執行
+            statusSelect.addEventListener("change", toggleOwnerInfo);
+        });
+    </script>
 }

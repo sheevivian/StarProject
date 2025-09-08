@@ -20,8 +20,7 @@ namespace StarProject.MetaData
 		public string? Image { get; set; }
 
 		[Display(Name = "物品圖片")]
-		[Required(ErrorMessage = "請選擇一張照片")]
-		public IFormFile ImageFile { get; set; } = null!;
+		public IFormFile? ImageFile { get; set; }
 
 		[Display(Name = "領取狀態")]
 		[Required(ErrorMessage = "請選擇物品領取狀態")]
@@ -39,9 +38,13 @@ namespace StarProject.MetaData
 		public DateTime CreatedDate { get; set; }
 
 		[Display(Name = "領取人姓名")]
+		[RequiredIf("Status", "已領取", ErrorMessage = "領取者姓名必填")]
 		public string? OwnerName { get; set; }
 
-		[Display(Name = "領取人電話")]
+		[Display(Name = "領取人手機號碼")]
+		[RequiredIf("Status", "已領取", ErrorMessage = "領取者手機號碼必填")]
+		[StringLength(10, ErrorMessage = "請輸入正確聯絡電話")]
+		[RegularExpression(@"^09\d{8}$", ErrorMessage = "請輸入正確的台灣手機號碼，例如 0912345678")]
 		public string? OwnerPhone { get; set; }
 	}
 }

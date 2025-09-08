@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using StarProject.DTOs.UsersDTOs;
 using StarProject.Helpers;
 using StarProject.Models;
 
@@ -39,75 +40,107 @@ namespace StarProject.Controllers
 			return View(result);
 		}
 
-        // GET: Users/Details/5
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+		public async Task<IActionResult> Details(string id)
+		{
+			if (id == null)
+			{
+				return NotFound();
+			}
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(m => m.No == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
+			var user = await _context.Users
+				.FirstOrDefaultAsync(m => m.No == id);
 
-            return View(user);
-        }
-        // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+			if (user == null)
+			{
+				return NotFound();
+			}
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return View(user);
-        }
+			var dto = new UserEditDTO
+			{
+				No = user.No,
+				Account = user.Account,
+				Name = user.Name,
+				Phone = user.Phone,
+				Email = user.Email,
+				Address = user.Address,
+				Status = (UsersStatus)user.Status
+			};
 
-        // POST: Users/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("No,Account,PasswordHash,PasswordSalt,Name,Phone,Email,Address,IdNumber,Status")] User user)
-        {
-            if (id != user.No)
-            {
-                return NotFound();
-            }
+			return View(dto);
+		}
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.No))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(user);
-        }
+		public async Task<IActionResult> Edit(string id)
+		{
+			var user = await _context.Users.FindAsync(id);
+			if (user == null)
+			{
+				return NotFound();
+			}
 
-        private bool UserExists(string id)
+			var dto = new UserEditDTO
+			{
+				No = user.No,
+				Account = user.Account,
+				Name = user.Name,
+				Phone = user.Phone,
+				Email = user.Email,
+				Address = user.Address,
+				Status = (UsersStatus)user.Status
+			};
+
+			ViewData["StatusList"] = Enum.GetValues(typeof(UsersStatus))
+				.Cast<UsersStatus>()
+				.Select(s => new SelectListItem
+				{
+					Value = ((int)s).ToString(),
+					Text = s.GetDisplayName(),
+					Selected = (int)s == user.Status
+				}).ToList();
+
+			return View(dto);
+		}
+
+
+
+		// POST: Users/Edit/5
+		// To protect from overposting attacks, enable the specific properties you want to bind to.
+		// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Edit(string id, UserEditDTO dto)
+		{
+			if (id != dto.No)
+			{
+				return NotFound();
+			}
+
+			if (ModelState.IsValid)
+			{
+				var user = await _context.Users.FindAsync(id);
+				if (user == null)
+				{
+					return NotFound();
+				}
+
+				// 只更新允許的欄位
+				user.Account = dto.Account;
+				user.Name = dto.Name;
+				user.Phone = dto.Phone;
+				user.Email = dto.Email;
+				user.Address = dto.Address;
+				user.Status = (byte)dto.Status;
+
+				_context.Update(user);
+				await _context.SaveChangesAsync();
+
+				return RedirectToAction(nameof(Index));
+			}
+
+			return View(dto);
+		}
+
+
+		private bool UserExists(string id)
         {
             return _context.Users.Any(e => e.No == id);
         }

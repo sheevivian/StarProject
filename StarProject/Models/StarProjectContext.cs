@@ -486,16 +486,14 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CouponCode).HasMaxLength(50);
             entity.Property(e => e.Discount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountType).HasMaxLength(50);
             entity.Property(e => e.DiscountedPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Name).HasMaxLength(30);
             entity.Property(e => e.OrderNo)
                 .HasMaxLength(10)
                 .HasColumnName("Order_No");
+            entity.Property(e => e.Type).HasMaxLength(30);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.OrderNoNavigation).WithMany()
-                .HasForeignKey(d => d.OrderNo)
-                .HasConstraintName("FK_OrderItem_Order");
         });
 
         modelBuilder.Entity<OrderMaster>(entity =>
@@ -512,6 +510,7 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Deliveryfee).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Deliveryway).HasMaxLength(50);
             entity.Property(e => e.DiscountAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountType).HasMaxLength(50);
             entity.Property(e => e.MerchantTradeNo).HasMaxLength(50);
             entity.Property(e => e.PaymentStatus).HasMaxLength(50);
             entity.Property(e => e.Total).HasColumnType("decimal(10, 2)");
@@ -764,10 +763,15 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("PromotionRule");
 
-            entity.Property(e => e.Action).HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
-            entity.Property(e => e.Rule).HasMaxLength(255);
-            entity.Property(e => e.Scope).HasMaxLength(10);
+            entity.Property(e => e.RuleType)
+                .HasMaxLength(50)
+                .HasDefaultValue("Percentage");
+            entity.Property(e => e.TargetCategory)
+                .HasMaxLength(50)
+                .HasDefaultValue("ALL");
 
             entity.HasOne(d => d.PromotionNoNavigation).WithMany()
                 .HasForeignKey(d => d.PromotionNo)

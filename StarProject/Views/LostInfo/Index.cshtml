@@ -44,6 +44,22 @@
             background-color: #f7f3de;
         }
 
+        .table tbody tr:hover td {
+            background-color: #FFF7F4 !important;
+        }
+
+
+		.table-rounded {
+			border-radius: 20px;
+			overflow: hidden; /* 裁切 table 超出的邊框 */
+		}
+
+		.table {
+			border-collapse: separate !important; /* 取消 collapse */
+			border-spacing: 0; /* 避免格線中斷 */
+			border-radius: 20px; /* 四個角都有圓角 */
+			overflow: hidden; /* 超出的隱藏 */
+		}
 
     </style>
 </head>
@@ -54,6 +70,7 @@
         <a asp-action="Create" class="btn btn-success"><i class="fa-solid fa-plus"></i> 新增</a>
     </div>
 
+	<!-- 搜尋框 -->
     <div class="input-group input-group-lg mb-3">
         <input type="text" class="form-control" aria-label="Sizing example input">
         <button type="button" class="input-group-text search" id="" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -64,116 +81,126 @@
 
     </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>
-                    <input class="form-check-input" type="checkbox" value="" id="checkAll">
-                    <label class="form-check-label" for="checkDefault">
-                        全選
-                    </label>
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Name)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Category)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Status)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.FoundDate)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.CreatedDate)
-                </th>
-                <th>
-                    
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-    @foreach (var item in Model) {
-            <tr>
-                <td>
-                    <input type="checkbox" class="checkbox form-check-input">
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                     @Html.DisplayFor(modelItem => item.Category)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Status)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.FoundDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CreatedDate)
-                </td>
-                <td>
-                    <button class="btn btn-info btn-sm" type="button"
-                            data-bs-toggle="offcanvas"
-                            data-bs-target="#details-@item.No"
-                            aria-controls="details-@item.No">
-                        詳細內容
-                    </button>
-                </td>
-                <div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
-                    <div class="offcanvas-header">
-                        <h3 class="offcanvas-title pt-3 fw-bolder">詳細內容</h3>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-                    <div class="offcanvas-body">
-                        <p><div class="img550px rounded"><img src="@item.Image" alt="物品照片" class="rounded" /></div></p>
-                        <p><strong>物品名稱：</strong>@item.Name</p>
-						<p><strong>描述：</strong> @item.Desc</p>
-                        <p><strong>拾獲日期：</strong> @item.FoundDate.ToString("yyyy-MM-dd HH:mm")</p>
-                        <p><strong>發布日期：</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
-                        <hr>
-                        <p><strong>狀態：</strong> @item.Status</p>
-                        @if (item.Status == "已領取")
-                        {
-                            <p><strong>擁有者姓名：</strong> @item.OwnerName</p>
-                            <p><strong>擁有者電話：</strong> @item.OwnerPhone</p>
-                        }
-                            
-                        <div class="d-flex justify-content-end gap-2">
-                                <a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+	<!-- 列表 -->
+    <div class="table-rounded">
+		<table class="table">
+			<!-- 欄位 -->
+			<thead>
+				<tr>
+					<th>
+						<input class="form-check-input" type="checkbox" value="" id="checkAll">
+						<label class="form-check-label" for="checkDefault">
+							全選
+						</label>
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.Name)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.Category)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.Status)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.FoundDate)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.CreatedDate)
+					</th>
+					<th>
 
-                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No"><i class="fa-solid fa-trash-can"></i>刪除</button>
-                                <!-- Modal -->
-                                <div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                你確定要刪除這筆資料嗎？
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                                <!-- 真正的刪除表單 -->
-                                                <form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
-                                                    <button type="submit" class="btn btn-danger">確定刪除</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                        </div>
-                            
-                    </div>
-                </div>
-            </tr>
-    }
-        </tbody>
-    </table>
+					</th>
+				</tr>
+			</thead>
+
+			<!-- 內容 -->
+			<tbody>
+				@foreach (var item in Model)
+				{
+					<tr>
+						<td>
+							<input type="checkbox" class="checkbox form-check-input">
+						</td>
+						<td>
+							@Html.DisplayFor(modelItem => item.Name)
+						</td>
+						<td>
+							@Html.DisplayFor(modelItem => item.Category)
+						</td>
+						<td>
+							@Html.DisplayFor(modelItem => item.Status)
+						</td>
+						<td>
+							@Html.DisplayFor(modelItem => item.FoundDate)
+						</td>
+						<td>
+							@Html.DisplayFor(modelItem => item.CreatedDate)
+						</td>
+						<td>
+							<button class="btn btn-info btn-sm" type="button"
+									data-bs-toggle="offcanvas"
+									data-bs-target="#details-@item.No"
+									aria-controls="details-@item.No">
+								詳細內容
+							</button>
+						</td>
+
+						<!-- 詳細內容 -->
+						<div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
+							<div class="offcanvas-header">
+								<h3 class="offcanvas-title pt-3 fw-bolder">詳細內容</h3>
+								<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+							</div>
+							<div class="offcanvas-body">
+								<p><div class="img550px rounded"><img src="@item.Image" alt="物品照片" class="rounded" /></div></p>
+								<p><strong>物品名稱：</strong>@item.Name</p>
+								<p><strong>描述：</strong> @item.Desc</p>
+								<p><strong>拾獲日期：</strong> @item.FoundDate.ToString("yyyy-MM-dd HH:mm")</p>
+								<p><strong>發布日期：</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
+								<hr>
+								<p><strong>狀態：</strong> @item.Status</p>
+								@if (item.Status == "已領取")
+								{
+									<p><strong>擁有者姓名：</strong> @item.OwnerName</p>
+									<p><strong>擁有者電話：</strong> @item.OwnerPhone</p>
+								}
+
+								<div class="d-flex justify-content-end gap-2">
+									<a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+
+									<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No"><i class="fa-solid fa-trash-can"></i>刪除</button>
+									<!-- 確認刪除彈窗 -->
+									<div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
+										<div class="modal-dialog modal-dialog-centered">
+											<div class="modal-content">
+												<div class="modal-header">
+													<h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+												</div>
+												<div class="modal-body">
+													你確定要刪除這筆資料嗎？
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+													<!-- 真正的刪除表單 -->
+													<form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
+														<button type="submit" class="btn btn-danger">確定刪除</button>
+													</form>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+							</div>
+						</div>
+					</tr>
+				}
+			</tbody>
+		</table>
+    </div>
+    
 </main>
 
 @section Scripts {

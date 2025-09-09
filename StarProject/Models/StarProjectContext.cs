@@ -87,9 +87,9 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<TicCategory> TicCategories { get; set; }
 
-    public virtual DbSet<TickestStock> TickestStocks { get; set; }
-
     public virtual DbSet<Ticket> Tickets { get; set; }
+
+    public virtual DbSet<TicketStock> TicketStocks { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -247,12 +247,18 @@ public partial class StarProjectContext : DbContext
             entity.HasIndex(e => e.EmpCode, "UQ_Emps_EmpCode").IsUnique();
 
             entity.Property(e => e.No).HasMaxLength(50);
+            entity.Property(e => e.BirthDate).HasColumnType("datetime");
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
+            entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
+            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
+            entity.Property(e => e.IdNumber).HasMaxLength(50);
+            entity.Property(e => e.LastLogin).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.PasswordHash).HasMaxLength(50);
             entity.Property(e => e.PasswordSalt).HasMaxLength(50);
+            entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.RoleNo).HasColumnName("Role_No");
 
             entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
@@ -485,11 +491,13 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CouponCode).HasMaxLength(50);
             entity.Property(e => e.Discount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountType).HasMaxLength(50);
             entity.Property(e => e.DiscountedPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Name).HasMaxLength(30);
             entity.Property(e => e.OrderNo)
                 .HasMaxLength(10)
                 .HasColumnName("Order_No");
+            entity.Property(e => e.Type).HasMaxLength(30);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.OrderNoNavigation).WithMany()
@@ -511,6 +519,7 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Deliveryfee).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Deliveryway).HasMaxLength(50);
             entity.Property(e => e.DiscountAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountType).HasMaxLength(50);
             entity.Property(e => e.MerchantTradeNo).HasMaxLength(50);
             entity.Property(e => e.PaymentStatus).HasMaxLength(50);
             entity.Property(e => e.Total).HasColumnType("decimal(10, 2)");
@@ -613,7 +622,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A82EC4511E");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A860C92A06");
 
             entity.ToTable("ProCategory");
 
@@ -832,27 +841,12 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8BAD104E2");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A80970CBCD");
 
             entity.ToTable("TicCategory");
 
             entity.Property(e => e.No).HasMaxLength(6);
             entity.Property(e => e.Name).HasMaxLength(20);
-        });
-
-        modelBuilder.Entity<TickestStock>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("TickestStock");
-
-            entity.Property(e => e.Date).HasColumnType("datetime");
-            entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
-
-            entity.HasOne(d => d.TicketNoNavigation).WithMany()
-                .HasForeignKey(d => d.TicketNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Tic_No_FK");
         });
 
         modelBuilder.Entity<Ticket>(entity =>
@@ -876,6 +870,21 @@ public partial class StarProjectContext : DbContext
                 .HasForeignKey(d => d.TicCategoryNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ticket_TicCategory");
+        });
+
+        modelBuilder.Entity<TicketStock>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("TicketStock");
+
+            entity.Property(e => e.Date).HasColumnType("datetime");
+            entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
+
+            entity.HasOne(d => d.TicketNoNavigation).WithMany()
+                .HasForeignKey(d => d.TicketNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Tic_No_FK");
         });
 
         modelBuilder.Entity<User>(entity =>

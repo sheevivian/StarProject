@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NETCore.MailKit;
+using NETCore.MailKit.Core;
+using NETCore.MailKit.Extensions;
+using NETCore.MailKit.Infrastructure.Internal;
 using StarProject.Data;
 using StarProject.Models;
+using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
 
 namespace StarProject
 {
@@ -26,10 +31,17 @@ namespace StarProject
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
-            var app = builder.Build();
+			builder.Services.AddMailKit(config =>
+			{
+				config.UseMailKit(builder.Configuration.GetSection("Email").Get<MailKitOptions>());
+			});
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+
+
+			var app = builder.Build();
+
+			// Configure the HTTP request pipeline.
+			if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
             }
@@ -45,7 +57,10 @@ namespace StarProject
 
             app.UseRouting();
 
-            app.UseAuthorization();
+			app.UseAuthentication(); // 如果有 Identity 登入功能
+			app.UseAuthorization();
+
+			app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",

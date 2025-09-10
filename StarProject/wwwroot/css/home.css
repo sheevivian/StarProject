@@ -144,6 +144,10 @@ main {
 
 }
 
+.dropdown-item:hover {
+    background-color: #eaecf4;
+}
+
 /* 小鈴鐺通知樣式 */
 .badge {
     display: inline-block;

@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using NuGet.Protocol.Core.Types;
 using StarProject.Helpers;
 using StarProject.Models;
 using StarProject.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 
 namespace StarProject.Controllers
@@ -201,7 +204,59 @@ namespace StarProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool LostInfoExists(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteMultiple(int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+            {
+                return BadRequest();
+			}
+
+            var items = await _context.LostInfos.Where(x => ids.Contains(x.No)).ToListAsync();
+			
+            if (items.Any())
+			{
+				_context.LostInfos.RemoveRange(items);
+				await _context.SaveChangesAsync();
+			}
+
+			return Ok();
+		}
+
+		// POST: LostInfo/SearchSelect
+		[HttpPost]
+		public IActionResult SearchSelect([FromBody] SearchFilterVM filters)
+		{
+			var query = _context.LostInfos.AsQueryable();
+
+			// keyword
+			if (!string.IsNullOrEmpty(filters.keyword))
+			{
+				query = query.Where(x => x.Name.Contains(filters.keyword)
+									 || x.Category.Contains(filters.keyword)
+									 || x.Status.Contains(filters.keyword));
+			}
+
+			// 分類
+			if (filters.Categories != null && filters.Categories.Any())
+				query = query.Where(x => filters.Categories.Contains(x.Category));
+
+			// 狀態
+			if (filters.Statuses != null && filters.Statuses.Any())
+				query = query.Where(x => filters.Statuses.Contains(x.Status));
+
+			// 日期區間
+			if (!string.IsNullOrEmpty(filters.DateFrom))
+				query = query.Where(x => x.FoundDate >= DateTime.Parse(filters.DateFrom));
+
+			if (!string.IsNullOrEmpty(filters.DateTo))
+				query = query.Where(x => x.FoundDate <= DateTime.Parse(filters.DateTo));
+
+			return PartialView("_LostInfoRows", query.ToList());
+		}
+
+		private bool LostInfoExists(int id)
         {
             return _context.LostInfos.Any(e => e.No == id);
         }

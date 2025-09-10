@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<StarProject.Models.LostInfo>
+@Html.AntiForgeryToken()
 
 @{
     ViewData["Title"] = "遺失物列表";
@@ -36,21 +37,32 @@
             border: var(--bs-border-width) solid gray;
         }
 
-        .table > tbody > tr.active > td {
-            background-color: #f7f3de !important;
-        }
+		.table > thead > tr > th {
+            font-size:18px !important;
+			color:#FFFFFF;
+			background-color: #2B4C8C;
+			letter-spacing: 0.2rem;
+		}
+
+		.table > tbody > tr.active > td {
+			background-color: rgba(223, 245, 255, 0.521) !important;
+		}
+
+		.table > tbody > tr > td {
+			border-color: #D5D8DB !important; /* 比較深的灰 */
+		}
 
         .search:hover {
-            background-color: #f7f3de;
+            background-color: rgba(253, 246, 222, 0.897);
         }
 
         .table tbody tr:hover td {
-            background-color: #FFF7F4 !important;
+			background-color: #F4F1FF !important;
         }
 
 
 		.table-rounded {
-			border-radius: 20px;
+			border-radius: 10px;
 			overflow: hidden; /* 裁切 table 超出的邊框 */
 		}
 
@@ -59,6 +71,114 @@
 			border-spacing: 0; /* 避免格線中斷 */
 			border-radius: 20px; /* 四個角都有圓角 */
 			overflow: hidden; /* 超出的隱藏 */
+			vertical-align: middle; /* 上下置中，可選 */
+		}
+
+		.fs18px{
+			font-size:18px;
+			letter-spacing: 0.1rem;
+		}
+
+		.btn-color{
+			border: 1px solid gray;
+			/* background-color: #DCC7B0; */
+			/* color:#FFFFFF */
+			border-radius: 15px;
+		}
+
+		.btn-color:hover {
+			/* border: 1px solid black; */
+				background-color: #bbe3f3;
+			/* color:#FFFFFF */
+		}
+
+		.selectColor{
+			color: #EFF7FE;
+		}
+
+		.dropdown-toggle::after {
+			display: none;
+		}
+
+		.dropdown-item:hover {
+			background-color: #eaecf4;
+		}
+
+		.fs14px{
+			font-size:14px;
+		}
+
+		.br20px{
+			border-radius: 20px;
+		}
+
+		.btn-search {
+			--bs-btn-bg: rgb(250, 208, 72);
+			--bs-btn-border-color: rgb(250, 208, 72);
+
+			--bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+			--bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+
+			--bs-btn-focus-shadow-rgb: 217, 164, 6;
+
+			--bs-btn-active-bg: #ffcd39;
+			--bs-btn-active-border-color: #ffc720;
+			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+		}
+
+		.btn-outline-search {
+			--bs-btn-color: #ffc107;
+			--bs-btn-border-color: #ffc107;
+
+			--bs-btn-hover-color: #ffc107;
+			--bs-btn-hover-bg: rgba(253, 246, 222, 0.897);
+			--bs-btn-hover-border-color: #ffc107;
+
+			--bs-btn-focus-shadow-rgb: 255, 193, 7;
+			--bs-btn-active-color: #ffc107;
+			--bs-btn-active-border-color: #ffc107;
+			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+
+			--bs-gradient: none;
+		}
+
+		.no-btn-style {
+			padding: 6px 14px 6px 14px;
+			background-color: var(--bs-tertiary-bg); /* input-group-text 預設背景 */
+			border: 1px solid var(--bs-border-color); /* 保持邊框 */
+			border-radius: 0 0.375rem 0.375rem 0; /* 右側圓角 */
+			color: inherit;
+			box-shadow: none;
+			height: 100%; /* 對齊 input 高度 */
+		}
+
+		.filterCount {
+			display: flex; /* 使用 flex 方便垂直置中 */
+			align-items: center;
+			justify-content: center;
+			width: 24px;   /* 固定寬度 */
+			height: 24px;  /* 固定高度 */
+			font-size: 14px;
+			font-weight: 600;
+			background-color: rgb(250, 208, 72);
+			border-radius: 50%; /* 完全圓形 */
+			display: none; /* 預設隱藏，沒有篩選條件時不顯示 */
+		}
+
+		.btn-outline-delect {
+			--bs-btn-color: #DC3545;
+			--bs-btn-border-color: #DC3545;
+
+			--bs-btn-hover-color: #DC3545;
+			--bs-btn-hover-bg: #f8e6e9;
+			--bs-btn-hover-border-color: #DC3545;
+
+			--bs-btn-focus-shadow-rgb: 255, 193, 7;
+			--bs-btn-active-color: #DC3545;
+			--bs-btn-active-border-color: #DC3545;
+			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+
+			--bs-gradient: none;
 		}
 
     </style>
@@ -67,31 +187,151 @@
 <main class="flex-fill position-relative">
     <div class="d-flex align-items-center mb-3">
         <h1 class="fw-bold flex-grow-1 mb-0">遺失物列表</h1>
-        <a asp-action="Create" class="btn btn-success"><i class="fa-solid fa-plus"></i> 新增</a>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
     </div>
 
+	<!-- CSRF Token -->
+	<form id="deleteForm">
+		@Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+	</form>
+	
 	<!-- 搜尋框 -->
-    <div class="input-group input-group-lg mb-3">
-        <input type="text" class="form-control" aria-label="Sizing example input">
-        <button type="button" class="input-group-text search" id="" data-bs-toggle="tooltip" data-bs-placement="bottom"
+    <div class="input-group input-group-lg">
+		<input id="searchInput" type="text" class="form-control" aria-label="Sizing example input">
+		<button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
                 data-bs-title="搜尋" data-bs-trigger="hover">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
-        <button type="button" class="input-group-text search" id="">進階篩選</button>
+		<div class="dropdown">
+				<button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+					<i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+					   data-bs-title="進階篩選" data-bs-trigger="hover"></i>
 
-    </div>
+					<!-- Counter - Alerts -->
+					<span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+				</button>
+
+				
+
+			<ul class="dropdown-menu p-2" style="width:180px">
+				<li>
+					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+						- 物品分類
+					</button>
+				</li>
+
+				<!-- Collapse 內容 -->
+				<li>
+					<div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+						<div class="p-2">
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="一般物品" id="cat1">
+								<label class="form-check-label" for="cat1">
+									一般物品
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="電子產品" id="cat2">
+								<label class="form-check-label" for="cat2">
+									電子產品
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="證件" id="cat3">
+								<label class="form-check-label" for="cat3">
+									證件
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="金融票證" id="cat4">
+								<label class="form-check-label" for="cat4">
+									金融票證
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="其他" id="cat5">
+								<label class="form-check-label" for="cat5">
+									其他
+								</label>
+							</div>
+						</div>
+					</div>
+				</li>
+
+				<li>
+					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
+						- 領取狀態
+					</button>
+				</li>
+
+				<!-- Collapse 內容 -->
+				<li>
+					<div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
+						<div class="p-2">
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="待領取" id="status1">
+								<label class="form-check-label" for="status1">
+									待領取
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="已領取" id="status1">
+								<label class="form-check-label" for="status1">
+									已領取
+								</label>
+							</div>
+						</div>
+					</div>
+				</li>
+
+				<li>
+					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
+						- 拾獲日期
+					</button>
+				</li>
+
+				<li>
+					<div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+						<div class="p-2">
+							<div class="mb-2">
+								<label for="dateFrom" class="form-label">起始日期</label>
+								<input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+							</div>
+							<div>
+								<label for="dateTo" class="form-label">結束日期</label>
+								<input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+							</div>
+						</div>
+					</div>
+				</li>
+		
+				<li><hr class="dropdown-divider"></li>
+
+				<li class="d-flex gap-1">
+					<button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+						完成
+					</button>
+					<button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+						清除
+					</button>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="mt-1 text-end me-2" style="display:none" id="selectedFiltersDiv">
+		<span id="selectedFiltersText" class="text-secondary"></span>
+	</div>
 
 	<!-- 列表 -->
-    <div class="table-rounded">
+	<div class="table-rounded position-relative mt-3">
 		<table class="table">
 			<!-- 欄位 -->
 			<thead>
 				<tr>
-					<th>
-						<input class="form-check-input" type="checkbox" value="" id="checkAll">
-						<label class="form-check-label" for="checkDefault">
-							全選
-						</label>
+					<th style="width:50px">
+						<input class="form-check-input ms-4" type="checkbox" value="" id="checkAll" data-bs-toggle="tooltip" data-bs-placement="bottom"
+							   data-bs-title="全選" data-bs-trigger="hover">
 					</th>
 					<th>
 						@Html.DisplayNameFor(model => model.Name)
@@ -108,19 +348,19 @@
 					<th>
 						@Html.DisplayNameFor(model => model.CreatedDate)
 					</th>
-					<th>
-
+					<th style="width:116px">
+						
 					</th>
 				</tr>
 			</thead>
 
 			<!-- 內容 -->
-			<tbody>
+			<tbody id="tableBody">
 				@foreach (var item in Model)
 				{
 					<tr>
-						<td>
-							<input type="checkbox" class="checkbox form-check-input">
+						<td style="width:50px">
+							<input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No">
 						</td>
 						<td>
 							@Html.DisplayFor(modelItem => item.Name)
@@ -137,8 +377,8 @@
 						<td>
 							@Html.DisplayFor(modelItem => item.CreatedDate)
 						</td>
-						<td>
-							<button class="btn btn-info btn-sm" type="button"
+						<td style="width:116px;text-align: center;">
+							<button class="btn btn-color btn-sm " type="button"
 									data-bs-toggle="offcanvas"
 									data-bs-target="#details-@item.No"
 									aria-controls="details-@item.No">
@@ -148,12 +388,39 @@
 
 						<!-- 詳細內容 -->
 						<div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
-							<div class="offcanvas-header">
-								<h3 class="offcanvas-title pt-3 fw-bolder">詳細內容</h3>
-								<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+							<div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
+								<h3 class="offcanvas-title fw-bolder">詳細內容</h3>
+								<div class="d-flex justify-content-end align-items-center gap-2">
+									<a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+
+									<button type="button" class="btn btn-outline-delect br20px" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No"><i class="fa-solid fa-trash-can"></i>刪除</button>
+									<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
+								</div>	
+
+								<!-- 確認刪除彈窗 -->
+								<div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
+									<div class="modal-dialog modal-dialog-centered">
+										<div class="modal-content">
+											<div class="modal-header">
+												<h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
+												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+											</div>
+											<div class="modal-body">
+												確定要刪除這筆資料嗎？
+											</div>
+											<div class="modal-footer">
+												<!-- 真正的刪除表單 -->
+												<form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
+													<button type="submit" class="btn btn-outline-delect br20px">確定刪除</button>
+												</form>
+												<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+											</div>
+										</div>
+									</div>
+								</div>	
 							</div>
 							<div class="offcanvas-body">
-								<p><div class="img550px rounded"><img src="@item.Image" alt="物品照片" class="rounded" /></div></p>
+								<div class="img550px rounded mb-3"><img src="@item.Image" alt="物品照片" class="rounded" /></div>
 								<p><strong>物品名稱：</strong>@item.Name</p>
 								<p><strong>描述：</strong> @item.Desc</p>
 								<p><strong>拾獲日期：</strong> @item.FoundDate.ToString("yyyy-MM-dd HH:mm")</p>
@@ -165,40 +432,38 @@
 									<p><strong>擁有者姓名：</strong> @item.OwnerName</p>
 									<p><strong>擁有者電話：</strong> @item.OwnerPhone</p>
 								}
-
-								<div class="d-flex justify-content-end gap-2">
-									<a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
-
-									<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No"><i class="fa-solid fa-trash-can"></i>刪除</button>
-									<!-- 確認刪除彈窗 -->
-									<div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
-										<div class="modal-dialog modal-dialog-centered">
-											<div class="modal-content">
-												<div class="modal-header">
-													<h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
-													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-												</div>
-												<div class="modal-body">
-													你確定要刪除這筆資料嗎？
-												</div>
-												<div class="modal-footer">
-													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-													<!-- 真正的刪除表單 -->
-													<form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
-														<button type="submit" class="btn btn-danger">確定刪除</button>
-													</form>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-
 							</div>
 						</div>
 					</tr>
 				}
 			</tbody>
 		</table>
+		<div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center selectColor">
+			<span id="selectNum" style="display:none" class="fw-bold fs18px me-2">已選取0項</span>
+			<!-- 觸發按鈕 -->
+			<button type="button" class="btn p-0 selectColor fs18px" id="delectAll" data-bs-toggle="modal" data-bs-target="#deleteAllModal" style="display:none">
+				<i class="fa-solid fa-trash-can"></i>
+			</button>
+		</div>
+
+		<!-- Modal -->
+			<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							確定要刪除已選取的所有項目嗎？
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定刪除</button>
+							<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+			</div>
     </div>
     
 </main>
@@ -208,34 +473,235 @@
 
         $(function (){
 
-            $('.checkbox').click(function () {
-                let checked = $(this).prop('checked')
+			// checkbox 勾選
+			$(document).on('click', '.checkbox', function () {
+				let checked = $(this).prop('checked');
 
-                if (checked) {
-                    $(this).closest('tr').addClass('active')
-                }
-                else{
-                    $(this).closest('tr').removeClass('active')
-                }
+				let count = $('.checkbox:checked').length;
 
-                if($('tr.active').length == $('.checkbox').length){
-                    $('#checkAll').prop('checked', true);
-                }
-                else{
-                    $('#checkAll').prop('checked', false);
-                }
-            })
+				if (count > 0) {
+					$('#delectAll, #selectNum').show();
+					$('#selectNum').text(`已選取${count}項`);
+				} else {
+					$('#delectAll, #selectNum').hide();
+				}
 
+				if (checked) {
+					$(this).closest('tr').addClass('active');
+				} else {
+					$(this).closest('tr').removeClass('active');
+				}
+
+				$('#checkAll').prop('checked', $('.checkbox').length === $('.checkbox:checked').length);
+			});
+
+			// 全選
             $('#checkAll').click(function () {
+
                 if ($(this).prop('checked')){
                     $('.checkbox').prop('checked', true);
                     $('tbody tr').addClass('active');
+					$('#delectAll, #selectNum').show();
+
+					// 計算勾選數量
+					let count = $('.checkbox:checked').length;
+
+					if (count > 0)
+					{
+						$('#selectNum').text(`已選取${count}項`);
+					}
                 }
                 else{
                     $('.checkbox').prop('checked', false);
                     $('tbody tr').removeClass('active');
+					$('#delectAll, #selectNum').hide();
                 }
             })
-        })
+
+			// 批次刪除
+			$('#delectAllYes').click(function(){
+				// 收集所有勾選的 checkbox 的 value (假設 value 存 id)
+				let ids = $('.checkbox:checked').map(function () {
+					return $(this).val();
+				}).get();
+
+				if (ids.length === 0) return; // 沒有選擇不動作
+
+				// ✅ 取得 CSRF token
+				var token = $('input[name="__RequestVerificationToken"]').val();
+
+				$.ajax({
+					url: '/LostInfo/DeleteMultiple', // 後端批次刪除 Action
+					type: 'POST',
+					data: {
+						__RequestVerificationToken: token, // CSRF 驗證
+						ids: ids // 傳 id 陣列
+					},
+					traditional: true, // 陣列傳送格式
+					success: function(){
+						$('.checkbox:checked').closest('tr').remove();
+						$('#delectAll, #selectNum').hide();
+						$('#checkAll').prop('checked', false);
+					},
+					error: function () {
+						alert("刪除失敗！");
+					}
+				});
+			})
+
+			var baseAddress = "https://localhost:7111";
+
+			// 點搜尋按鈕
+			$('#btnSearch').on("click", ()=> {
+			// 讀取目前進階條件
+				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
+				let dateFrom = $("#dateFrom").val();
+				let dateTo = $("#dateTo").val();
+
+				let filters = { categories, statuses, dateFrom, dateTo };
+
+				searchData(filters);
+				updateSelectedFilters()
+			});
+
+			// 也可以輸入框 keyup 即時觸發
+			$('#searchInput').on("keyup", ()=> { 
+				//讀取目前進階條件
+				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
+				let dateFrom = $("#dateFrom").val();
+				let dateTo = $("#dateTo").val();
+
+				let filters = { categories, statuses, dateFrom, dateTo };
+
+				searchData(filters);
+				updateSelectedFilters()
+			});
+
+			$('#filterFinsh').click(function(){
+				updateFilterCount();
+				updateSelectedFilters()
+				//讀取目前進階條件
+				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
+				let dateFrom = $("#dateFrom").val();
+				let dateTo = $("#dateTo").val();
+
+				let filters = { categories, statuses, dateFrom, dateTo };
+
+				searchData(filters);
+
+				// 找到最接近的 dropdown-toggle
+				var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
+
+				// 取得 bootstrap dropdown instance
+				var dropdown = bootstrap.Dropdown.getInstance(toggleBtn);
+
+				// 沒有的話就新建
+				if (!dropdown) dropdown = new bootstrap.Dropdown(toggleBtn);
+
+				// 呼叫官方的 hide 方法來關閉
+				dropdown.hide();
+			});
+
+
+			// 清除按鈕
+			document.querySelector(".btn-outline-search").addEventListener("click", function () {
+				document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+				document.getElementById("dateFrom").value = "";
+				document.getElementById("dateTo").value = "";
+				updateSelectedFilters();
+				updateFilterCount()
+				searchData();
+			});
+
+			// 日期區間邏輯
+			const dateFrom = document.getElementById("dateFrom");
+			const dateTo   = document.getElementById("dateTo");
+
+			dateFrom.addEventListener("change", () => {
+				if(dateFrom.value){
+					dateTo.min = dateFrom.value; // 動態限制
+					if(dateTo.value && dateTo.value < dateFrom.value){
+						dateTo.value = ""; // 自動清空不合法日期
+					}
+				} else {
+					dateTo.min = ""; // 移除限制
+				}
+			});
+			
+			// 搜尋功能
+			async function searchData(filters = {}) {
+				try {
+					var keyword = $('#searchInput').val();
+					filters.keyword = keyword; // 把 keyword 加入 filters
+
+					let response = await fetch(`${baseAddress}/LostInfo/SearchSelect`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(filters)
+					});
+
+					if (response.ok) {
+						let html = await response.text();
+						$("#tableBody").html(html);
+					}
+				} catch(err) {
+					alert("搜尋失敗: " + err.message);
+				}
+			}
+
+			// 更新篩選顯示文字
+			function updateSelectedFilters() {
+				let selected = [];
+
+				// 物品分類
+				let categories = $("#collapseCategory input:checked").map(function(){ return $(this).next("label").text(); }).get();
+				if(categories.length) selected.push("<strong>分類：</strong>" + categories.join(", "));
+
+				// 領取狀態
+				let statuses = $("#collapseStatus input:checked").map(function(){ return $(this).next("label").text(); }).get();
+				if(statuses.length) selected.push("<strong>狀態：</strong>" + statuses.join(", "));
+
+				// 日期區間
+				let from = $("#dateFrom").val();
+				let to   = $("#dateTo").val();
+				if(from || to) selected.push("<strong>日期：</strong>" + (from?from:"不限") + " ~ " + (to?to:"不限"));
+
+				// 顯示或隱藏 div
+				if(selected.length){
+					$("#selectedFiltersDiv").show();
+					$("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
+				} else {
+					$("#selectedFiltersDiv").hide();
+					$("#selectedFiltersText").html("");
+				}
+			}
+
+			function updateFilterCount() {
+				let count = 0;
+
+				// 物品分類
+				if($("#collapseCategory input:checked").length > 0) count++;
+
+				// 領取狀態
+				if($("#collapseStatus input:checked").length > 0) count++;
+
+				// 拾獲日期 (任意一個日期不空算1)
+				if($("#dateFrom").val() || $("#dateTo").val()) count++;
+
+				// 更新右上角 tooltip
+				if(count > 0){
+					$("#filterCount").show();
+					$("#filterCount").text(`${count}`);
+				} else {
+					$("#filterCount").hide();
+				}
+			}
+
+
+		});
+		
     </script>
 }

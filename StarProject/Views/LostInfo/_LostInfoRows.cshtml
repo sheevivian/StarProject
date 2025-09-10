@@ -1,0 +1,83 @@
+﻿@model IEnumerable<StarProject.Models.LostInfo>
+
+@foreach (var item in Model)
+{
+	<tr>
+		<td style="width:50px">
+			<input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No">
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.Name)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.Category)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.Status)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.FoundDate)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.CreatedDate)
+		</td>
+		<td style="width:116px;text-align: center;">
+			<button class="btn btn-color btn-sm " type="button"
+					data-bs-toggle="offcanvas"
+					data-bs-target="#details-@item.No"
+					aria-controls="details-@item.No">
+				詳細內容
+			</button>
+		</td>
+
+		<!-- 詳細內容 -->
+		<div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
+			<div class="offcanvas-header">
+				<h3 class="offcanvas-title pt-3 fw-bolder">詳細內容</h3>
+				<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+			</div>
+			<div class="offcanvas-body">
+				<p><div class="img550px rounded"><img src="@item.Image" alt="物品照片" class="rounded" /></div></p>
+				<p><strong>物品名稱：</strong>@item.Name</p>
+				<p><strong>描述：</strong> @item.Desc</p>
+				<p><strong>拾獲日期：</strong> @item.FoundDate.ToString("yyyy-MM-dd HH:mm")</p>
+				<p><strong>發布日期：</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
+				<hr>
+				<p><strong>狀態：</strong> @item.Status</p>
+				@if (item.Status == "已領取")
+				{
+					<p><strong>擁有者姓名：</strong> @item.OwnerName</p>
+					<p><strong>擁有者電話：</strong> @item.OwnerPhone</p>
+				}
+
+				<div class="d-flex justify-content-end gap-2">
+					<a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+
+					<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No"><i class="fa-solid fa-trash-can"></i>刪除</button>
+					<!-- 確認刪除彈窗 -->
+					<div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
+						<div class="modal-dialog modal-dialog-centered">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								</div>
+								<div class="modal-body">
+									你確定要刪除這筆資料嗎？
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+									<!-- 真正的刪除表單 -->
+									<form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
+										<button type="submit" class="btn btn-danger">確定刪除</button>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</tr>
+}

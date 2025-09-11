@@ -3,75 +3,298 @@
 @{
     ViewData["Title"] = "Edit";
 }
+<head>
+    <style>
+        .avatar-object-fit {
+            width: 200px;
+            overflow: hidden;
+            > img{
+            display: block;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            }
+        }
+
+        .del-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            color: #fff;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 30px; /* 控制 icon 大小 */
+            transition: color 0.2s ease; /* 滑鼠移過去會有漸變 */
+        }
+
+        .del-btn:hover {
+                color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
 
 <h1>Edit</h1>
 
 <h4>商品資料</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-10 col-lg-8 m-5">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="text" asp-for="Product.No" />
-            <div class="form-group">
-                <label asp-for="Product.Name" class="control-label"></label>
-                <input asp-for="Product.Name" class="form-control" />
-                <span asp-validation-for="Product.Name" class="text-danger"></span>
+            <div class="form-group d-flex align-items-center mb-3 row">
+                <div class="col-4 col-lg-2">
+                    <label asp-for="Product.No" class="control-label"></label>
+                </div>
+                <div class="col-8 col-lg-10">
+                    <input asp-for="Product.No" readonly class="form-control-plaintext" />
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Product.ProCategoryNo" class="control-label"></label>
-                <select asp-for="Product.ProCategoryNo" class="form-control" asp-items="ViewBag.ProCategoryNo"></select>
-                <span asp-validation-for="Product.ProCategoryNo" class="text-danger"></span>
+            <div class="form-group d-flex align-items-center mb-3 row">
+                <div class="col-4 col-lg-2">
+                    <label asp-for="Product.Name" class="control-label"></label>
+                </div>
+                <div class="col-8 col-lg-10">
+                    <input asp-for="Product.Name" class="form-control" />
+                    <span asp-validation-for="Product.Name" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Product.Price" class="control-label"></label>
-                <input asp-for="Product.Price" class="form-control" />
-                <span asp-validation-for="Product.Price" class="text-danger"></span>
+            <div class="form-group d-flex align-items-center mb-3 row">
+                <div class="col-4 col-lg-2">
+                    <label asp-for="Product.ProCategoryNoNavigation.Name" class="control-label"></label>
+                </div>
+                <div class="col-8 col-lg-10">
+                    <select asp-for="Product.ProCategoryNo" class="form-select" asp-items="ViewBag.ProCategoryName"></select>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Product.Status" class="control-label"></label>
-                <input asp-for="Product.Status" class="form-control" />
-                <span asp-validation-for="Product.Status" class="text-danger"></span>
+            <div class="form-group d-flex align-items-center mb-3 row">
+                <div class="col-4 col-lg-2">
+                    <label asp-for="Product.Price" class="control-label"></label>
+                </div>
+                <div class="col-8 col-lg-10">
+                    <input asp-for="Product.Price" class="form-control" />
+                    <span asp-validation-for="Product.Price" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Product.ReleaseDate" class="control-label"></label>
-                <input asp-for="Product.ReleaseDate" class="form-control" />
-                <span asp-validation-for="Product.ReleaseDate" class="text-danger"></span>
+            <div class="form-group d-flex align-items-center mb-3 row">
+                <div class="col-4 col-lg-2">
+                    <label asp-for="Product.Status" class="control-label"></label>
+                </div>
+                <div class="col-8 col-lg-10">
+                    <select asp-for="Product.Status" class="form-select" asp-items="ViewBag.StatusList"></select>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Product.UpdateDate" class="control-label"></label>
-                <input asp-for="Product.UpdateDate" class="form-control" />
-                <span asp-validation-for="Product.UpdateDate" class="text-danger"></span>
+            <div class="form-group d-flex align-items-center mb-3 row">
+                <div class="col-4 col-lg-2">
+                    <label asp-for="Product.ReleaseDate" class="control-label"></label>
+                </div>
+                <div class="col-8 col-lg-10">
+                    <input asp-for="Product.ReleaseDate" class="form-control" />
+                    <span asp-validation-for="Product.ReleaseDate" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="form-group d-flex justify-content-end">
+                <input type="submit" value="保存修改" class="btn btn-primary" />
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-<div>
-    <a asp-action="ImgEdit" asp-route-id="@Model.Product.No">編輯圖片</a>
 </div>
 
 <h4>編輯圖片</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="ImgEdit" method="post" enctype="multipart/form-data">
-            @for (int i = 0; i < Model.ProImages.Count; i++)
-            {
-                <input type="file" asp-for="ProImages[i].Image" />
-                <input asp-for="ProImages[i].ImgOrder" />
-            }
-            <button type="submit">更新圖片</button>
+    <div class="col-10 col-lg-8 m-5">
+        <div id="imgContainer" style="display:flex; gap:5px; flex-wrap:wrap;">
+                @if (Model.ProImages != null && Model.ProImages.Any())
+                {
+                    int index = 0;
+                    foreach (var img in Model.ProImages)
+                    {
+                        <div>
+                            <div style="position: relative; width: 200px; height: 200px; margin: 2px">
+                                <img src="@img.Image" class="w-100 h-100" style="object-fit: cover; border: 1px solid #ccc; padding: 2px" />
+                            <button class="del-btn" data-imgid="@img.No">
+                                    <i class="fa-solid fa-square-xmark"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center" style="margin: 2px">
+                                <label class="p-0" style="width: 80px">圖片順序:</label>
+                                <input type="number" name="ImageOrders[@index]" min="1" max="5" style="width: 60px" value="@img.ImgOrder" />
+                            </div>
+                        </div>
+                        index++;
+                    }
+                }
+
+        </div>
+        <form asp-controller="Product" asp-action="ImgUpload" id="ImgEdit" method="post" enctype="multipart/form-data">
+            <!-- 補hidden，讓binder知道ProImages存在 -->
+            <input type="hidden" asp-for="Product.No" />
+            <input type="hidden" asp-for="ProImage.ProductNo" value="@Model.Product.No" />
+            <div id="previewContainer" style="display:flex; gap:5px; flex-wrap:wrap;">
+                <!-- 縮圖動態生成 -->
+            </div>
+
+            <div class="input-group mt-3">
+                <!-- 真正的input隱藏 -->
+                <input type="file" asp-for="ImageFiles" id="ImageFiles" class="d-none" accept="image" multiple />
+                <!-- 自訂的觸發按鈕 -->
+                <label for="ImageFiles" class="align-self-center btn btn-secondary rounded-start">選擇圖片</label>
+                <!-- 顯示已選幾張 -->
+                <label id="fileCount" class="align-self-center text-muted border border-1" style="padding: 6px 0 6px 12px; width: 300px;">尚未選擇圖片</label>
+                <!-- 上傳按鈕 -->
+                <button type="submit" class="align-self-center btn btn-primary btnUpload">上傳圖片</button>
+            </div>
         </form>
     </div>
-</div>
+</div> 
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+    $(document).ready(function() {
+        $(document).on('click', '.del-btn', function(e) {
+            e.preventDefault(); // 防止預設行為
+
+            var btn = $(this);                // 取得按鈕本身
+            var imgId = btn.data('imgid');    // 取得 data-imgid 屬性值
+            // console.log('要刪除的圖片ID:', imgId);
+
+            // 1. 前端移除該圖片區塊
+            btn.closest('div').parent().remove();
+            // closest('div') → <div style="position: relative...">
+            // parent() → 外層包裹的 <div>，整個區塊一起移除
+
+            // 2. 如果要呼叫後端刪除，可以用 AJAX
+            /* $.ajax({
+                url: '/Product/DeleteImage', // 後端 Controller action
+                type: 'POST',
+                data: { id: imgId },
+                success: function(response) {
+                    alert('刪除成功');
+                },
+                error: function(err) {
+                    alert('刪除失敗');
+                }
+            }); */
+    });
+
+
+        const maxFiles = 5;
+        let fileList = [];
+
+        // 當選擇檔案時
+        $("#ImageFiles").on("change", function () {
+            const files = Array.from(this.files);
+
+            files.forEach(file => {
+                if (!file.type.match("image.*")) return;
+                if (fileList.length < maxFiles) {
+                    fileList.push(file);
+                }
+        });
+
+            // 清空 input → 避免選相同檔案時無法觸發 change
+            $(this).val("");
+
+            updateFileCount();
+            refreshPreview();
+        });
+
+        $("#ImgEdit").on("submit", function (e) {
+            e.preventDefault(); // 先擋掉預設送出
+
+            const formData = new FormData(this); // 把原本表單的 hidden 等資料先加進來
+
+            fileList.forEach(file => {
+                formData.append("ImageFiles", file); // 後端接收欄位要對應
+            });
+
+            $.ajax({
+                url: "/Product/ImgUpload",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    alert("上傳成功！");
+                    fileList = []; // 清空暫存
+                    updateFileCount();
+                    refreshPreview();
+                }
+            });
+        });
+
+        function updateFileCount() {
+            if (fileList.length === 0) {
+                $("#fileCount").text("尚未選擇圖片");
+            } else {
+                $("#fileCount").text("已選 " + fileList.length + " 張圖片");
+            }
+        }
+
+        function refreshPreview() {
+            const previewContainer = $("#previewContainer");
+            previewContainer.empty();
+
+            fileList.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const card = $("<div>");
+
+                    const wrapper = $("<div>").css({
+                        position: "relative",
+                        width: "200px",
+                        height: "200px",
+                        margin: "2px"
+                    });
+
+                    const img = $("<img>")
+                         .attr("src", e.target.result)
+                         .attr("title", file.name)
+                         .css({ width: "100%", height: "100%", objectFit: "cover", border: "1px solid #ccc", padding: "2px" });
+                    
+                    const order = $("<div>")
+                         .addClass("d-flex justify-content-end align-items-center")
+                         .css({ margin: "2px" })
+                    
+                    const label = $("<label>")
+                          .attr({ id: 'ProImages.ImgOrder' })
+                          .text("圖片順序:")
+                          .addClass("p-0")
+                          .css({ width: "80px" })
+
+                    const input = $('<input>')
+                          .attr({ type: 'number', id: 'ProImages.ImgOrder', name: `ImageOrders[${index}]`, min: 1, max: maxFiles })
+                          .addClass("form-control")
+                          .css({ width: "60px" })
+                          .val(index + 1); // 預設 1..N
+
+                    const delBtn = $("<button>")
+                        .html(`<i class="fa-solid fa-square-xmark"></i>`)
+                        .addClass("del-btn")
+                        .on("click", function() {
+                            fileList.splice(index, 1);
+                            refreshPreview();
+                            updateFileCount();
+                        });
+
+                    wrapper.append(img).append(delBtn);
+                    order.append(label).append(input);
+                    card.append(wrapper).append(order);
+                    previewContainer.append(card);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            $(".btnUpload").prop("disabled", fileList.length === 0);
+        }
+
+
+    });
+</script>

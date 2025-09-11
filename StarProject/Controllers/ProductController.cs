@@ -6,6 +6,7 @@ using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
+using StarProject.Helpers;
 using StarProject.Models;
 using StarProject.ViewModels;
 using System;
@@ -25,6 +26,7 @@ namespace StarProject.Controllers
             _context = context;
         }
 
+		// 商品查詢+頁數
         // GET: Product
         [HttpGet]
 		public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
@@ -123,8 +125,9 @@ namespace StarProject.Controllers
 			return View(proModel);
 		}
 
-		[HttpGet]
+		// 新品上架-多筆(GET)
 		// GET: Product/DownloadTemplate
+		[HttpGet]
 		public IActionResult DownloadTemplate()
 		{
 			var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "exceltemps","ProductTemplate.xlsx");
@@ -187,12 +190,14 @@ namespace StarProject.Controllers
 			return RedirectToAction("Index");
 		}
 
-
+		// 編輯商品(GET)
 		// GET: Product/Edit/5
 		[HttpGet]
 		public IActionResult Edit(int id)
         {
-            var product = _context.Products.FirstOrDefault(p => p.No == id);
+            var product = _context.Products
+								  .Include(p => p.ProCategoryNoNavigation)
+								  .FirstOrDefault(p => p.No == id);
 			var images = _context.ProductImages
 					 .Where(i => i.ProductNo == id)
 					 .OrderBy(i => i.ImgOrder)
@@ -203,96 +208,55 @@ namespace StarProject.Controllers
 				Product = product,
 				ProImages = images
 			};
+
+			ViewData["ProCategoryName"] = new SelectList(_context.ProCategories, "No", "Name", product.ProCategoryNo);
+			ViewBag.StatusList = new SelectList(
+				new List<SelectListItem>
+				{
+					new SelectListItem { Value = "上架", Text = "上架" },
+					new SelectListItem { Value = "預購", Text = "預購" },
+				},
+				"Value", "Text", product.Status);
 			return View(vm); // 同一個 View
 		}
 
-        // POST: Product/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("No,Name,ProCategoryNo,Price,Status,ReleaseDate,UpdateDate")] Product product)
-        {
-            if (id != product.No)
-            {
-                return NotFound();
-            }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProductExists(product.No))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["ProCategoryNo"] = new SelectList(_context.ProCategories, "No", "No", product.ProCategoryNo);
-            return View(product);
-        }
-
-		// GET: Product/ImgEdit/5
-		[HttpGet]
-		public async Task<IActionResult> ImgEdit(int? id)
-		{
-			if (id == null)
-			{
-				return NotFound();
-			}
-
-			var product = await _context.Products.FindAsync(id);
-			if (product == null)
-			{
-				return NotFound();
-			}
-			return View(product);
-		}
-
-		// POST: Product/ImgEdit/5
-		// To protect from overposting attacks, enable the specific properties you want to bind to.
-		// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+		// 上傳照片(POST)
+		// POST: Product/ImgUpload
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> ImgEdit(int id, [Bind("ProductNo,Image,ImgOrder")] ProductImage proImg)
+		public async Task<IActionResult> ImgUpload(ProductEditViewModel proEditVM)
 		{
-			if (id != proImg.ProductNoNavigation.No)
+			if (proEditVM.ImageFiles == null)
 			{
-				return NotFound();
+				ModelState.AddModelError("", "請選擇要上傳的圖片");
+				return View(proEditVM); // 記得 return，不然會繼續往下跑
 			}
 
-			if (ModelState.IsValid)
+			// 確保ProImage不為null
+			if (proEditVM.ProImage == null)
 			{
-				try
-				{
-					_context.Update(proImg);
-					await _context.SaveChangesAsync();
-				}
-				catch (DbUpdateConcurrencyException)
-				{
-					if (!ProductExists(proImg.ProductNoNavigation.No))
-					{
-						return NotFound();
-					}
-					else
-					{
-						throw;
-					}
-				}
-				return RedirectToAction(nameof(Index));
+				proEditVM.ProImage = new ProductImage();
 			}
 
-			return View(proImg);
+			for (int i = 0; i < proEditVM.ImageFiles.Count; i++)
+			{
+				var file = proEditVM.ImageFiles[i];
+				var imgUrl = await ImgUploadHelper.UploadToImgBB(file);
+
+				var proImg = new ProductImage
+				{
+					ProductNo = proEditVM.Product.No,
+					Image = imgUrl,
+					ImgOrder = proEditVM.ImageOrders?[i] ?? i + 1
+				};
+
+				_context.ProductImages.Add(proImg);
+				await _context.SaveChangesAsync();
+			}
+	
+
+			return RedirectToAction(nameof(Edit), new { id = proEditVM.ProImage.ProductNo });
 		}
 
 

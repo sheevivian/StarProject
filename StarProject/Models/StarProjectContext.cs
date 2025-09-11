@@ -608,7 +608,8 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A89B3124B9");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A805A98C87");
+
 
             entity.ToTable("ProCategory");
 
@@ -666,13 +667,13 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductImage>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("ProductImage");
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("ProductImage");
 
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
 
-            entity.HasOne(d => d.ProductNoNavigation).WithMany()
+            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Img_ProNo_FK");
@@ -832,7 +833,8 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8C7CED72D");
+
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8512CE165");
 
             entity.ToTable("TicCategory");
 

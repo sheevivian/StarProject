@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using StarProject.Models;
 using NETCore.MailKit.Core;
+using StarProject.Models;
 using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,7 @@ namespace StarProject.Controllers
 		}
 
 		// GET: Emps/Create
+		[Authorize(Roles = "HR_Manager")]
 		public IActionResult Create()
 		{
 			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName");

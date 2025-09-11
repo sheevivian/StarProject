@@ -1,66 +1,199 @@
 ﻿@model IEnumerable<StarProject.Models.Event>
-
 @{
     ViewData["Title"] = "活動列表";
 }
+@Html.AntiForgeryToken()
+
 <head>
     <style>
-        *{
-            padding:0;
-            margin:0;
+        * {
+            padding: 0;
+            margin: 0;
         }
 
         img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* cover = 等比縮放填滿框架，多的裁掉 */
+            object-fit: cover;
         }
 
         .img550px {
-            max-width: 320px; /* 最寬 320px */
-            border: 1px solid #ddd; /* 可選，看框線 */
+            width: 550px;
+            height: 550px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ddd;
         }
 
-            .img550px img {
-                width: 100%; /* 圖片寬度撐滿容器 */
-                height: auto; /* 高度自動，保持比例 */
-                display: block;
-            }
-
-        .offcanvas{
+        .offcanvas {
             --bs-offcanvas-width: 600px;
             --bs-offcanvas-padding-x: 1rem;
             --bs-offcanvas-padding-y: 0rem;
         }
 
-        .form-check-input{
+        .form-check-input {
             border: var(--bs-border-width) solid gray;
         }
 
+        .table > thead > tr > th {
+            font-size: 18px !important;
+            color: #fff;
+            background-color: #2B4C8C;
+            letter-spacing: .2rem;
+        }
+
         .table > tbody > tr.active > td {
-            background-color: #f7f3de !important;
+            background-color: rgba(223,245,255,.52) !important;
+        }
+
+        .table > tbody > tr > td {
+            border-color: #D5D8DB !important;
         }
 
         .search:hover {
-            background-color: #f7f3de;
+            background-color: rgba(253,246,222,.897);
         }
 
         .table tbody tr:hover td {
-            background-color: #FFF7F4 !important;
+            background-color: #F4F1FF !important;
         }
 
+        .table-rounded {
+            border-radius: 20px;
+            overflow: hidden;
+        }
 
-		.table-rounded {
-			border-radius: 20px;
-			overflow: hidden; /* 裁切 table 超出的邊框 */
-		}
+        .table {
+            border-collapse: separate !important;
+            border-spacing: 0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
 
-		.table {
-			border-collapse: separate !important; /* 取消 collapse */
-			border-spacing: 0; /* 避免格線中斷 */
-			border-radius: 20px; /* 四個角都有圓角 */
-			overflow: hidden; /* 超出的隱藏 */
-		}
+        .btn-color {
+            border: 1px solid gray;
+            border-radius: 15px;
+        }
+
+            .btn-color:hover {
+                background-color: #bbe3f3;
+            }
+
+        .dropdown-toggle::after {
+            display: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: #eaecf4;
+        }
+
+        .no-btn-style {
+            padding: 6px 14px;
+            background-color: var(--bs-tertiary-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: 0 .375rem .375rem 0;
+            color: inherit;
+            box-shadow: none;
+            height: 100%;
+        }
+
+        .filterCount {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: rgb(250,208,72);
+            border-radius: 50%;
+            display: none;
+        }
+
+        .btn-search {
+            --bs-btn-bg: rgb(250,208,72);
+            --bs-btn-border-color: rgb(250,208,72);
+            --bs-btn-hover-bg: rgba(250,208,72,.692);
+            --bs-btn-hover-border-color: rgba(250,208,72,.692);
+            --bs-btn-focus-shadow-rgb: 217,164,6;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #ffc720;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+        }
+
+        .btn-outline-search {
+            --bs-btn-color: #ffc107;
+            --bs-btn-border-color: #ffc107;
+            --bs-btn-hover-color: #ffc107;
+            --bs-btn-hover-bg: rgba(253,246,222,.897);
+            --bs-btn-hover-border-color: #ffc107;
+            --bs-btn-active-color: #ffc107;
+            --bs-btn-active-border-color: #ffc107;
+            --bs-gradient: none;
+        }
+
+        .btn-outline-delect {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-gradient: none;
+        }
+
+        /* 縮圖小卡（列表欄位用） */
+        .thumb {
+            width: 64px;
+            height: 64px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+            .thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+        /* 縮圖滑過時顯示較大的預覽 */
+        .thumbnail-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .thumb-img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+            cursor: zoom-in;
+        }
+
+        /* 大圖預覽：預設隱藏 */
+        .preview-img {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 72px; /* 大圖顯示在縮圖右側，可依需要調整 */
+            width: 220px; /* 大圖寬度，可調整 */
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fff;
+            padding: 2px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.15);
+            z-index: 1000;
+        }
+
+        .thumbnail-container:hover .preview-img {
+            display: block;
+        }
 
     </style>
 </head>
@@ -68,200 +201,309 @@
 <main class="flex-fill position-relative">
     <div class="d-flex align-items-center mb-3">
         <h1 class="fw-bold flex-grow-1 mb-0">活動列表</h1>
-        <a asp-action="Create" class="btn btn-success"><i class="fa-solid fa-plus"></i> 新增</a>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
     </div>
 
-	<!-- 搜尋框 -->
-    <div class="input-group input-group-lg mb-3">
-        <input type="text" class="form-control" aria-label="Sizing example input">
-        <button type="button" class="input-group-text search" id="" data-bs-toggle="tooltip" data-bs-placement="bottom"
+    <!-- CSRF Token（批次刪除用） -->
+    <form id="deleteForm">@Html.AntiForgeryToken()</form>
+
+    <!-- 搜尋 + 進階篩選 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" placeholder="關鍵字（活動名稱、種類、地點、狀態 ）">
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
                 data-bs-title="搜尋" data-bs-trigger="hover">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
-        <button type="button" class="input-group-text search" id="">進階篩選</button>
 
+        <div class="dropdown">
+            <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative"
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+                <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">0</span>
+            </button>
+
+            <ul class="dropdown-menu p-2" style="width:220px">
+                <!-- 活動種類 -->
+                <li>
+                    <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory">
+                        - 活動種類
+                    </button>
+                </li>
+                <li>
+                    <div class="collapse mb-2 ps-3" id="collapseCategory">
+                        <div class="p-2">
+                            @* 你也可以改成從資料庫 Distinct 載入 *@
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="星學課程" id="cat1"><label class="form-check-label" for="cat1">星學課程</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="星知講座" id="cat2"><label class="form-check-label" for="cat2">星知講座</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="星境營隊" id="cat3"><label class="form-check-label" for="cat3">星境營隊</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="星樂工作坊" id="cat4"><label class="form-check-label" for="cat4">星樂工作坊</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="星動旅程" id="cat5"><label class="form-check-label" for="cat5">星動旅程</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="星趣親子時光" id="cat6"><label class="form-check-label" for="cat6">星趣親子時光</label></div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- 狀態 -->
+                <li>
+                    <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus">
+                        - 目前狀態
+                    </button>
+                </li>
+                <li>
+                    <div class="collapse mb-2 ps-3" id="collapseStatus">
+                        <div class="p-2">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="報名中" id="status1"><label class="form-check-label" for="status1">報名中</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="已額滿" id="status2"><label class="form-check-label" for="status2">已額滿</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="已結束" id="status3"><label class="form-check-label" for="status3">已結束</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="已取消" id="status4"><label class="form-check-label" for="status4">已取消</label></div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- 日期區間（開始時間） -->
+                <li>
+                    <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
+                        - 開始日期
+                    </button>
+                </li>
+                <li>
+                    <div class="collapse mb-2 ps-1" id="collapseDate">
+                        <div class="p-2">
+                            <div class="mb-2">
+                                <label for="dateFrom" class="form-label">起始日期</label>
+                                <input type="date" id="dateFrom" class="form-control">
+                            </div>
+                            <div>
+                                <label for="dateTo" class="form-label">結束日期</label>
+                                <input type="date" id="dateTo" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- 地點 -->
+                <li>
+                    <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseLocation">
+                        - 活動地點
+                    </button>
+                </li>
+                <li>
+                    <div class="collapse mb-2 ps-3" id="collapseLocation">
+                        <div class="p-2">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="第一演講室" id="loc1"><label class="form-check-label" for="loc1">第一演講室</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="第二演講室" id="loc2"><label class="form-check-label" for="loc2">第二演講室</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="屋頂天文台" id="loc3"><label class="form-check-label" for="loc3">屋頂天文台</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="戶外廣場" id="loc4"><label class="form-check-label" for="loc4">戶外廣場</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="多功能教室" id="loc5"><label class="form-check-label" for="loc5">多功能教室</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="天文館" id="loc6"><label class="form-check-label" for="loc6">天文館</label></div>
+                        </div>
+                    </div>
+                </li>
+
+                <li><hr class="dropdown-divider"></li>
+                <li class="d-flex gap-1">
+                    <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">完成</button>
+                    <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search" id="btnClear">清除</button>
+                </li>
+            </ul>
+        </div>
     </div>
 
-	<!-- 列表 -->
-    <div class="table-rounded">
-		<table class="table">
-			<!-- 欄位 -->
+    <div class="mt-1 text-end me-2" style="display:none" id="selectedFiltersDiv">
+        <span id="selectedFiltersText" class="text-secondary"></span>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table-rounded position-relative mt-3">
+        <table class="table">
             <thead>
-				<tr>
-					<th>
-						<input class="form-check-input" type="checkbox" value="" id="checkAll">
-						<label class="form-check-label" for="checkDefault">
-							全選
-						</label>
+                <tr>
+                    <th style="width:50px">
+                        <input class="form-check-input ms-4" type="checkbox" id="checkAll" data-bs-toggle="tooltip" data-bs-title="全選">
                     </th>
-                    <th>活動圖片</th>
+                    <th>圖片</th>
                     <th>活動名稱</th>
                     <th>活動種類</th>
                     <th>目前狀態</th>
                     <th>開始時間</th>
                     <th>活動地點</th>
                     <th>活動費用</th>
-                    <th></th>
+                    <th style="width:116px"></th>
                 </tr>
             </thead>
+            <tbody id="tableBody">
+                @Html.Partial("_EventRows", Model)
+            </tbody>
+        </table>
 
-			<!-- 內容 -->
-			<tbody>
-				@foreach (var item in Model)
-				{
-					<tr>
-						<td>
-							<input type="checkbox" class="checkbox form-check-input">
-						</td>
-                        <td style="width:64px;">
-                            <div style="width:64px;height:64px;overflow:hidden;border-radius:8px;">
-                                <img src="@(string.IsNullOrWhiteSpace(item.Image) ? "/img/logo.png" : item.Image)"
-                                     alt="@item.Title"
-                                     width="64" height="64"
-                                     style="width:100%;height:100%;object-fit:cover;display:block"
-                                     loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-                            </div>
-                        </td>
-						<td>
-							@Html.DisplayFor(modelItem => item.Title)
-						</td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Category)
-                        </td>
-						<td>
-							@Html.DisplayFor(modelItem => item.Status)
-						</td>
-						<td>
-                            @Html.DisplayFor(modelItem => item.StartDate)
-						</td>
-						<td>
-                            @Html.DisplayFor(modelItem => item.Location)
-						</td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Fee)
-                        </td>
-						<td>
-							<button class="btn btn-info btn-sm" type="button"
-									data-bs-toggle="offcanvas"
-									data-bs-target="#details-@item.No"
-									aria-controls="details-@item.No">
-								詳細內容
-							</button>
-						</td>
+        <!-- 右上角 批次刪除 -->
+        <div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center">
+            <span id="selectNum" style="display:none" class="text-white fw-bold me-2">已選取0項</span>
+            <button type="button" class="btn p-0 fs-5" id="deleteAllBtn" data-bs-toggle="modal" data-bs-target="#deleteAllModal" style="display:none">
+                <i class="fa-solid fa-trash-can text-danger"></i>
+            </button>
+        </div>
 
-						<!-- 詳細內容 -->
-						<div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
-							<div class="offcanvas-header">
-    <h3 class="offcanvas-title pt-3 fw-bolder mb-0">詳細內容</h3>
-
-    <!-- 右側按鈕群組：編輯、刪除、關閉 -->
-    <div class="d-flex align-items-center gap-2 ms-auto">
-        <a asp-action="Edit"
-           asp-route-id="@item.No"
-           class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-pen-to-square me-1"></i>編輯
-        </a>
-
-        <button type="button"
-                class="btn btn-danger btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#deleteModal-@item.No">
-            <i class="fa-solid fa-trash-can me-1"></i>刪除
-        </button>
-
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"></button>
+        <!-- 批次刪除 Modal -->
+        <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">確定要刪除已選取的所有活動嗎？</div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-delect br20px" id="deleteAllYes" data-bs-dismiss="modal">確定刪除</button>
+                        <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-							<div class="offcanvas-body">
-								<p><div class="img550px rounded"><img src="@item.Image" alt="活動圖片" class="rounded" /></div></p>
-                                <p><strong>活動編號：</strong>@item.No</p>
-                                <p><strong>活動名稱：</strong>@item.Title</p>
-                                <p><strong>活動種類：</strong>@item.Category</p>
-                                <p><strong>活動地點：</strong>@item.Location</p>
-                                <p><strong>人數上限：</strong>@item.MaxParticipants</p>
-                                <p><strong>目前狀態：</strong>@item.Status</p>
-                                <hr>
-								<p><strong>開始時間：</strong> @item.StartDate.ToString("yyyy-MM-dd HH:mm")</p>
-                                <p><strong>結束時間：</strong> @item.EndDate?.ToString("yyyy-MM-dd HH:mm")</p>
-                                <p><strong>建立日期：</strong> @item.CreatedTime.ToString("yyyy-MM-dd HH:mm")</p>
-                                <p><strong>最後更新日期：</strong> @item.UpdatedTime.ToString("yyyy-MM-dd HH:mm")</p>
-                                <hr>
-								<p><strong>活動費用：</strong> @item.Fee</p>
-                                <p><strong>預定訂金：</strong>@item.Deposit</p>
-								<p><strong>活動說明：</strong> @item.Desc</p>
-
-								<div class="d-flex justify-content-end gap-2">
-									
-									<!-- 確認刪除彈窗 -->
-									<div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
-										<div class="modal-dialog modal-dialog-centered">
-											<div class="modal-content">
-												<div class="modal-header">
-													<h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
-													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-												</div>
-												<div class="modal-body">
-													你確定要刪除這筆資料嗎？
-												</div>
-												<div class="modal-footer">
-													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-													<!-- 真正的刪除表單 -->
-													<form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
-														<button type="submit" class="btn btn-danger">確定刪除</button>
-													</form>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-
-							</div>
-						</div>
-					</tr>
-				}
-			</tbody>
-		</table>
-    </div>
-    
 </main>
 
 @section Scripts {
     <script>
+        $(function () {
 
-        $(function (){
+            // 工具
+            const getToken = () => $('input[name="__RequestVerificationToken"]').val();
+            const baseAddress = ""; // 若需要絕對路徑可填，例如 "https://localhost:7111"
 
-            $('.checkbox').click(function () {
-                let checked = $(this).prop('checked')
+            // 勾選/全選
+            $(document).on('click', '.checkbox', function () {
+                const checked = $(this).prop('checked');
+                $(this).closest('tr').toggleClass('active', checked);
 
-                if (checked) {
-                    $(this).closest('tr').addClass('active')
-                }
-                else{
-                    $(this).closest('tr').removeClass('active')
-                }
+                const count = $('.checkbox:checked').length;
+                $('#deleteAllBtn, #selectNum').toggle(count > 0);
+                $('#selectNum').text(`已選取${count}項`);
 
-                if($('tr.active').length == $('.checkbox').length){
-                    $('#checkAll').prop('checked', true);
-                }
-                else{
-                    $('#checkAll').prop('checked', false);
-                }
-            })
+                $('#checkAll').prop('checked', $('.checkbox').length === count);
+            });
 
             $('#checkAll').click(function () {
-                if ($(this).prop('checked')){
-                    $('.checkbox').prop('checked', true);
-                    $('tbody tr').addClass('active');
+                const all = $(this).prop('checked');
+                $('.checkbox').prop('checked', all);
+                $('tbody tr').toggleClass('active', all);
+                const count = $('.checkbox:checked').length;
+                $('#deleteAllBtn, #selectNum').toggle(count > 0);
+                if (count) $('#selectNum').text(`已選取${count}項`);
+            });
+
+            // 批次刪除
+            $('#deleteAllYes').click(async function(){
+                const ids = $('.checkbox:checked').map(function(){ return $(this).val(); }).get();
+                if(ids.length === 0) return;
+
+                try{
+                    await $.ajax({
+                        url: baseAddress + '/Events/DeleteMultiple',
+                        type:'POST',
+                        data: { __RequestVerificationToken: getToken(), ids: ids },
+                        traditional: true
+                    });
+                    // 從畫面移除
+                    $('.checkbox:checked').closest('tr').remove();
+                    $('#deleteAllBtn, #selectNum').hide();
+                    $('#checkAll').prop('checked', false);
+                }catch(err){
+                    alert('刪除失敗！');
                 }
-                else{
-                    $('.checkbox').prop('checked', false);
-                    $('tbody tr').removeClass('active');
+            });
+
+            // 日期區間限制
+            const dateFrom = $('#dateFrom'), dateTo = $('#dateTo');
+            dateFrom.on('change', () => {
+                if(dateFrom.val()){
+                    dateTo.attr('min', dateFrom.val());
+                    if(dateTo.val() && dateTo.val() < dateFrom.val()) dateTo.val('');
+                }else{
+                    dateTo.attr('min','');
                 }
-            })
-        })
+            });
+
+            // 進階篩選：完成
+            $('#filterFinsh').click(function(){
+                updateFilterCount();
+                updateSelectedFilters();
+                doSearch();
+                const toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
+                let dd = bootstrap.Dropdown.getInstance(toggleBtn);
+                if(!dd) dd = new bootstrap.Dropdown(toggleBtn);
+                dd.hide();
+            });
+
+            // 清除
+            $('#btnClear').click(function(){
+                $('input[type=checkbox]').prop('checked', false);
+                $('#dateFrom').val(''); $('#dateTo').val('');
+                updateFilterCount(); updateSelectedFilters();
+                doSearch();
+            });
+
+            // 搜尋按鈕 / 即時輸入
+            $('#btnSearch').on('click', doSearch);
+            $('#searchInput').on('keyup', doSearch);
+
+            function collectFilters(){
+                const categories = [...document.querySelectorAll('#collapseCategory input:checked')].map(i=>i.value);
+                const statuses   = [...document.querySelectorAll('#collapseStatus input:checked')].map(i=>i.value);
+                const locations  = [...document.querySelectorAll('#collapseLocation input:checked')].map(i=>i.value);
+                const dateFromV  = $('#dateFrom').val();
+                const dateToV    = $('#dateTo').val();
+                const keyword    = $('#searchInput').val();
+                return { categories, statuses, locations, dateFrom: dateFromV, dateTo: dateToV, keyword };
+            }
+
+            async function doSearch(){
+                const filters = collectFilters();
+                try{
+                    const resp = await fetch(baseAddress + '/Events/SearchSelect', {
+                        method: 'POST',
+                        headers: { 'Content-Type':'application/json', 'RequestVerificationToken': getToken() },
+                        body: JSON.stringify(filters)
+                    });
+                    if(resp.ok){
+                        const html = await resp.text();
+                        $('#tableBody').html(html);
+                        // 重置全選
+                        $('#checkAll').prop('checked', false);
+                        $('#deleteAllBtn, #selectNum').hide();
+                    }
+                }catch(err){
+                    alert('搜尋失敗：' + err.message);
+                }
+            }
+
+            function updateSelectedFilters(){
+                const selected = [];
+                const catText = $("#collapseCategory input:checked").map(function(){ return $(this).next('label').text(); }).get();
+                if(catText.length) selected.push("<strong>種類：</strong>" + catText.join(", "));
+                const stText  = $("#collapseStatus input:checked").map(function(){ return $(this).next('label').text(); }).get();
+                if(stText.length) selected.push("<strong>狀態：</strong>" + stText.join(", "));
+                const locText = $("#collapseLocation input:checked").map(function(){ return $(this).next('label').text(); }).get();
+                if(locText.length) selected.push("<strong>地點：</strong>" + locText.join(", "));
+                const from = $('#dateFrom').val(), to = $('#dateTo').val();
+                if(from || to) selected.push("<strong>日期：</strong>" + (from||"不限") + " ~ " + (to||"不限"));
+
+                if(selected.length){
+                    $("#selectedFiltersDiv").show();
+                    $("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
+                }else{
+                    $("#selectedFiltersDiv").hide().empty();
+                }
+            }
+
+            function updateFilterCount(){
+                let count = 0;
+                if($("#collapseCategory input:checked").length>0) count++;
+                if($("#collapseStatus input:checked").length>0) count++;
+                if($("#collapseLocation input:checked").length>0) count++;
+                if($('#dateFrom').val() || $('#dateTo').val()) count++;
+                if(count>0){ $("#filterCount").show().text(count); } else { $("#filterCount").hide(); }
+            }
+        });
     </script>
 }
-

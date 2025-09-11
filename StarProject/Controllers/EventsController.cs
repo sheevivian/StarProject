@@ -408,5 +408,78 @@ namespace StarProject.Controllers
 		//	//// 下載 CSV
 		//	//return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", "Participants.csv");
 		//}
+
+		// =================== 列表搜尋篩選 (SearchSelect) ==================
+		[HttpPost]
+		[ValidateAntiForgeryToken] // 前端用 @Html.AntiForgeryToken() 產生
+		public async Task<IActionResult> SearchSelect([FromBody] EventSearchFilter filter)
+		{
+			// 可選：容錯
+			filter ??= new EventSearchFilter();
+
+			var q = _context.Events.AsQueryable();
+
+			// 關鍵字（名稱/種類/地點/說明）
+			if (!string.IsNullOrWhiteSpace(filter.Keyword))
+			{
+				var kw = filter.Keyword.Trim();
+				q = q.Where(e =>
+					e.Title.Contains(kw) ||
+					e.Category.Contains(kw) ||
+					e.Location.Contains(kw) ||
+					(e.Desc != null && e.Desc.Contains(kw)));
+			}
+
+			// 種類
+			if (filter.Categories?.Any() == true)
+				q = q.Where(e => filter.Categories.Contains(e.Category));
+
+			// 狀態
+			if (filter.Statuses?.Any() == true)
+				q = q.Where(e => filter.Statuses.Contains(e.Status));
+
+			// 地點
+			if (filter.Locations?.Any() == true)
+				q = q.Where(e => filter.Locations.Contains(e.Location));
+
+			// 開始日期區間
+			if (DateTime.TryParse(filter.DateFrom, out var from))
+				q = q.Where(e => e.StartDate >= from);
+			if (DateTime.TryParse(filter.DateTo, out var to))
+			{
+				// 若你希望包含當天最後一秒：
+				to = to.Date.AddDays(1).AddTicks(-1);
+				q = q.Where(e => e.StartDate <= to);
+			}
+
+			var list = await q.OrderByDescending(e => e.StartDate).ToListAsync();
+			return PartialView("_EventRows", list);
+		}
+
+		public class EventSearchFilter
+		{
+			public string? Keyword { get; set; }
+			public List<string>? Categories { get; set; }
+			public List<string>? Statuses { get; set; }
+			public List<string>? Locations { get; set; }
+			public string? DateFrom { get; set; } // yyyy-MM-dd
+			public string? DateTo { get; set; }   // yyyy-MM-dd
+		}
+
+		// =================== 列表批次刪除 (DeleteMultiple) ==================
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteMultiple([FromForm] int[] ids)
+		{
+			if (ids == null || ids.Length == 0) return Ok();
+			var events = await _context.Events.Where(e => ids.Contains(e.No)).ToListAsync();
+			if (events.Any())
+			{
+				_context.Events.RemoveRange(events);
+				await _context.SaveChangesAsync();
+			}
+			return Ok();
+		}
+
 	}
 }

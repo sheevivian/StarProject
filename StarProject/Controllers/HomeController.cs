@@ -1,12 +1,10 @@
-using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using StarProject.Models;
-using System.Diagnostics;
 
 namespace StarProject.Controllers
 {
-	
-	public class HomeController : Controller
+    public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
 
@@ -15,8 +13,7 @@ namespace StarProject.Controllers
             _logger = logger;
         }
 
-		
-		public IActionResult Index()
+        public IActionResult Index()
         {
             return View();
         }

@@ -10,4 +10,6 @@ public partial class TickestStock
     public DateTime Date { get; set; }
 
     public int Stock { get; set; }
+
+    public virtual Ticket TicketNoNavigation { get; set; } = null!;
 }

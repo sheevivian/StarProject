@@ -87,8 +87,6 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<TicCategory> TicCategories { get; set; }
 
-    public virtual DbSet<TickestStock> TickestStocks { get; set; }
-
     public virtual DbSet<Ticket> Tickets { get; set; }
 
     public virtual DbSet<TicketStock> TicketStocks { get; set; }
@@ -624,7 +622,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A86C97313E");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A860C92A06");
 
             entity.ToTable("ProCategory");
 
@@ -774,15 +772,10 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("PromotionRule");
 
-            entity.Property(e => e.Description).HasMaxLength(200);
-            entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Action).HasMaxLength(255);
             entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
-            entity.Property(e => e.RuleType)
-                .HasMaxLength(50)
-                .HasDefaultValue("Percentage");
-            entity.Property(e => e.TargetCategory)
-                .HasMaxLength(50)
-                .HasDefaultValue("ALL");
+            entity.Property(e => e.Rule).HasMaxLength(255);
+            entity.Property(e => e.Scope).HasMaxLength(10);
 
             entity.HasOne(d => d.PromotionNoNavigation).WithMany()
                 .HasForeignKey(d => d.PromotionNo)
@@ -848,22 +841,12 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A805940E5D");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A80970CBCD");
 
             entity.ToTable("TicCategory");
 
             entity.Property(e => e.No).HasMaxLength(6);
             entity.Property(e => e.Name).HasMaxLength(20);
-        });
-
-        modelBuilder.Entity<TickestStock>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("TickestStock");
-
-            entity.Property(e => e.Date).HasColumnType("datetime");
-            entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
         });
 
         modelBuilder.Entity<Ticket>(entity =>

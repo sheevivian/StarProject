@@ -20,8 +20,10 @@
             position: absolute;
             top: 2px;
             right: 2px;
-            color: #fff;
+            color: rgba(255, 255, 255);
+            margin-right: 4px;
             background: transparent;
+            text-shadow: rgba(220, 220, 220, 0.8) 1px 1px 5px;
             border: none;
             cursor: pointer;
             font-size: 30px; /* 控制 icon 大小 */
@@ -29,7 +31,7 @@
         }
 
         .del-btn:hover {
-                color: rgba(255, 255, 255, 0.8);
+                color: rgb(240, 240, 240);
         }
     </style>
 </head>
@@ -105,27 +107,7 @@
 <div class="row">
     <div class="col-10 col-lg-8 m-5">
         <div id="imgContainer" style="display:flex; gap:5px; flex-wrap:wrap;">
-                @if (Model.ProImages != null && Model.ProImages.Any())
-                {
-                    int index = 0;
-                    foreach (var img in Model.ProImages)
-                    {
-                        <div>
-                            <div style="position: relative; width: 200px; height: 200px; margin: 2px">
-                                <img src="@img.Image" class="w-100 h-100" style="object-fit: cover; border: 1px solid #ccc; padding: 2px" />
-                            <button class="del-btn" data-imgid="@img.No">
-                                    <i class="fa-solid fa-square-xmark"></i>
-                                </button>
-                            </div>
-                            <div class="d-flex justify-content-end align-items-center" style="margin: 2px">
-                                <label class="p-0" style="width: 80px">圖片順序:</label>
-                                <input type="number" name="ImageOrders[@index]" min="1" max="5" style="width: 60px" value="@img.ImgOrder" />
-                            </div>
-                        </div>
-                        index++;
-                    }
-                }
-
+            <partial name="_PicturePartial" id="_PicturePartial" />
         </div>
         <form asp-controller="Product" asp-action="ImgUpload" id="ImgEdit" method="post" enctype="multipart/form-data">
             <!-- 補hidden，讓binder知道ProImages存在 -->
@@ -146,6 +128,7 @@
                 <button type="submit" class="align-self-center btn btn-primary btnUpload">上傳圖片</button>
             </div>
         </form>
+        <button id="img-btn-save" class="btn btn-primary">保存修改</button>
     </div>
 </div> 
 
@@ -158,37 +141,57 @@
 
 <script>
     $(document).ready(function() {
-        $(document).on('click', '.del-btn', function(e) {
-            e.preventDefault(); // 防止預設行為
+        // $(document).on('click', '.del-btn-uped', function() {
+        //     e.preventDefault(); 防止預設行為
 
-            var btn = $(this);                // 取得按鈕本身
-            var imgId = btn.data('imgid');    // 取得 data-imgid 屬性值
-            // console.log('要刪除的圖片ID:', imgId);
+        //     const imgId = $(this).data("imgid");    取得 data-imgid 屬性值
+        //     const productNo = $(this).data("productno");
+        //     const imgId = $(this).closest('.imgdiv').data("imgid")
 
-            // 1. 前端移除該圖片區塊
-            btn.closest('div').parent().remove();
-            // closest('div') → <div style="position: relative...">
-            // parent() → 外層包裹的 <div>，整個區塊一起移除
+        //     1. 前端移除該圖片區塊
+        //     $(this).closest('.imgdiv').remove();
+        //     closest('div') → <div style="position: relative...">
+        //     parent() → 外層包裹的 <div>，整個區塊一起移除
 
-            // 2. 如果要呼叫後端刪除，可以用 AJAX
-            /* $.ajax({
-                url: '/Product/DeleteImage', // 後端 Controller action
-                type: 'POST',
-                data: { id: imgId },
-                success: function(response) {
-                    alert('刪除成功');
-                },
-                error: function(err) {
-                    alert('刪除失敗');
-                }
-            }); */
-    });
 
+
+        //     2. 如果要呼叫後端刪除，可以用 AJAX
+        //      $.ajax({
+        //         url: '/Product/GetImgId', 後端 Controller action
+        //         type: 'POST',
+        //         data: { id: imgId }
+        //     }); 
+        // });
+
+        
+        // $('#img-btn-save').on('click', function(){
+
+        //     const imgData = [];
+
+        //     $('#imgContainer .imgdiv').each(function () {
+        //         const id = $(this).data('imgid');
+        //         const order = parseInt($(this).find('.img-order').val()) || 0;
+        //         imgData.push({ id, order });
+        //     });
+        //     $.ajax({
+        //         url: '/Product/ImgSave', 後端 Controller action
+        //         type: 'POST',
+        //         contentType: 'application/json',
+        //         data: JSON.stringify(imgData),
+        //         success: function(res) {
+        //             $("#imgContainer").html(res); 更新圖片區塊
+        //             alert('修改成功！');
+        //         },
+        //         error: function(err) {
+        //             alert('修改失敗！');
+        //         }
+        //     });
+        // })
 
         const maxFiles = 5;
         let fileList = [];
 
-        // 當選擇檔案時
+        // 選擇檔案的文字條
         $("#ImageFiles").on("change", function () {
             const files = Array.from(this.files);
 
@@ -206,6 +209,7 @@
             refreshPreview();
         });
 
+        // 檔案上傳後更新前端頁面
         $("#ImgEdit").on("submit", function (e) {
             e.preventDefault(); // 先擋掉預設送出
 
@@ -214,7 +218,6 @@
             fileList.forEach(file => {
                 formData.append("ImageFiles", file); // 後端接收欄位要對應
             });
-
             $.ajax({
                 url: "/Product/ImgUpload",
                 type: "POST",
@@ -222,10 +225,17 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
+                    // res = 後端回傳的 Partial HTML
+                    $("#imgContainer").html(res); // 更新圖片區塊
+
+                    // 清空暫存、更新畫面
                     alert("上傳成功！");
-                    fileList = []; // 清空暫存
+                    fileList = [];
                     updateFileCount();
                     refreshPreview();
+                },
+                error: function (err) {
+                    alert("上傳失敗：" + err.responseText);
                 }
             });
         });
@@ -292,7 +302,7 @@
                 reader.readAsDataURL(file);
             });
 
-            $(".btnUpload").prop("disabled", fileList.length === 0);
+            // $(".btnUpload").prop("disabled", fileList.length === 0);
         }
 
 

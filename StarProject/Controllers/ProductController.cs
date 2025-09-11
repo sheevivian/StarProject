@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Build.Graph;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
@@ -220,7 +221,6 @@ namespace StarProject.Controllers
 			return View(vm); // 同一個 View
 		}
 
-
 		// 上傳照片(POST)
 		// POST: Product/ImgUpload
 		[HttpPost]
@@ -254,11 +254,100 @@ namespace StarProject.Controllers
 				_context.ProductImages.Add(proImg);
 				await _context.SaveChangesAsync();
 			}
-	
 
-			return RedirectToAction(nameof(Edit), new { id = proEditVM.ProImage.ProductNo });
+			var images = _context.ProductImages
+				.Where(i => i.ProductNo == proEditVM.Product.No)
+				.OrderBy(i => i.ImgOrder)
+				.ToList();
+
+			var vm = new ProductEditViewModel
+			{
+				Product = proEditVM.Product,
+				ProImage = new ProductImage { ProductNo = proEditVM.Product.No },
+				ProImages = images
+			};
+
+			return PartialView("_PicturePartial", vm);
+			// return RedirectToAction(nameof(Edit), new { id = proEditVM.ProImage.ProductNo });
 		}
 
+		// 刪除照片(POST)
+		// POST: Product/ImgDelete
+		[HttpPost]
+		public IActionResult ImgDelete(int id, int productNo)
+		{
+			var img = _context.ProductImages.FirstOrDefault(x => x.No == id);
+			if (img != null)
+			{
+				_context.ProductImages.Remove(img);
+				_context.SaveChanges();
+			}
+
+			// 刪除後重新撈圖片
+			var images = _context.ProductImages
+				.Where(i => i.ProductNo == productNo)
+				.OrderBy(i => i.ImgOrder)
+				.ToList();
+
+			var vm = new ProductEditViewModel
+			{
+				Product = _context.Products.FirstOrDefault(p => p.No == productNo),
+				ProImage = new ProductImage { ProductNo = productNo },
+				ProImages = images
+			};
+
+			return PartialView("_PicturePartial", vm);
+		}
+
+		// 取得照片序號(GET)
+		[HttpGet]
+		public int GetImgId(int id) {
+			return id;
+		}
+
+		public class ImgOrderDto
+		{
+			public int id { get; set; }
+			public int order { get; set; }
+		}
+
+		// 更新照片區(POST)
+		[HttpPost]
+		public async Task<IActionResult> ImgSave([FromBody] List<ImgOrderDto> imgOrders)
+		{
+			if (imgOrders == null || !imgOrders.Any())
+				return BadRequest();
+
+			// 依序更新
+			foreach (var item in imgOrders)
+			{
+				var img = await _context.ProductImages.FirstOrDefaultAsync(x => x.No == item.id);
+				if (img != null)
+				{
+					img.ImgOrder = item.order;
+				}
+			}
+
+			await _context.SaveChangesAsync();
+
+			// 把更新後的圖片再抓出來顯示
+			var firstId = imgOrders.First().id;
+			var productNo = _context.ProductImages
+				.Where(x => x.No == firstId)
+				.Select(x => x.ProductNo)
+				.FirstOrDefault();
+
+			var vm = new ProductEditViewModel
+			{
+				Product = _context.Products.FirstOrDefault(p => p.No == productNo),
+				ProImages = _context.ProductImages
+					.Where(p => p.ProductNo == productNo)
+					.OrderBy(p => p.ImgOrder)
+					.ToList()
+			};
+
+			return PartialView("_PicturePartial", vm);
+		}
 
 		// GET: Product/Delete/5
 		public async Task<IActionResult> Delete(int? id)

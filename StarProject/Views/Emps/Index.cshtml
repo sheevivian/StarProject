@@ -1,0 +1,122 @@
+﻿@model IEnumerable<StarProject.Models.Emp>
+
+@{
+    ViewData["Title"] = "員工列表";
+}
+
+<h1>員工列表</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+@* 成功訊息區塊 - 請加在表格前面 *@
+@if (TempData["NewEmpCode"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <h4 class="alert-heading">
+            <i class="fas fa-check-circle"></i> 新員工建立成功！
+        </h4>
+        <hr>
+        <p class="mb-1">
+            <strong>員工姓名：</strong>@TempData["NewEmpName"]<br>
+            <strong>員工編號：</strong>@TempData["NewEmpCode"]<br>
+            <strong>預設密碼：</strong><code>@TempData["TempPassword"]</code>
+        </p>
+
+        @if (TempData["EmailSent"] != null)
+        {
+            <div class="alert alert-info mt-2 mb-0">
+                <i class="fas fa-envelope-check"></i>
+                <strong>Email通知已發送</strong> - 員工將收到登入資訊
+            </div>
+        }
+
+        @if (TempData["EmailError"] != null)
+        {
+            <div class="alert alert-warning mt-2 mb-0">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Email發送失敗：</strong>@TempData["EmailError"]
+            </div>
+        }
+
+        @if (TempData["EmailNotSent"] != null)
+        {
+            <div class="alert alert-info mt-2 mb-0">
+                <i class="fas fa-info-circle"></i>
+                @TempData["EmailNotSent"]
+            </div>
+        }
+
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@* 您原本的員工列表內容繼續放在下面... *@
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HireDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PasswordHash)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PasswordSalt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EmpCode)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DeptNoNavigation)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RoleNoNavigation)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.HireDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PasswordHash)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PasswordSalt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmpCode)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DeptNoNavigation.No)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RoleNoNavigation.No)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.No">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.No">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.No">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

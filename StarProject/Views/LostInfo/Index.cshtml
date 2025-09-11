@@ -185,6 +185,7 @@
 </head>
 
 <main class="flex-fill position-relative">
+	<!-- 標題+新增 -->
     <div class="d-flex align-items-center mb-3">
         <h1 class="fw-bold flex-grow-1 mb-0">遺失物列表</h1>
         <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
@@ -202,6 +203,8 @@
                 data-bs-title="搜尋" data-bs-trigger="hover">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
+
+        <!-- 進階篩選 -->
 		<div class="dropdown">
 				<button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
 					<i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -211,16 +214,14 @@
 					<span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
 				</button>
 
-				
-
 			<ul class="dropdown-menu p-2" style="width:180px">
+                <!-- 物品分類 -->
 				<li>
 					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
 						- 物品分類
 					</button>
 				</li>
-
-				<!-- Collapse 內容 -->
+				<!-- 物品分類內容 -->
 				<li>
 					<div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
 						<div class="p-2">
@@ -258,13 +259,13 @@
 					</div>
 				</li>
 
+				<!-- 領取狀態 -->
 				<li>
 					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
 						- 領取狀態
 					</button>
 				</li>
-
-				<!-- Collapse 內容 -->
+				<!-- 領取狀態內容 -->
 				<li>
 					<div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
 						<div class="p-2">
@@ -284,12 +285,13 @@
 					</div>
 				</li>
 
+				<!-- 拾獲日期 -->
 				<li>
 					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
 						- 拾獲日期
 					</button>
 				</li>
-
+				<!-- 拾獲日期內容 -->
 				<li>
 					<div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
 						<div class="p-2">
@@ -307,6 +309,7 @@
 		
 				<li><hr class="dropdown-divider"></li>
 
+				<!-- 完成+清除 -->
 				<li class="d-flex gap-1">
 					<button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
 						完成
@@ -333,7 +336,7 @@
 						<input class="form-check-input ms-4" type="checkbox" value="" id="checkAll" data-bs-toggle="tooltip" data-bs-placement="bottom"
 							   data-bs-title="全選" data-bs-trigger="hover">
 					</th>
-					<th>
+					<th style="width:346px">
 						@Html.DisplayNameFor(model => model.Name)
 					</th>
 					<th>
@@ -356,122 +359,124 @@
 
 			<!-- 內容 -->
 			<tbody id="tableBody">
-				@foreach (var item in Model)
-				{
-					<tr>
-						<td style="width:50px">
-							<input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No">
-						</td>
-						<td>
-							@Html.DisplayFor(modelItem => item.Name)
-						</td>
-						<td>
-							@Html.DisplayFor(modelItem => item.Category)
-						</td>
-						<td>
-							@Html.DisplayFor(modelItem => item.Status)
-						</td>
-						<td>
-							@Html.DisplayFor(modelItem => item.FoundDate)
-						</td>
-						<td>
-							@Html.DisplayFor(modelItem => item.CreatedDate)
-						</td>
-						<td style="width:116px;text-align: center;">
-							<button class="btn btn-color btn-sm " type="button"
-									data-bs-toggle="offcanvas"
-									data-bs-target="#details-@item.No"
-									aria-controls="details-@item.No">
-								詳細內容
-							</button>
-						</td>
-
-						<!-- 詳細內容 -->
-						<div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
-							<div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
-								<h3 class="offcanvas-title fw-bolder">詳細內容</h3>
-								<div class="d-flex justify-content-end align-items-center gap-2">
-									<a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
-
-									<button type="button" class="btn btn-outline-delect br20px" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No"><i class="fa-solid fa-trash-can"></i>刪除</button>
-									<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
-								</div>	
-
-								<!-- 確認刪除彈窗 -->
-								<div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
-									<div class="modal-dialog modal-dialog-centered">
-										<div class="modal-content">
-											<div class="modal-header">
-												<h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
-												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-											</div>
-											<div class="modal-body">
-												確定要刪除這筆資料嗎？
-											</div>
-											<div class="modal-footer">
-												<!-- 真正的刪除表單 -->
-												<form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
-													<button type="submit" class="btn btn-outline-delect br20px">確定刪除</button>
-												</form>
-												<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
-											</div>
-										</div>
-									</div>
-								</div>	
-							</div>
-							<div class="offcanvas-body">
-								<div class="img550px rounded mb-3"><img src="@item.Image" alt="物品照片" class="rounded" /></div>
-								<p><strong>物品名稱：</strong>@item.Name</p>
-								<p><strong>描述：</strong> @item.Desc</p>
-								<p><strong>拾獲日期：</strong> @item.FoundDate.ToString("yyyy-MM-dd HH:mm")</p>
-								<p><strong>發布日期：</strong> @item.CreatedDate.ToString("yyyy-MM-dd HH:mm")</p>
-								<hr>
-								<p><strong>狀態：</strong> @item.Status</p>
-								@if (item.Status == "已領取")
-								{
-									<p><strong>擁有者姓名：</strong> @item.OwnerName</p>
-									<p><strong>擁有者電話：</strong> @item.OwnerPhone</p>
-								}
-							</div>
-						</div>
-					</tr>
-				}
+                @await Html.PartialAsync("_LostInfoRows", Model)
 			</tbody>
 		</table>
+
+		<!-- 分頁 -->
+        <div id="pagination">
+			<nav aria-label="Page navigation">
+				<ul class="pagination justify-content-center">
+					@for (int i = 1; i <= ViewBag.TotalPages; i++)
+					{
+						<li class="page-item @(i == ViewBag.Page ? "active" : "") @(ViewBag.TotalPages == 1 ? "disabled" : "")">
+							<a class="page-link" href="javascript:void(0);" onclick="loadPage(@i)" data-page="@i">@i</a>
+						</li>
+					}
+				</ul>
+			</nav>
+
+			<div class="text-center mb-2">
+				<span>共 @ViewBag.Total 筆資料，頁數 <span id="paginationInfo">@ViewBag.Page</span> / @ViewBag.TotalPages</span>
+			</div>
+		</div>
+        
+
+		<!-- 詳細內容 -->
+		<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDetail">
+			<div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
+				<h3 class="offcanvas-title fw-bolder">詳細內容</h3>
+				<div class="d-flex justify-content-end align-items-center gap-2">
+					<a id="offcanvasEditBtn" class="btn btn-primary br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+
+					<button type="button" class="btn btn-outline-delect br20px" id="offcanvasDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>刪除</button>
+					<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
+				</div>
+
+				<!-- 確認刪除彈窗 -->
+				<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true" data-bs-backdrop="false">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+							</div>
+							<div class="modal-body">
+								確定要刪除這筆資料嗎？
+							</div>
+							<div class="modal-footer">
+								<!-- 真正的刪除表單 (動態改 action) -->
+								<form id="deleteOne" asp-action="Delete" method="post" class="d-inline">
+									<button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
+								</form>
+								<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="offcanvas-body">
+				<div class="img550px rounded mb-3"><img id="offcanvasImage" src="" alt="物品照片" class="rounded" /></div>
+				<p><strong>物品名稱：</strong><span id="offcanvasName"></span></p>
+				<p><strong>描述：</strong><span id="offcanvasDesc"></span></p>
+				<p><strong>拾獲日期：</strong><span id="offcanvasfounddate"></span></p>
+				<p><strong>發布日期：</strong><span id="offcanvasCreatedDate"></span></p>
+				<hr>
+				<p><strong>狀態：</strong><span id="offcanvasStatus"></span></p>
+				<p id="ownerNameWrapper" style="display:none;"><strong>擁有者姓名：</strong><span id="offcanvasOwnerName"></span></p>
+				<p id="ownerPhoneWrapper" style="display:none;"><strong>擁有者電話：</strong><span id="offcanvasOwnerPhone"></span></p>
+			</div>
+		</div>
+
+        
+
+
+		<!-- 全選垃圾桶及文字 -->
 		<div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center selectColor">
 			<span id="selectNum" style="display:none" class="fw-bold fs18px me-2">已選取0項</span>
-			<!-- 觸發按鈕 -->
+			
 			<button type="button" class="btn p-0 selectColor fs18px" id="delectAll" data-bs-toggle="modal" data-bs-target="#deleteAllModal" style="display:none">
 				<i class="fa-solid fa-trash-can"></i>
 			</button>
 		</div>
 
-		<!-- Modal -->
-			<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
-				<div class="modal-dialog modal-dialog-centered">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
-							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-						</div>
-						<div class="modal-body">
-							確定要刪除已選取的所有項目嗎？
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定刪除</button>
-							<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
-						</div>
+		<!-- 全選刪除彈窗 -->
+		<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						確定要刪除已選取的所有項目嗎？
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定刪除</button>
+						<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
 					</div>
 				</div>
 			</div>
+		</div>
     </div>
-    
+
 </main>
 
 @section Scripts {
-    <script>
+	<script>
+		var pageNumber = 3;
+		function loadPage(page) {
+			$.get('/LostInfo/GetLostInfos', { page: page, pageSize: pageNumber }, function(result) {
+			$('#tableBody').html(result);
 
-        $(function (){
+			$('#paginationInfo').text(`${page}`);
+				// 更新分頁 active 樣式
+				$('#pagination li').removeClass('active');
+				$(`.pagination .page-link[data-page='${page}']`).closest("li").addClass('active');
+			});
+		}
+
+		$(function (){
 
 			// checkbox 勾選
 			$(document).on('click', '.checkbox', function () {
@@ -496,11 +501,11 @@
 			});
 
 			// 全選
-            $('#checkAll').click(function () {
+			$('#checkAll').click(function () {
 
-                if ($(this).prop('checked')){
-                    $('.checkbox').prop('checked', true);
-                    $('tbody tr').addClass('active');
+				if ($(this).prop('checked')){
+					$('.checkbox').prop('checked', true);
+					$('tbody tr').addClass('active');
 					$('#delectAll, #selectNum').show();
 
 					// 計算勾選數量
@@ -510,13 +515,13 @@
 					{
 						$('#selectNum').text(`已選取${count}項`);
 					}
-                }
-                else{
-                    $('.checkbox').prop('checked', false);
-                    $('tbody tr').removeClass('active');
+				}
+				else{
+					$('.checkbox').prop('checked', false);
+					$('tbody tr').removeClass('active');
 					$('#delectAll, #selectNum').hide();
-                }
-            })
+				}
+			})
 
 			// 批次刪除
 			$('#delectAllYes').click(function(){
@@ -539,6 +544,8 @@
 					},
 					traditional: true, // 陣列傳送格式
 					success: function(){
+						let page = parseInt($('#paginationInfo').text()) || 1; // 取得目前頁碼
+						refreshLostInfoTable(page);
 						$('.checkbox:checked').closest('tr').remove();
 						$('#delectAll, #selectNum').hide();
 						$('#checkAll').prop('checked', false);
@@ -566,7 +573,7 @@
 			});
 
 			// 也可以輸入框 keyup 即時觸發
-			$('#searchInput').on("keyup", ()=> { 
+			$('#searchInput').on("keyup", ()=> {
 				//讀取目前進階條件
 				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
 				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
@@ -611,6 +618,7 @@
 				document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
 				document.getElementById("dateFrom").value = "";
 				document.getElementById("dateTo").value = "";
+				document.getElementById("searchInput").value = "";
 				updateSelectedFilters();
 				updateFilterCount()
 				searchData();
@@ -630,7 +638,7 @@
 					dateTo.min = ""; // 移除限制
 				}
 			});
-			
+
 			// 搜尋功能
 			async function searchData(filters = {}) {
 				try {
@@ -644,8 +652,9 @@
 					});
 
 					if (response.ok) {
-						let html = await response.text();
-						$("#tableBody").html(html);
+						let data = await response.json();
+						$("#tableBody").html(data.tableHtml);           // 更新表格
+						$("#pagination").html(data.paginationHtml);     // 更新分頁
 					}
 				} catch(err) {
 					alert("搜尋失敗: " + err.message);
@@ -700,8 +709,127 @@
 				}
 			}
 
+			// 分頁按鈕
+			$(".pagination").on("click", ".page-link", function (e) {
+				e.preventDefault();
+				let page = $(this).data("page");
+
+				loadPage(page)
+			});
+
+
+			// Offcanvas 詳細資料
+			$(document).on('click', '.btn-detail', function() {
+				var btn = $(this);
+
+				$('#offcanvasName').text(btn.data('name'));
+				$('#offcanvasDesc').text(btn.data('desc'));
+				$('#offcanvasfounddate').text(btn.data('founddate'));
+				$('#offcanvasCreatedDate').text(btn.data('createddate'));
+				$('#offcanvasStatus').text(btn.data('status'));
+				$('#offcanvasImage').attr("src", btn.data('image'));
+
+					// 顯示擁有者資訊 (只在狀態為已領取時)
+				if (btn.data('status') === "已領取") {
+					$('#ownerNameWrapper').show();
+					$('#ownerPhoneWrapper').show();
+					$('#offcanvasOwnerName').text(btn.data('ownername'));
+					$('#offcanvasOwnerPhone').text(btn.data('ownerphone'));
+				} else {
+					$('#ownerNameWrapper').hide();
+					$('#ownerPhoneWrapper').hide();
+				}
+
+				// 🔑 取得這筆資料的 ID
+				var id = btn.data('id');
+
+				// 1️⃣ 設定「編輯」按鈕連結
+				$('#offcanvasEditBtn').attr("href", "/LostInfo/Edit/" + id);
+
+				// 2️⃣ 設定「刪除」按鈕 data-id
+				$('#offcanvasDeleteBtn').attr("data-id", id);
+
+				// 3️⃣ 刪除 Modal 開啟時，動態修改表單 action
+				$('#deleteModal').on('show.bs.modal', function () {
+					$('#deleteOne').attr("action", "/LostInfo/Delete/" + id);
+				});
+
+				// 打開 Offcanvas
+				var offcanvasEl = document.getElementById('offcanvasDetail');
+				var offcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+				offcanvas.show();
+			});
+
+			//單一刪除分頁更新
+			$(document).on('click', '#deleteOnebtn', async function(e){
+			e.preventDefault();
+
+				// 從 form 的 action 拿 id
+				let form = $(this).closest('form');
+				let action = form.attr('action'); // /LostInfo/Delete/123
+				let id = action.split('/').pop(); // 拿最後一段
+
+				if(!id) return;
+
+				let token = $('input[name="__RequestVerificationToken"]').val();
+				let page = parseInt($('#paginationInfo').text()) || 1;
+
+				try {
+					await $.ajax({
+					url: '/LostInfo/Delete',  // 改成 Delete
+					type: 'POST',
+					data: { id: id, __RequestVerificationToken: token }
+				});
+
+					// 刪除後刷新列表
+					refreshLostInfoTable(page);
+
+					// 關閉 Offcanvas
+					var offcanvasEl = document.getElementById('offcanvasDetail');
+					var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+					if(offcanvas) offcanvas.hide();
+
+					// 關閉 Modal
+					$('#deleteModal').modal('hide');
+
+				} catch (err) {
+					alert("刪除失敗：" + (err.responseText || err.statusText));
+				}
+			});
 
 		});
-		
-    </script>
+
+
+			// 統一刷新列表
+			async function refreshLostInfoTable(page = 1, filters = {}) {
+				try {
+					// 加入 pageNumber
+					filters.page = page;
+					filters.pageSize = pageNumber;
+
+					// 取得 CSRF Token
+					filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
+
+					let response = await $.ajax({
+						url: '/LostInfo/SearchSelect', // 或 DeleteConfirmed 也可以共用
+						type: 'POST',
+						data: JSON.stringify(filters),
+						contentType: "application/json"
+					});
+
+					// 更新 tableBody
+					$("#tableBody").html(response.tableHtml);
+
+					// 更新 pagination
+					$("#pagination").html(response.paginationHtml);
+
+					// 更新分頁顯示
+					$('#paginationInfo').text(page);
+
+				} catch (err) {
+					alert("更新列表失敗：" + err.responseText || err.statusText);
+				}
+			}
+
+	</script>
 }

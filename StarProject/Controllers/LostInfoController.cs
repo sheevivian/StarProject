@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using NuGet.Protocol.Core.Types;
@@ -9,6 +11,7 @@ using StarProject.Models;
 using StarProject.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
@@ -17,7 +20,8 @@ namespace StarProject.Controllers
 {
     public class LostInfoController : Controller
     {
-		
+		private const int pageNumber = 3;
+
 		private readonly StarProjectContext _context;
 
         public LostInfoController(StarProjectContext context)
@@ -26,10 +30,21 @@ namespace StarProject.Controllers
         }
 
         // GET: LostInfo
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = pageNumber)
         {
-            return View(await _context.LostInfos.ToListAsync());
-        }
+			// 先組 IQueryable (全部資料，還沒篩選)
+			var query = _context.LostInfos.OrderByDescending(x => x.CreatedDate);
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			return View(items);
+		}
 
         // GET: LostInfo/Create
         public IActionResult Create()
@@ -186,7 +201,9 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-            return View(lostInfo);
+			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
+
+			return View(lostInfo);
         }
 
         // POST: LostInfo/Delete/5
@@ -226,9 +243,10 @@ namespace StarProject.Controllers
 
 		// POST: LostInfo/SearchSelect
 		[HttpPost]
-		public IActionResult SearchSelect([FromBody] SearchFilterVM filters)
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters, int page = 1, int pageSize = pageNumber)
 		{
 			var query = _context.LostInfos.AsQueryable();
+			query = query.OrderByDescending(x => x.CreatedDate);
 
 			// keyword
 			if (!string.IsNullOrEmpty(filters.keyword))
@@ -253,12 +271,70 @@ namespace StarProject.Controllers
 			if (!string.IsNullOrEmpty(filters.DateTo))
 				query = query.Where(x => x.FoundDate <= DateTime.Parse(filters.DateTo));
 
-			return PartialView("_LostInfoRows", query.ToList());
+
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			var tableHtml = await RenderPartialViewToString("_LostInfoRows", items);
+			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
+
+			return Json(new { tableHtml, paginationHtml });
+		}
+
+		public async Task<IActionResult> GetLostInfos(int page, int pageSize)
+		{
+			// 先組 IQueryable (全部資料，還沒篩選)
+			var query = _context.LostInfos.OrderByDescending(x => x.CreatedDate);
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			return PartialView("_LostInfoRows", items);
 		}
 
 		private bool LostInfoExists(int id)
         {
             return _context.LostInfos.Any(e => e.No == id);
         }
-    }
+
+		public async Task<string> RenderPartialViewToString(string viewName, object model)
+		{
+			if (string.IsNullOrEmpty(viewName))
+				viewName = ControllerContext.ActionDescriptor.ActionName;
+
+			ViewData.Model = model;
+
+			using (var sw = new StringWriter())
+			{
+				var viewEngine = HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+				var viewResult = viewEngine.FindView(ControllerContext, viewName, false);
+
+				if (viewResult.Success == false)
+					throw new ArgumentNullException($"View {viewName} not found.");
+
+				var viewContext = new ViewContext(
+					ControllerContext,
+					viewResult.View,
+					ViewData,
+					TempData,
+					sw,
+					new HtmlHelperOptions()
+				);
+
+				await viewResult.View.RenderAsync(viewContext);
+				return sw.GetStringBuilder().ToString();
+			}
+		}
+	}
 }

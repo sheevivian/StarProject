@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NETCore.MailKit;
@@ -36,6 +38,20 @@ namespace StarProject
 				config.UseMailKit(builder.Configuration.GetSection("Email").Get<MailKitOptions>());
 			});
 
+			// Cookie 驗證
+			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+	        .AddCookie(options =>
+	        {
+		        options.LoginPath = "/Login"; // 未登入會導向此頁
+	        });
+
+			/// 全域都要經過驗證才能進入
+			builder.Services.AddAuthorization(options =>
+			{
+				options.FallbackPolicy = new AuthorizationPolicyBuilder()
+					.RequireAuthenticatedUser()
+					.Build();
+			});
 
 
 			var app = builder.Build();
@@ -56,6 +72,10 @@ namespace StarProject
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            //登入驗證的功能
+			app.UseAuthentication();
+			app.UseAuthorization();
 
 			app.UseAuthentication(); // 如果有 Identity 登入功能
 			app.UseAuthorization();

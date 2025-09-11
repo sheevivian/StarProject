@@ -23,13 +23,21 @@ public partial class Emp
 
     public int? RoleNo { get; set; }
 
+    public bool ForceChangePassword { get; set; }
+
+    public string? Email { get; set; }
+
+    public string? Phone { get; set; }
+
+    public string? IdNumber { get; set; }
+
+    public DateTime? BirthDate { get; set; }
+
+    public DateTime? LastLogin { get; set; }
+
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
     public virtual ICollection<CustomerService> CustomerServices { get; set; } = new List<CustomerService>();
 
-    public virtual Dept DeptNoNavigation { get; set; } = null!;
-
     public virtual ICollection<OrderC> OrderCs { get; set; } = new List<OrderC>();
-
-    public virtual Role? RoleNoNavigation { get; set; }
 }

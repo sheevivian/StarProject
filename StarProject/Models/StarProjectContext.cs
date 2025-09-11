@@ -87,8 +87,6 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<TicCategory> TicCategories { get; set; }
 
-    public virtual DbSet<TickestStock> TickestStocks { get; set; }
-
     public virtual DbSet<Ticket> Tickets { get; set; }
 
     public virtual DbSet<TicketStock> TicketStocks { get; set; }
@@ -262,16 +260,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.PasswordSalt).HasMaxLength(50);
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.RoleNo).HasColumnName("Role_No");
-
-            entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
-                .HasForeignKey(d => d.DeptNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Emps_Emps");
-
-            entity.HasOne(d => d.RoleNoNavigation).WithMany(p => p.Emps)
-                .HasForeignKey(d => d.RoleNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Emps_Roles");
         });
 
         modelBuilder.Entity<Event>(entity =>
@@ -404,6 +392,7 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("LostInfo");
 
+            entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.FoundDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
@@ -501,10 +490,6 @@ public partial class StarProjectContext : DbContext
                 .HasColumnName("Order_No");
             entity.Property(e => e.Type).HasMaxLength(30);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.OrderNoNavigation).WithMany()
-                .HasForeignKey(d => d.OrderNo)
-                .HasConstraintName("FK_OrderItem_Order");
         });
 
         modelBuilder.Entity<OrderMaster>(entity =>
@@ -855,17 +840,7 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.No).HasMaxLength(6);
             entity.Property(e => e.Name).HasMaxLength(20);
         });
-
-        modelBuilder.Entity<TickestStock>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("TickestStock");
-
-            entity.Property(e => e.Date).HasColumnType("datetime");
-            entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
-        });
-
+        
         modelBuilder.Entity<Ticket>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK__Ticket__3214D4A8DAF4E467");

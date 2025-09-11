@@ -27,5 +27,4 @@ public partial class OrderItem
 
     public string? DiscountType { get; set; }
 
-    public virtual OrderMaster OrderNoNavigation { get; set; } = null!;
 }

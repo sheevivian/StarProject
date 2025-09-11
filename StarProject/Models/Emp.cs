@@ -21,8 +21,8 @@ public partial class Emp
 
     public bool Status { get; set; }
 
-    public int? RoleNo { get; set; }
-  
+    public int RoleNo { get; set; }
+
     public bool ForceChangePassword { get; set; }
 
     public string? Email { get; set; }

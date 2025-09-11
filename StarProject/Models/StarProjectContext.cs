@@ -251,7 +251,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
-            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
             entity.Property(e => e.IdNumber).HasMaxLength(50);
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
@@ -609,7 +608,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A86C97313E");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A89B3124B9");
 
             entity.ToTable("ProCategory");
 
@@ -833,14 +832,14 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A805940E5D");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8C7CED72D");
 
             entity.ToTable("TicCategory");
 
             entity.Property(e => e.No).HasMaxLength(6);
             entity.Property(e => e.Name).HasMaxLength(20);
         });
-        
+
         modelBuilder.Entity<Ticket>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK__Ticket__3214D4A8DAF4E467");

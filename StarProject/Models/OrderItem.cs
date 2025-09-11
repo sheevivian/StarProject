@@ -26,4 +26,5 @@ public partial class OrderItem
     public string? Type { get; set; }
 
     public string? DiscountType { get; set; }
+
 }

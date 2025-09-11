@@ -1,0 +1,39 @@
+﻿@using StarProject.DTOs.UsersDTOs
+@model List<UsersDTO>
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1 class="mb-3">會員名單</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model[0].Account)</th>
+            <th>@Html.DisplayNameFor(model => model[0].Name)</th>
+            <th>@Html.DisplayNameFor(model => model[0].Phone)</th>
+            <th>@Html.DisplayNameFor(model => model[0].Email)</th>
+            <th>@Html.DisplayNameFor(model => model[0].Address)</th>
+            <th>@Html.DisplayNameFor(model => model[0].StatusText)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(m => item.Account)</td>
+                <td>@Html.DisplayFor(m => item.Name)</td>
+                <td>@Html.DisplayFor(m => item.Phone)</td>
+                <td>@Html.DisplayFor(m => item.Email)</td>
+                <td>@Html.DisplayFor(m => item.Address)</td>
+                <td>@Html.DisplayFor(m => item.StatusText)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> 
+                </td>
+            </tr>
+        }
+    </tbody>
+
+</table>

@@ -1,0 +1,51 @@
+﻿@model StarProject.Models.Participant
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="editDrawer" aria-labelledby="editDrawerLabel">
+    <div class="offcanvas-header">
+        <h5 id="editDrawerLabel">編輯報名資料</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="No" />
+
+            <div class="mb-2">
+                <label>活動編號</label>
+                <input class="form-control" value="@Model.EventNoNavigation?.No" readonly />
+            </div>
+            <div class="mb-2">
+                <label>活動名稱</label>
+                <input class="form-control" value="@Model.EventNoNavigation?.Title" readonly />
+            </div>
+            <div class="mb-2">
+                <label>會員編號</label>
+                <input class="form-control" value="@Model.UsersNoNavigation?.No" readonly />
+            </div>
+            <div class="mb-2">
+                <label>會員姓名</label>
+                <input class="form-control" value="@Model.UsersNoNavigation?.Name" readonly />
+            </div>
+            <div class="mb-2">
+                <label>報名時間</label>
+                <input class="form-control" value="@Model.RegisteredDate.ToString("yyyy-MM-dd HH:mm")" readonly />
+            </div>
+            <div class="mb-2">
+                <label>最後更新時間</label>
+                <input class="form-control" value="@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm")" readonly />
+            </div>
+            <div class="mb-2">
+                <label>狀態</label>
+                <input class="form-control" asp-for="Status" />
+            </div>
+            <div class="mb-2">
+                <label>付款編號</label>
+                <input class="form-control" asp-for="PaymentNo" placeholder="尚無資料" />
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">儲存</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="offcanvas">返回列表</button>
+            </div>
+        </form>
+    </div>
+</div>

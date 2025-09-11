@@ -1,0 +1,129 @@
+﻿@model IEnumerable<StarProject.Models.Participant>
+
+@{
+    ViewData["Title"] = "報名管理";
+    int selectedEventId = ViewBag.SelectedEventId != null ? (int)ViewBag.SelectedEventId : 0;
+    string searchEventKeyword = ViewBag.SearchEventKeyword ?? "";
+    string searchUserKeyword = ViewBag.SearchUserKeyword ?? "";
+}
+
+<h1>報名管理</h1>
+
+<!-- 搜尋與篩選表單 -->
+<form method="get" class="mb-4">
+    <label for="selectedEventId">篩選活動：</label>
+    <select id="selectedEventId" name="selectedEventId">
+        <option value="0">全部活動</option>
+        @if (ViewBag.AllEvents != null && ((IEnumerable<dynamic>)ViewBag.AllEvents).Any())
+        {
+            foreach (var e in ViewBag.AllEvents)
+            {
+                if (selectedEventId == e.No)
+                {
+                    <option value="@e.No" selected>@e.Title</option>
+                }
+                else
+                {
+                    <option value="@e.No">@e.Title</option>
+                }
+            }
+        }
+        else
+        {
+            <option disabled>目前沒有活動</option>
+        }
+    </select>
+
+    <label for="searchUserKeyword">會員姓名：</label>
+    <input type="text" id="searchUserKeyword" name="searchUserKeyword" placeholder="輸入會員姓名" value="@searchUserKeyword" />
+
+    <button type="submit" class="btn btn-primary">搜尋</button>
+</form>
+
+<!-- 報名資料表格 -->
+<table class="table table-bordered text-center">
+    <thead>
+        <tr>
+            <th>報名日期</th>
+            <th>最後更新時間</th>
+            <th>活動名稱</th>
+            <th>會員姓名</th>
+            <th>狀態</th>
+            <th>付款編號</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.RegisteredDate.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@item.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@item.EventNoNavigation?.Title</td>
+                <td>@item.UsersNoNavigation?.Name</td>
+                <td>@item.Status</td>
+                <td>
+                    @if (item.PaymentNoNavigation != null)
+                    {
+                        @item.PaymentNoNavigation.No
+                    }
+                    else if (item.EventNoNavigation != null)
+                    {
+                        if (item.EventNoNavigation.Fee == 0)
+                        {
+                            @:無
+                        }
+                        else
+                        {
+                            @:尚無資料
+                        }
+                    }
+                    else
+                    {
+                        @:資料錯誤
+                    }
+                </td>
+
+                <td>
+                    <a href="javascript:void(0)" class="btn btn-sm btn-primary edit-btn" data-id="@item.No">編輯</a>
+                    <a asp-controller="Participants" asp-action="Delete" asp-route-id="@item.No" class="btn btn-sm btn-danger">刪除</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div id="editDrawerContainer"></div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // 點擊編輯按鈕
+            $(document).on("click", ".edit-btn", function () {
+                var id = $(this).data("id");
+
+                $.get('/Participants/Edit/' + id, function (html) {
+                    $("#editDrawerContainer").html(html);
+
+                    var offcanvasEl = document.querySelector('#editDrawer');
+                    var bsOffcanvas = new bootstrap.Offcanvas(offcanvasEl);
+                    bsOffcanvas.show();
+                });
+            });
+
+            // AJAX 提交編輯表單
+            $(document).on("submit", "#editDrawer form", function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                $.post(form.attr("action"), form.serialize(), function (data) {
+                    if (data.success) {
+                        var bsOffcanvas = bootstrap.Offcanvas.getInstance($("#editDrawer")[0]);
+                        bsOffcanvas.hide();
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+}
+

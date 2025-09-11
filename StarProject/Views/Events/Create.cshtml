@@ -1,0 +1,165 @@
+﻿@model StarProject.ViewModel.EventInfoVM
+
+@{
+    ViewData["Title"] = "新增活動";
+}
+
+<h1 class="fw-bold">快速新增活動</h1>
+<hr />
+<div class="row">
+    <div class="d-flex">
+        <form asp-action="Create" method="post" enctype="multipart/form-data" class="col-md-5">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-2">
+                <label asp-for="No" class="control-label fw-bold fs-5 mb-1">活動編號</label>
+                <input type="text"
+                       class="form-control"
+                       value="系統自動編號無須輸入"
+                       disabled
+                       style="background-color: #e9ecef; cursor: not-allowed;" />
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Title" class="control-label fw-bold fs-5 mb-1">活動名稱</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Category" class="control-label fw-bold fs-5 mb-1">活動種類</label>
+                <select asp-for="Category" class="form-select">
+                    <option value="星學課程">星學課程</option>
+                    <option value="星知講座">星知講座</option>
+                    <option value="星境營隊">星境營隊</option>
+                    <option value="星耀計畫">星耀計畫</option>
+                    <option value="星樂工作坊">星樂工作坊</option>
+                    <option value="星動旅程">星動旅程</option>
+                    <option value="星趣親子時光">星趣親子時光</option>
+                </select>
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Location" class="control-label fw-bold fs-5 mb-1">活動地點</label>
+                <select asp-for="Location" class="form-select">
+                    <option value="第一演講室">第一演講室</option>
+                    <option value="第二演講室">第二演講室</option>
+                    <option value="屋頂天文台">屋頂天文台</option>
+                    <option value="戶外廣場">戶外廣場</option>
+                    <option value="多功能教室">多功能教室</option>
+                    <option value="實驗教室">實驗教室</option>
+                    <option value="觀測室">觀測室</option>
+                    <option value="天文館">天文館</option>
+                    <option value="天文館大廳報到">天文館大廳報到</option>
+                </select>
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="MaxParticipants" class="control-label fw-bold fs-5 mb-1">人數上限</label>
+                <select asp-for="MaxParticipants" class="form-select">
+                    <option value="30">30</option>
+                    <option value="38">38</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                </select>
+                <span asp-validation-for="MaxParticipants" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Status" class="control-label fw-bold fs-5 mb-1">活動狀態</label>
+                <select asp-for="Status" class="form-select">
+                    <option value="報名中">報名中</option>
+                    <option value="已額滿">已額滿</option>
+                    <option value="已結束">已結束</option>
+                    <option value="已取消">已取消</option>
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="StartDate" class="control-label fs-5 fw-bold mb-1">開始時間</label>
+                <input asp-for="StartDate" class="form-control" type="datetime-local" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="EndDate" class="control-label fs-5 fw-bold mb-1">結束時間</label>
+                <input asp-for="EndDate" class="form-control" type="datetime-local" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Fee" class="control-label fw-bold fs-5 mb-1">活動費用</label>
+                <input asp-for="Fee" class="form-control" />
+                <span asp-validation-for="Fee" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Deposit" class="control-label fw-bold fs-5 mb-1">預定訂金</label>
+                <input asp-for="Deposit" class="form-control" />
+                <span asp-validation-for="Deposit" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Desc" class="control-label fw-bold fs-5 mb-1">活動說明</label>
+                <textarea asp-for="Desc" class="form-control" rows="10" placeholder="請輸入活動說明..." style="resize: none;"></textarea>
+                <span asp-validation-for="Desc" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ImageFile" class="control-label fw-bold fs-5 mb-1">圖片上傳</label>
+                <input asp-for="ImageFile" class="form-control" type="file" onchange="previewImage(event)" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="儲存" class="btn btn-primary" />
+                <a asp-action="List" class="btn btn-secondary ms-2">返回列表</a>
+            </div>
+        </form>
+
+        <!-- 圖片預覽 -->
+        <div class="flex-fill d-flex justify-content-center mt-5 ms-6">
+            <div class="img500px mb-1">
+                <!-- 原本圖片或預設圖片：預設顯示 -->
+                <img id="originalImg"
+                     src="@(!string.IsNullOrEmpty(Model.Image) ? Model.Image : "/img/logo.png")"
+                     alt="活動圖片"
+                     style="display:block; max-width:100%; height:auto;" />
+
+                <!-- 新圖片預覽：預設隱藏，先不要給 src -->
+                <img id="preview"
+                     alt="圖片預覽"
+                     class="d-none"
+                     style="max-width:50%; height:auto;" />
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        function previewImage(e) {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          const original = document.getElementById('originalImg');
+          const preview  = document.getElementById('preview');
+
+          // 建立臨時 URL，載入後釋放
+          const url = URL.createObjectURL(file);
+          preview.onload = () => URL.revokeObjectURL(url);
+          preview.src = url;
+
+          // 切換顯示：隱藏原圖、顯示預覽
+          original.classList.add('d-none');
+          preview.classList.remove('d-none');
+        }
+    </script>
+
+}

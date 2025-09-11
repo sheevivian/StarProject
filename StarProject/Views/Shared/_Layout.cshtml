@@ -63,7 +63,7 @@
 
                 <div id="collapseEmp" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Home" asp-action="Privacy">帳號管理</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Emps" asp-action="Index">帳號管理</a>
                         <a class="collapse-item" href="#">權限管理</a>
                         <a class="collapse-item" href="#">人事流程申請</a>
                     </div>
@@ -88,7 +88,7 @@
 
                 <div id="collapseUser" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="#">會員名單</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Users" asp-action="Index">會員名單</a>
                         <a class="collapse-item" href="#">黑名單</a>
                     </div>
                 </div>
@@ -138,10 +138,10 @@
 
                 <div id="collapseEvn" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="#">活動總覽</a>
-                        <a class="collapse-item" href="#">活動列表</a>
-                        <a class="collapse-item" href="#">新增活動</a>
-                        <a class="collapse-item" href="#">報名管理</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Events" asp-action="Index">活動總覽</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Events" asp-action="List">活動列表</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Events" asp-action="Create">新增活動</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Events" asp-action="Participants">報名管理</a>
                     </div>
                 </div>
             </li>
@@ -463,5 +463,7 @@
         })
     </script>
     @await RenderSectionAsync("Scripts", required: false)
+
+
 </body>
 </html>

@@ -1,0 +1,139 @@
+﻿@model IEnumerable<StarProject.Models.Event>
+
+@{
+    ViewData["Title"] = "活動總覽";
+    var now = DateTime.Now;
+}
+
+<!-- 星空背景區塊 -->
+<div class="main-content-star">
+
+    <div class="container my-3 p-3">
+
+        <!-- 大標題 -->
+        <h1 class="mb-4 text-white">活動總覽</h1>
+
+        <!-- 最新提醒 -->
+        <div class="mb-4 d-flex align-items-start gap-3">
+
+            <!-- 左側橢圓 -->
+            <div class="bg-danger text-white rounded-pill px-3 py-1 flex-shrink-0">
+                即將到來
+            </div>
+
+            <!-- 右側白色方塊 -->
+            <div class="p-3 bg-white text-dark rounded flex-grow-1 shadow-sm">
+                @(string.Join("、", ((IEnumerable<dynamic>)ViewBag.UpcomingEvents)
+                                .Select(ev => $"{ev.Title} ({ev.StartDate?.ToString("M/d HH:mm")})")))
+            </div>
+
+        </div>
+
+
+        <!-- 統計卡片 -->
+        <div class="row mb-4 text-center">
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 h-100">
+                    <h4>報名中</h4>
+                    <h3>@ViewBag.TotalOpenEvents</h3>
+                    <a class="btn btn-primary" href="@Url.Action("List", new { status = "報名中" })">查看詳情</a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 h-100">
+                    <h4>已結束</h4>
+                    <h3>@ViewBag.TotalEndedEvents</h3>
+                    <a class="btn btn-primary" href="@Url.Action("List", new { status = "已結束" })">查看詳情</a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 h-100">
+                    <h4>已取消</h4>
+                    <h3>@ViewBag.TotalCancelledEvents</h3>
+                    <a class="btn btn-primary" href="@Url.Action("List", new { status = "已取消" })">查看詳情</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 本月活動列表 -->
+        <div class="mb-4">
+            <h3 class="text-white">本月活動清單</h3>
+            <table class="table table-striped text-white">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>活動名稱</th>
+                        <th>開始時間</th>
+                        <th>狀態</th>
+                        <th>人數上限</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.ThisMonthEvents != null)
+                    {
+                        int i = 1;
+                        foreach (var ev in ViewBag.ThisMonthEvents)
+                        {
+                            <tr>
+                                <td>@i</td>
+                                <td>@ev.Title</td>
+                                <td>@ev.StartDate?.ToString("M/d HH:mm")</td>
+                                <td>@ev.Status</td>
+                                <td>@ev.MaxParticipants</td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 星空背景覆蓋主內容區，不影響 navbar 和 sidebar */
+    .main-content-star {
+        background: radial-gradient(ellipse at bottom, #0b0c1c 0%, #1a1b2c 100%);
+        min-height: 100vh;
+        padding-top: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* 靜態星星容器 */
+    .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        width: 2px;
+        height: 2px;
+        opacity: 0.8;
+    }
+
+    /* 卡片和表格透明背景 */
+    .card, table {
+        background-color: rgba(0, 0, 0, 0.6);
+        color: #fff;
+    }
+</style>
+
+<script>
+    // 生成100顆星星
+    const starContainer = document.querySelector('.main-content-star');
+    for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.width = (Math.random() * 2 + 1) + 'px';
+        star.style.height = star.style.width;
+        starContainer.appendChild(star);
+    }
+
+    // 簡單閃爍效果
+    setInterval(() => {
+        document.querySelectorAll('.star').forEach(star => {
+            star.style.opacity = 0.2 + Math.random() * 0.8;
+        });
+    }, 500);
+</script>

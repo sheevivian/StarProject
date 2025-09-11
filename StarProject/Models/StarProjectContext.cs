@@ -258,11 +258,10 @@ public partial class StarProjectContext : DbContext
             entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
                 .HasForeignKey(d => d.DeptNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Emps_Emps");
+                .HasConstraintName("FK_Emps_Depts");
 
             entity.HasOne(d => d.RoleNoNavigation).WithMany(p => p.Emps)
                 .HasForeignKey(d => d.RoleNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Emps_Roles");
         });
 

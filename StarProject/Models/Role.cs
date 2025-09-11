@@ -9,7 +9,5 @@ public partial class Role
 
     public string RoleName { get; set; } = null!;
 
-    public string Permissions { get; set; } = null!;
-
     public virtual ICollection<Emp> Emps { get; set; } = new List<Emp>();
 }

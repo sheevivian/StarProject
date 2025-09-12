@@ -1,0 +1,93 @@
+﻿@model StarProject.Models.CompanyNotify
+
+@{
+    ViewData["Title"] = "公司內部公告新增";
+}
+
+<head>
+    <style>
+        .btn-topbar {
+            --bs-btn-bg: rgb(250, 208, 72);
+            --bs-btn-border-color: rgb(250, 208, 72);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #ffc720;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        }
+
+        .btn-outline-back {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+
+        .text-distance {
+            letter-spacing: 5px; /* 正值：字母間距變大，負值：變小 */
+            text-align: center; /* 文字置中 */
+        }
+    </style>
+    <link href="~/css/textediting.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.1.0/ckeditor5.css" crossorigin>
+</head>
+
+
+<h1 class="fw-bold">公司內部公告新增</h1>
+<hr />
+<div class="row" style="width:100%">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group mb-2">
+                <label asp-for="Title" class="control-label fw-bold fs-5"></label><span asp-validation-for="Title" class="text-danger ms-3"></span>
+                <input asp-for="Title" class="form-control" />
+            </div>
+            <div class="form-group mb-2">
+                <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
+                <select asp-for="Category" class="form-select">
+                    <option value=""></option>
+                    <option value="行政公告">行政公告</option>
+                    <option value="人事公告">人事公告</option>
+                    <option value="活動公告">活動公告</option>
+                    <option value="制度公告">制度公告</option>
+                    <option value="資訊系統公告">資訊系統公告</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Content" class="control-label fw-bold fs-5"></label><span class="text-muted ms-2">(選填)</span><span asp-validation-for="Content" class="text-danger ms-3"></span>
+                <textarea asp-for="Content" class="form-control" placeholder="輸入內容..." style="resize: none;"></textarea>
+               
+            </div>
+
+            <div class="form-group d-flex gap-2 mt-2 text-distance">
+                <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5 text-distance">
+                    <i class="fa-solid fa-plus"></i>新增
+                </button>
+                <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
+            </div>
+        </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.0.0/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
+            .create(document.querySelector('textarea[name="Content"]'))
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/46.1.0/ckeditor5.umd.js" crossorigin></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/46.1.0/translations/zh.umd.js" crossorigin></script>
+    <script src="https://cdn.ckbox.io/ckbox/2.6.1/ckbox.js" crossorigin></script>
+    <script src="~/js/textediting.js"></script>
+}

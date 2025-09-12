@@ -142,15 +142,6 @@
             }
         }
 
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const preview = document.getElementById('preview');
-                preview.src = URL.createObjectURL(file); // 建立臨時 URL
-                preview.style.display = 'block';         // 顯示圖片
-            }
-        }
-
         document.addEventListener("DOMContentLoaded", function () {
             let statusSelect = document.getElementById("status");
             let ownerInfo = document.getElementById("ownerInfo");

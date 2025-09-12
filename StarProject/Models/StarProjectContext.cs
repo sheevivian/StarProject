@@ -19,6 +19,8 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<Collection> Collections { get; set; }
 
+    public virtual DbSet<CompanyNotify> CompanyNotifies { get; set; }
+
     public virtual DbSet<CustomerService> CustomerServices { get; set; }
 
     public virtual DbSet<Dept> Depts { get; set; }
@@ -197,6 +199,17 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_Collection_Users");
         });
 
+        modelBuilder.Entity<CompanyNotify>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("CompanyNotify");
+
+            entity.Property(e => e.Category).HasMaxLength(30);
+            entity.Property(e => e.PublishDate).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<CustomerService>(entity =>
         {
             entity.HasKey(e => e.No);
@@ -259,6 +272,16 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.PasswordSalt).HasMaxLength(50);
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.RoleNo).HasColumnName("Role_No");
+
+            entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
+                .HasForeignKey(d => d.DeptNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Emps_Dept");
+
+            entity.HasOne(d => d.RoleNoNavigation).WithMany(p => p.Emps)
+                .HasForeignKey(d => d.RoleNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Emps_Roles");
         });
 
         modelBuilder.Entity<Event>(entity =>

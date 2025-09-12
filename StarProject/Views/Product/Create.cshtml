@@ -1,94 +1,139 @@
 ﻿@model StarProject.Models.Product
 
 @{
-    ViewData["Title"] = "星航基地｜單筆上架";
+    ViewData["Title"] = "新品上架";
 }
 
+<head>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        .btn-topbar {
+            --bs-btn-bg: rgb(250, 208, 72);
+            --bs-btn-border-color: rgb(250, 208, 72);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #ffc720;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        }
+        .btn-outline-back {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
 
-<ul class="nav nav-tabs border-bottom-0">
-    <li class="nav-item">
-        <a class="nav-link active" data-bs-toggle="tab" href="#single">單筆建檔</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="tab" href="#multiple">批次上傳</a>
-    </li>
-</ul>
-<div class="tab-content border border-top bg-white rounded-end rounded-bottom">
-    <div class="tab-pane fade show active" id="single">
-        <div class="row">
-            <div class="col-10 col-lg-8 m-5">
-                <form asp-action="Create">
-                    <div class="form-group d-flex align-items-center mb-3 row">
-                        <div class="col-4 col-lg-2">
-                            <label asp-for="Name" class="control-label"></label>
+        .btn-outline-excel {
+            --bs-btn-color: rgb(0, 0, 0);
+            --bs-btn-border-color: rgb(0, 0, 0);
+            --bs-btn-hover-color: rgb(0, 0, 0);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgb(0, 0, 0);
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: rgb(0, 0, 0);
+            --bs-btn-active-border-color: rgb(0, 0, 0);
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+    </style>
+</head>
+<h1 class="fw-bold">新品上架</h1>
+
+<div class="p-4 mt-3 rounded-4 bg-white">
+    <h3 class="fw-bold mb-3"><i class="fa-solid fa-circle-info me-2"></i>基本資料</h3>
+    <ul class="nav nav-tabs border-bottom-0">
+        <li class="nav-item">
+            <a class="nav-link active fs-5 text-black" data-bs-toggle="tab" href="#single">單筆建檔</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link fs-5 text-black" data-bs-toggle="tab" href="#multiple">批次上傳</a>
+        </li>
+    </ul>
+    <div class="tab-content border border-top rounded-end rounded-bottom">
+        <div class="tab-pane fade show active" id="single">
+            <div class="row">
+                <div class="col-6 m-5">
+                    <form asp-action="Create">
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="Name" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <input asp-for="Name" class="form-control" placeholder="商品名稱不可超過30個字" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
                         </div>
-                        <div class="col-8 col-lg-10">
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="ProCategoryNoNavigation.Name" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <select asp-for="ProCategoryNo" class="form-select" asp-items="ViewBag.ProCategoryName"></select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group d-flex align-items-center mb-3 row">
-                        <div class="col-4 col-lg-2">
-                            <label asp-for="ProCategoryNoNavigation.Name" class="control-label"></label>
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="Price" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <input asp-for="Price" class="form-control" />
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
                         </div>
-                        <div class="col-8 col-lg-10">
-                            <select asp-for="ProCategoryNo" class="form-select" asp-items="ViewBag.ProCategoryName"></select>
+                        <div class="form-groupd d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="Status" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <select asp-for="Status" class="form-select" asp-items="ViewBag.StatusList"></select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group d-flex align-items-center mb-3 row">
-                        <div class="col-4 col-lg-2">
-                            <label asp-for="Price" class="control-label"></label>
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="ReleaseDate" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <input asp-for="ReleaseDate" class="form-control" />
+                                <span asp-validation-for="ReleaseDate" class="text-danger"></span>
+                            </div>
                         </div>
-                        <div class="col-8 col-lg-10">
-                            <input asp-for="Price" class="form-control" />
-                            <span asp-validation-for="Price" class="text-danger"></span>
+                        <div class="form-group d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5">
+                                <i class="fa-solid fa-plus me-2"></i>新增
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
                         </div>
-                    </div>
-                    <div class="form-groupd d-flex align-items-center mb-3 row">
-                        <div class="col-4 col-lg-2">
-                            <label asp-for="Status" class="control-label"></label>
-                        </div>
-                        <div class="col-8 col-lg-10">
-                            <select asp-for="Status" class="form-select" asp-items="ViewBag.StatusList"></select>
-                        </div>
-                    </div>
-                    <div class="form-group d-flex align-items-center mb-3 row">
-                        <div class="col-4 col-lg-2">
-                            <label asp-for="ReleaseDate" class="control-label"></label>
-                        </div>
-                        <div class="col-8 col-lg-10">
-                            <input asp-for="ReleaseDate" class="form-control" />
-                            <span asp-validation-for="ReleaseDate" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-group d-flex justify-content-end">
-                        <input type="submit" value="新品建檔" class="btn btn-primary" />
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="tab-pane fade" id="multiple">
-        <div class="row">
-            <div class="col-10 col-lg-8 m-5">
-                <a asp-action="DownloadTemplate" asp-controller="Product" class="">
-                    下載excel範本
-                </a>
-                <form asp-controller="Product" asp-action="CreateMultiple" method="post" enctype="multipart/form-data">
-                    <div class="input-group mt-3">
+        <div class="tab-pane fade" id="multiple">
+            <div class="row">
+                <div class="col-6 m-5">
+                    <button asp-action="DownloadTemplate" asp-controller="Product" class="btn btn-outline-excel fw-bold fs-5 mb-3">
+                        <i class="fa-solid fa-file-excel"></i>下載excel範本
+                    </button>
+                    <form asp-controller="Product" asp-action="CreateMultiple" method="post" enctype="multipart/form-data">
                         <input type="file" class="form-control" name="excelFile">
-                        <button type="submit" class="input-group-text" for="excelFile">上傳匯入</button>
-                    </div>
-                </form>
+                        <div class="form-group d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5" for="excelFile">上傳匯入</button>
+                            <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

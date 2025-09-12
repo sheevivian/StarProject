@@ -19,9 +19,11 @@ using System.Threading.Tasks;
 
 namespace StarProject.Controllers
 {
-    public class ProductController : Controller
+    public partial class ProductController : Controller
     {
-        private readonly StarProjectContext _context;
+		private const int pageNumber = 3;
+
+		private readonly StarProjectContext _context;
 
         public ProductController(StarProjectContext context)
         {
@@ -31,54 +33,21 @@ namespace StarProject.Controllers
 		// 商品查詢+頁數
         // GET: Product
         [HttpGet]
-		public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
+		public async Task<IActionResult> Index(int page = 1, int pageSize = pageNumber)
         {
-            // var starProjectContext = _context.Products.Include(p => p.ProCategoryNoNavigation);
-            // return View(await starProjectContext.ToListAsync());
+			// 先組 IQueryable (全部資料，還沒篩選)
+			var query = _context.Products.OrderByDescending(p => p.No);
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
 
-			// return View(_context.Products.Include(p => p.ProCategoryNoNavigation));
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
 
-			// 總筆數
-			var totalCount = await _context.Products.CountAsync();
-
-			// 計算要跳過幾筆
-			var products = await _context.Products
-				.Include(p => p.ProCategoryNoNavigation)
-				.OrderBy(p => p.No)
-				.Skip((page - 1) * pageSize)
-				.Take(pageSize)
-				.ToListAsync();
-
-			// 準備 ViewModel
-			var viewModel = new ProductListViewModel
-			{
-				Products = products,
-				CurrentPage = page,
-				PageSize = pageSize,
-				TotalCount = totalCount
-			};
-
-			return View(viewModel);
+			return View(items);
 		}
-
-        // GET: Product/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .Include(p => p.ProCategoryNoNavigation)
-                .FirstOrDefaultAsync(m => m.No == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
 
 		// 新品上架-單筆(GET)
 		// GET: Product/Create
@@ -99,23 +68,29 @@ namespace StarProject.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create([Bind("Name,ProCategoryNo,Price,Status,ReleaseDate")] Product proModel)
 		{
+
 			int lastNo = _context.Products.Max(p => (int?)p.No) ?? 99999;
 			proModel.No = lastNo + 1;   // 新商品編號
-
 			proModel.UpdateDate = DateTime.Now;
-			try
-			{
-				_context.Add(proModel);
-				await _context.SaveChangesAsync();
+			
+			// 移除 ModelState 中無法綁定的欄位
+			ModelState.Remove("ProCategoryNoNavigation");
 
-				return RedirectToAction("Edit", new { id = proModel.No });
-			}
-			catch (Exception ex)
+			if (ModelState.IsValid)
 			{
-				// 這裡把錯誤訊息寫進 ModelState，讓畫面上可以看到
-				ModelState.AddModelError("", $"資料存檔失敗: {ex.Message}");
-			}
+				try
+				{
+					_context.Add(proModel);
+					await _context.SaveChangesAsync();
 
+					return RedirectToAction("Edit", new { id = proModel.No });
+				}
+				catch (Exception ex)
+				{
+					// 這裡把錯誤訊息寫進 ModelState，讓畫面上可以看到
+					ModelState.AddModelError("", $"資料存檔失敗: {ex.Message}");
+				}
+			}
 			// 如果失敗就回到 Create 畫面，顯示錯誤
 			ViewData["ProCategoryName"] = new SelectList(_context.ProCategories, "No", "Name");
 			ViewBag.StatusList = new List<SelectListItem>
@@ -123,8 +98,7 @@ namespace StarProject.Controllers
 				new SelectListItem { Value = "上架", Text = "上架" },
 				new SelectListItem { Value = "預購", Text = "預購" },
 			};
-
-			return View(proModel);
+			return View();
 		}
 
 		// 新品上架-多筆(GET)
@@ -300,18 +274,6 @@ namespace StarProject.Controllers
 			return PartialView("_PicturePartial", vm);
 		}
 
-		public class ImgOrderDto
-		{
-			public int OrderId { get; set; }  // 圖片 ID
-			public int OrderOd { get; set; }  // 新的排序
-		}
-
-		public class ImgSaveDto
-		{
-			public List<ImgOrderDto> ImgData { get; set; }
-			public List<int> DeletedIds { get; set; }
-		}
-
 		// 更新照片區(POST)
 		[HttpPost]
 		public async Task<IActionResult> ImgSave([FromBody] ImgSaveDto imgSaveDto)
@@ -357,6 +319,27 @@ namespace StarProject.Controllers
 
 			return PartialView("_PicturePartial", vm);
 		}
+
+
+		// GET: Product/Details/5
+		public async Task<IActionResult> Details(int? id)
+		{
+			if (id == null)
+			{
+				return NotFound();
+			}
+
+			var product = await _context.Products
+				.Include(p => p.ProCategoryNoNavigation)
+				.FirstOrDefaultAsync(m => m.No == id);
+			if (product == null)
+			{
+				return NotFound();
+			}
+
+			return View(product);
+		}
+
 
 		// GET: Product/Delete/5
 		public async Task<IActionResult> Delete(int? id)

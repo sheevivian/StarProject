@@ -21,7 +21,7 @@ namespace StarProject.Controllers
 		{
 
 			////要去資料庫撈資料
-			if (value.Account.ToLower() == "TalllKai".ToLower() && value.Password == "123456")
+			if (value.Account.ToLower() == "123".ToLower() && value.Password == "123")
 			{
 				var claims = new List<Claim>
 				{

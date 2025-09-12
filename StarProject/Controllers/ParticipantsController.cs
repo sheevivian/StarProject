@@ -25,6 +25,7 @@ namespace StarProject.Controllers
 				.Include(p => p.EventNoNavigation)
 				.Include(p => p.PaymentNoNavigation)
 				.Include(p => p.UsersNoNavigation)
+				.AsNoTracking() // 列表頁建議使用，避免追蹤開銷
 				.AsQueryable();
 
 			// 篩選活動編號
@@ -33,7 +34,7 @@ namespace StarProject.Controllers
 				participants = participants.Where(p => p.EventNo == selectedEventId);
 			}
 
-			// 篩選活動名稱
+			// 篩選活動名稱（保留 Contains；若要更一致可改 EF.Functions.Like）
 			if (!string.IsNullOrEmpty(searchEventKeyword))
 			{
 				participants = participants.Where(p => p.EventNoNavigation != null &&
@@ -47,8 +48,13 @@ namespace StarProject.Controllers
 					p.UsersNoNavigation.Name.Contains(searchUserKeyword));
 			}
 
+			// ★ 排序：先以報名時間新→舊；若同時間再以流水號大→小，避免看起來像被編號主導
+			participants = participants
+				.OrderByDescending(p => p.RegisteredDate)
+				.ThenByDescending(p => p.No);
+
 			// 傳送所有活動給下拉選單
-			ViewBag.AllEvents = await _context.Events.ToListAsync();
+			ViewBag.AllEvents = await _context.Events.AsNoTracking().ToListAsync();
 			ViewBag.SelectedEventId = selectedEventId;
 			ViewBag.SearchEventKeyword = searchEventKeyword;
 			ViewBag.SearchUserKeyword = searchUserKeyword;
@@ -66,6 +72,7 @@ namespace StarProject.Controllers
 				.Include(p => p.EventNoNavigation)
 				.Include(p => p.PaymentNoNavigation)
 				.Include(p => p.UsersNoNavigation)
+				.AsNoTracking()
 				.FirstOrDefaultAsync(m => m.No == id);
 
 			if (participant == null)
@@ -138,21 +145,21 @@ namespace StarProject.Controllers
 				return Json(new { success = true });
 			}
 
-			// 若驗證失敗，回傳 PartialView
+			// 驗證失敗：重新載入完整資料供局部檢視
 			var fullParticipant = await _context.Participants
 				.Include(p => p.EventNoNavigation)
 				.Include(p => p.UsersNoNavigation)
 				.Include(p => p.PaymentNoNavigation)
 				.FirstOrDefaultAsync(p => p.No == id);
 
-			if (participant == null)
+			if (fullParticipant == null)
 			{
 				return NotFound();
 			}
 
-			return PartialView("_EditPartial", participant);
+			return PartialView("_EditPartial", fullParticipant);
 		}
-		
+
 		// GET: Participants/Delete/5
 		public async Task<IActionResult> Delete(int? id)
 		{
@@ -163,6 +170,7 @@ namespace StarProject.Controllers
 				.Include(p => p.EventNoNavigation)
 				.Include(p => p.PaymentNoNavigation)
 				.Include(p => p.UsersNoNavigation)
+				.AsNoTracking()
 				.FirstOrDefaultAsync(m => m.No == id);
 
 			if (participant == null)

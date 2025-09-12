@@ -815,10 +815,8 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<Schedule>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Schedule");
-
+			entity.ToTable("Schedule");
+			entity.HasKey(e => e.EventNo);
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
             entity.Property(e => e.ReleaseDate).HasColumnType("datetime");

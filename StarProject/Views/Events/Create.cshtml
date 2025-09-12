@@ -91,6 +91,44 @@
                 <span asp-validation-for="EndDate" class="text-danger"></span>
             </div>
 
+            <!-- ▼▼▼ 發佈設定（排程發文） ▼▼▼ -->
+                <div class="form-group mb-2">
+                    <label class="control-label fw-bold fs-5 mb-1">發佈方式</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="PublishMode" id="pmNow" value="now" checked>
+                            <label class="form-check-label" for="pmNow">立即發佈</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="PublishMode" id="pmSchedule" value="schedule">
+                            <label class="form-check-label" for="pmSchedule">排程時間</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-2">
+                    <label class="control-label fw-bold fs-5 mb-1">開始發佈時間</label>
+                    <input type="datetime-local"
+                           class="form-control"
+                           name="ReleaseDate"
+                           id="ReleaseDate"
+                           value="@(ViewBag.ScheduleReleaseDate ?? "")"
+                           disabled />
+                </div>
+
+                <div class="form-group mb-2">
+                    <label class="control-label fw-bold fs-5 mb-1">下架時間（可空白）</label>
+                    <input type="datetime-local"
+                           class="form-control"
+                           name="ExpirationDate"
+                           id="ExpirationDate"
+                           value="@(ViewBag.ScheduleExpirationDate ?? "")"
+                           disabled />
+                    <small class="text-muted">＊不設定代表不下架</small>
+                </div>
+
+            <!-- ▲▲▲ 發佈設定（排程發文） ▲▲▲ -->
+
             <div class="form-group mb-2">
                 <label asp-for="Fee" class="control-label fw-bold fs-5 mb-1">活動費用</label>
                 <input asp-for="Fee" class="form-control" />
@@ -151,15 +189,23 @@
           const original = document.getElementById('originalImg');
           const preview  = document.getElementById('preview');
 
-          // 建立臨時 URL，載入後釋放
           const url = URL.createObjectURL(file);
           preview.onload = () => URL.revokeObjectURL(url);
           preview.src = url;
 
-          // 切換顯示：隱藏原圖、顯示預覽
           original.classList.add('d-none');
           preview.classList.remove('d-none');
         }
-    </script>
 
+        // 排程欄位啟用/停用
+        function toggleScheduleInputs() {
+          const schedule = document.getElementById('pmSchedule').checked;
+          document.getElementById('ReleaseDate').disabled = !schedule;
+          document.getElementById('ExpirationDate').disabled = !schedule;
+        }
+        document.getElementById('pmNow').addEventListener('change', toggleScheduleInputs);
+        document.getElementById('pmSchedule').addEventListener('change', toggleScheduleInputs);
+        // 初次載入先同步一次
+        toggleScheduleInputs();
+    </script>
 }

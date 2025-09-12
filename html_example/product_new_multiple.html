@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel='stylesheet'
+        href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+    <link rel='stylesheet'
+        href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css'>
+    <link rel='stylesheet'
+        href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+    <link rel="stylesheet" href="./bootstrapcss/bootstrap.css">
+    <link rel="stylesheet" href="./css/home.css">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+    <link rel='stylesheet'
+        href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-straight/css/uicons-regular-straight.css'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+
+    <title>星航基地後台系統</title>
+</head>
+
+<body class="d-flex">
+    <!-- Sidebar -->
+    <nav class="w250px sidebar" id="menu">
+        <ul class="navbar-nav" id="accordionSidebar"> <!-- ✅ 這裡加上 id -->
+            <!-- logo -->
+            <a class="d-flex align-items-center sidebar-brand justify-content-center" data-bs-toggle="tooltip"
+                data-bs-placement="right" data-bs-title="首頁" data-bs-trigger="hover" href="Home.html">
+                <div>
+                    <img class="logo" src="./img/logo.png" alt="">
+                </div>
+                <div class="mx-3 collapsed-logo logotxt">星航基地</div>
+            </a>
+
+            <hr class="sidebar-divider justify-content">
+
+            <!-- 員工管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseEmp" aria-expanded="false"
+                    aria-controls="collapseEmp">
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </span>
+                    <span class="link-text">員工管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseEmp" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">帳號管理</a>
+                        <a class="collapse-item" href="#">權限管理</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 會員管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseUser" aria-expanded="false"
+                    aria-controls="collapseUser">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fi fi-sr-alien"></i>
+                    </span>
+                    <span class="link-text">會員管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseUser" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">會員名單</a>
+                        <a class="collapse-item" href="#">黑名單</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 資訊管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseInfo" aria-expanded="false"
+                    aria-controls="collapseInfo">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fa-solid fa-meteor"></i>
+                    </span>
+                    <span class="link-text">資訊管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseInfo" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">官網公告</a>
+                        <a class="collapse-item" href="#">知識庫管理</a>
+                        <a class="collapse-item" href="#">遺失物管理</a>
+                        <a class="collapse-item" href="#">觀星景點管理</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 活動管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseEvn" aria-expanded="false"
+                    aria-controls="collapseEvn">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fi fi-br-ufo-beam"></i>
+                    </span>
+                    <span class="link-text">活動管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseEvn" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">活動總覽</a>
+                        <a class="collapse-item" href="#">活動列表</a>
+                        <a class="collapse-item" href="#">新增活動</a>
+                        <a class="collapse-item" href="#">報名管理</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 商品管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapsePro" aria-expanded="false"
+                    aria-controls="collapsePro">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fi fi-rr-cow-alt"></i>
+                    </span>
+                    <span class="link-text">商品管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapsePro" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="product_new_.html">新品上架</a>
+                        <a class="collapse-item" href="#">商品查詢</a>
+                        <a class="collapse-item" href="#">庫存管理</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 門票管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseTic" aria-expanded="false"
+                    aria-controls="collapseTic">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fi fi-sr-planet-ringed"></i>
+                    </span>
+                    <span class="link-text">門票管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseTic" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">票券列表</a>
+                        <a class="collapse-item" href="#">每日庫存查詢</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 優惠管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseDis" aria-expanded="false"
+                    aria-controls="collapseDis">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fi fi-ss-money-wings"></i>
+                    </span>
+                    <span class="link-text">優惠管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseDis" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">優惠券管理</a>
+                        <a class="collapse-item" href="#">成效分析</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 訂單管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseOrd" aria-expanded="false"
+                    aria-controls="collapseOrd">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fa-solid fa-rocket"></i>
+                    </span>
+                    <span class="link-text">訂單管理</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseOrd" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">訂單明細</a>
+                        <a class="collapse-item" href="#">訂單狀態</a>
+                        <a class="collapse-item" href="#">訂單紀錄</a>
+                        <a class="collapse-item" href="#">請款/退款作業</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 客戶服務 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseCS" aria-expanded="false"
+                    aria-controls="collapseCS">
+
+                    <!-- 左側：icon + 文字 -->
+                    <span class="icon-wrapper">
+                        <i class="fi fi-rs-planet-moon"></i>
+                    </span>
+                    <span class="link-text">客戶服務</span>
+
+                    <!-- 箭頭 -->
+                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
+                </a>
+
+                <div id="collapseCS" class="collapse" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">訂單問題</a>
+                        <a class="collapse-item" href="#">訊息管理</a>
+                        <a class="collapse-item" href="#">FAQ/常見問題</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 營運分析 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center nav-link txtWhite" href="#">
+                    <span class="icon-wrapper">
+                        <i class="fas fa-fw fa-chart-area"></i>
+                    </span>
+                    <span class="link-text">營運分析</span>
+                </a>
+            </li>
+
+
+        </ul>
+
+        <div class="btn" style="width:100%">
+            <button class="btn-primary1 mt-4 dn1588px" id="sidebarToggle"></button>
+        </div>
+
+    </nav>
+
+
+    <div class="w100per">
+        <main>
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand topbar">
+                <div class="container-fluid">
+                    <ul class="navbar-nav d-flex align-items-center w-100 ">
+                        <!-- 公司廣播 -->
+                        <li class="nav-item d-flex me-auto ms-2">
+                            <div class="flex-grow-1 bg-white rounded-pill py-1 px-2"><i
+                                    class="fa-solid fa-bullhorn text-danger"></i>
+                                員工中秋聚餐：2025/10/3 (五) 19:30 老井極上燒肉 信義店，敬請同仁出席！！！
+                            </div>
+                        </li>
+
+                        <!-- 小鈴鐺 -->
+                        <li class="nav-item position-relative">
+                            <a class="nav-link " href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                data-bs-title="通訊中心" data-bs-trigger="hover" id="topbarNotify">
+                                <i class="fa-solid fa-bell fs-4"></i>
+                            </a>
+                            <!-- Counter - Alerts -->
+                            <span class="badge badge-danger position-absolute top-0 end-0 rounded-pill">9+</span>
+
+                        </li>
+
+                        <!-- 新手指南 -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                data-bs-title="登艙指南" data-bs-trigger="hover"><i
+                                    class="fa-solid fa-circle-question fs-4"></i></a>
+                        </li>
+
+                        <li class="nav-item">
+                            <div class="topbar-divider dn1000px"></div>
+                        </li>
+
+                        <!-- 員工個資 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link d-flex align-items-center profile" href="#" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="fw900 dn1000px">您好！</span>
+                                <span class="username fw900 dn1000px">崔始源</span>
+                                <img class="img-profile rounded-circle" src="img\astronaut.gif" alt="">
+                            </a>
+                            <ul class="dropdown-menu mt-1 dropdownlist dropdown-menu-1000px-end">
+                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i>個人資料</a></li>
+                                <li><a class="dropdown-item" href="#"><i
+                                            class="fa-solid fa-clock-rotate-left"></i>操作歷程</a>
+                                </li>
+                                <li><a class="dropdown-item" href="#"><i
+                                            class="fa-regular fa-calendar-days"></i>出勤紀錄</a>
+                                </li>
+                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-paw"></i>請假系統</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-power-off"></i>登出</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- 麵包屑 -->
+                <!-- <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="product_new.html">新品上架</a></li>
+                        <li class="breadcrumb-item"><a href=""></a></li>
+                    </ol>
+                </nav> -->
+
+                <!-- 選擇上架方式 -->
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="product_new_single.html">單品上架</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="product_new_multiple.html">批次上傳</a>
+                    </li>
+                </ul>
+
+
+            </div>
+
+
+
+
+
+        </main>
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white text-body-tertiary">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span class="dn580px">總機：(03)453-3013 #202</span>
+                    <span class="mx-2 dn580px">|</span>
+                    <span class="dn580px">郵件：apollo2025@gmail.com</span>
+                    <div class="mt-1" style="font-size: 14px;">Copyright &copy; Apollo Astronomical Museum 2025</div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script>
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+        $(function () {
+            // Toggle the side navigation
+            $("#sidebarToggle").click(function () {
+                $(".sidebar").toggleClass("toggled");
+                if ($(".sidebar").hasClass("toggled")) {
+                    $('.sidebar .collapse').collapse('hide');
+                }
+                else {
+                    // 展開時直接清掉所有 sideline
+                    $(".sidebar .nav-item").removeClass("sideline");
+                };
+
+            });
+
+            // nav-item 點擊事件
+            $(document).on("click", ".sidebar.toggled .nav-item", function (event) {
+                if ($(".sidebar").hasClass("toggled")) {
+                    event.stopPropagation() //阻止冒泡事件
+
+                    $(this).toggleClass("sideline");    // 點擊同一個 nav-item 可切換 sideline
+                    $(this).siblings(".nav-item").removeClass("sideline");  // 其他 nav-item 移除 sideline
+                };
+            });
+
+            $(document).on("click", function (e) {
+                if ($(".sidebar").hasClass("toggled")) {
+                    if (!$(e.target).closest(".sidebar").length) {
+                        $(".sidebar .collapse.show").collapse('hide');
+                        $(".sidebar .nav-item").removeClass("sideline");
+                    }
+                }
+            });
+
+            // === 新增：視窗寬度監聽 ===
+            function checkSidebar() {
+                if ($(window).width() <= 1588) {
+                    $(".sidebar").addClass("toggled");
+                    $('.sidebar .collapse').collapse('hide'); // 保險關閉展開
+                } else {
+                    $(".sidebar").removeClass("toggled");
+                    $(".sidebar .nav-item").removeClass("sideline");
+                }
+            }
+
+            // 初始檢查
+            checkSidebar();
+
+            // 視窗縮放時檢查
+            $(window).resize(checkSidebar);
+
+            $("#topbarNotify").hover(function () {
+                // 先移除，避免動畫卡住
+                $(this).removeClass("animate__animated animate__swing");
+
+                // 觸發 reflow，強制瀏覽器重新渲染（確保下次能重新播放）
+                void this.offsetWidth;
+
+                // 再加回去
+                $(this).addClass("animate__animated animate__swing").one("animationend", function () {
+                    $(this).removeClass("animate__animated animate__swing");
+                });
+            });
+        })
+    </script>
+</body>
+
+</html>

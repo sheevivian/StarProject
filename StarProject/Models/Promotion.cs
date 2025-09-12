@@ -17,7 +17,7 @@ public partial class Promotion
 
     public string Status { get; set; } = null!;
 
-    public int Limit { get; set; }
+    public int? Limit { get; set; }
 
     public string CouponCode { get; set; } = null!;
 

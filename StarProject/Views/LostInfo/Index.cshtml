@@ -182,6 +182,8 @@
 		}
 
     </style>
+
+
 </head>
 
 <main class="flex-fill position-relative">
@@ -196,7 +198,7 @@
 		@Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
 	</form>
 	
-	<!-- 搜尋框 -->
+	<!-- 搜尋框+每頁筆數 -->
     <div class="input-group input-group-lg">
 		<input id="searchInput" type="text" class="form-control" aria-label="Sizing example input">
 		<button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -214,7 +216,7 @@
 					<span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
 				</button>
 
-			<ul class="dropdown-menu p-2" style="width:180px">
+			<ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
                 <!-- 物品分類 -->
 				<li>
 					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
@@ -320,6 +322,16 @@
 				</li>
 			</ul>
 		</div>
+
+		<div style="width:150px">
+			<select class="form-select form-select-lg ms-3" aria-label="Large select example" id="pageSizeSelect">
+                <option selected value="10">每頁10筆</option>
+                <option value="15">每頁15筆</option>
+                <option value="20">每頁20筆</option>
+                <option value="25">每頁25筆</option>
+            </select>
+		</div>
+		
 	</div>
 
 	<div class="mt-1 text-end me-2" style="display:none" id="selectedFiltersDiv">
@@ -365,20 +377,7 @@
 
 		<!-- 分頁 -->
         <div id="pagination">
-			<nav aria-label="Page navigation">
-				<ul class="pagination justify-content-center">
-					@for (int i = 1; i <= ViewBag.TotalPages; i++)
-					{
-						<li class="page-item @(i == ViewBag.Page ? "active" : "") @(ViewBag.TotalPages == 1 ? "disabled" : "")">
-							<a class="page-link" href="javascript:void(0);" onclick="loadPage(@i)" data-page="@i">@i</a>
-						</li>
-					}
-				</ul>
-			</nav>
-
-			<div class="text-center mb-2">
-				<span>共 @ViewBag.Total 筆資料，頁數 <span id="paginationInfo">@ViewBag.Page</span> / @ViewBag.TotalPages</span>
-			</div>
+			@await Html.PartialAsync("_LostInfoPagination", Model)
 		</div>
         
 
@@ -464,17 +463,7 @@
 
 @section Scripts {
 	<script>
-		var pageNumber = 3;
-		function loadPage(page) {
-			$.get('/LostInfo/GetLostInfos', { page: page, pageSize: pageNumber }, function(result) {
-			$('#tableBody').html(result);
-
-			$('#paginationInfo').text(`${page}`);
-				// 更新分頁 active 樣式
-				$('#pagination li').removeClass('active');
-				$(`.pagination .page-link[data-page='${page}']`).closest("li").addClass('active');
-			});
-		}
+		let pageNumber = parseInt($('#pageSizeSelect').val()) || 10; // 預設每頁數量
 
 		$(function (){
 
@@ -560,29 +549,15 @@
 
 			// 點搜尋按鈕
 			$('#btnSearch').on("click", ()=> {
-			// 讀取目前進階條件
-				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
-				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
-				let dateFrom = $("#dateFrom").val();
-				let dateTo = $("#dateTo").val();
-
-				let filters = { categories, statuses, dateFrom, dateTo };
-
-				searchData(filters);
+				console.log($('#searchInput').val());
+				refreshLostInfoTable(1);
 				updateSelectedFilters()
 			});
 
 			// 也可以輸入框 keyup 即時觸發
 			$('#searchInput').on("keyup", ()=> {
-				//讀取目前進階條件
-				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
-				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
-				let dateFrom = $("#dateFrom").val();
-				let dateTo = $("#dateTo").val();
-
-				let filters = { categories, statuses, dateFrom, dateTo };
-
-				searchData(filters);
+				console.log($('#searchInput').val());
+				refreshLostInfoTable(1);
 				updateSelectedFilters()
 			});
 
@@ -597,7 +572,7 @@
 
 				let filters = { categories, statuses, dateFrom, dateTo };
 
-				searchData(filters);
+				refreshLostInfoTable(1);
 
 				// 找到最接近的 dropdown-toggle
 				var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
@@ -613,7 +588,7 @@
 			});
 
 
-			// 清除按鈕
+			// 搜尋清除按鈕
 			document.querySelector(".btn-outline-search").addEventListener("click", function () {
 				document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
 				document.getElementById("dateFrom").value = "";
@@ -621,7 +596,7 @@
 				document.getElementById("searchInput").value = "";
 				updateSelectedFilters();
 				updateFilterCount()
-				searchData();
+				refreshLostInfoTable(1);
 			});
 
 			// 日期區間邏輯
@@ -639,27 +614,6 @@
 				}
 			});
 
-			// 搜尋功能
-			async function searchData(filters = {}) {
-				try {
-					var keyword = $('#searchInput').val();
-					filters.keyword = keyword; // 把 keyword 加入 filters
-
-					let response = await fetch(`${baseAddress}/LostInfo/SearchSelect`, {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify(filters)
-					});
-
-					if (response.ok) {
-						let data = await response.json();
-						$("#tableBody").html(data.tableHtml);           // 更新表格
-						$("#pagination").html(data.paginationHtml);     // 更新分頁
-					}
-				} catch(err) {
-					alert("搜尋失敗: " + err.message);
-				}
-			}
 
 			// 更新篩選顯示文字
 			function updateSelectedFilters() {
@@ -710,11 +664,10 @@
 			}
 
 			// 分頁按鈕
-			$(".pagination").on("click", ".page-link", function (e) {
+			$(".pagination").on("click", ".pagination .page-link", function (e) {
 				e.preventDefault();
 				let page = $(this).data("page");
-
-				loadPage(page)
+				refreshLostInfoTable(page);
 			});
 
 
@@ -784,6 +737,7 @@
 					// 刪除後刷新列表
 					refreshLostInfoTable(page);
 
+
 					// 關閉 Offcanvas
 					var offcanvasEl = document.getElementById('offcanvasDetail');
 					var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
@@ -797,15 +751,27 @@
 				}
 			});
 
+			// 當 select 改變時
+			$('#pageSizeSelect').on('change', function() {
+				pageNumber = parseInt($(this).val()); // 更新 pageNumber
+				console.log("pageNumber 更新為:", pageNumber);
+
+				refreshLostInfoTable(1);
+			});
+
 		});
 
-
-			// 統一刷新列表
-			async function refreshLostInfoTable(page = 1, filters = {}) {
+		// 統一刷新列表
+		async function refreshLostInfoTable(page = 1, filters = {}) {
 				try {
-					// 加入 pageNumber
-					filters.page = page;
-					filters.pageSize = pageNumber;
+
+					filters.Page = page;
+					filters.PageSize = pageNumber;
+					filters.keyword = $('#searchInput').val();
+					filters.Categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+					filters.Statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
+					filters.DateFrom = $("#dateFrom").val();
+					filters.DateTo = $("#dateTo").val();
 
 					// 取得 CSRF Token
 					filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
@@ -817,6 +783,11 @@
 						contentType: "application/json"
 					});
 
+					// 如果本頁沒有資料且頁數大於 1，自動回前一頁
+					if (response.tableHtml.trim() === "" && page > 1) {
+						return await refreshLostInfoTable(page - 1, filters);
+					}
+
 					// 更新 tableBody
 					$("#tableBody").html(response.tableHtml);
 
@@ -826,10 +797,13 @@
 					// 更新分頁顯示
 					$('#paginationInfo').text(page);
 
+					$('#delectAll, #selectNum').hide();
+					$('#checkAll').prop('checked', false);
+
 				} catch (err) {
 					alert("更新列表失敗：" + err.responseText || err.statusText);
 				}
-			}
+		}
 
 	</script>
 }

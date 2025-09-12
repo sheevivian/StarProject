@@ -20,7 +20,7 @@ namespace StarProject.Controllers
 {
     public class LostInfoController : Controller
     {
-		private const int pageNumber = 3;
+		private const int pageNumber = 10;
 
 		private readonly StarProjectContext _context;
 
@@ -243,8 +243,12 @@ namespace StarProject.Controllers
 
 		// POST: LostInfo/SearchSelect
 		[HttpPost]
-		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters, int page = 1, int pageSize = pageNumber)
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
 		{
+			// 從 filters 取得 pageSize，如果沒有就給預設值
+			int page = filters.Page > 0 ? filters.Page : 1;
+			int pageSize = filters.PageSize >=0 ? filters.PageSize : 10;
+
 			var query = _context.LostInfos.AsQueryable();
 			query = query.OrderByDescending(x => x.CreatedDate);
 
@@ -300,7 +304,10 @@ namespace StarProject.Controllers
 			ViewBag.Page = page;
 			ViewBag.PageSize = pageSize;
 
-			return PartialView("_LostInfoRows", items);
+			var tableHtml = await RenderPartialViewToString("_LostInfoRows", items);
+			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
+
+			return Json(new { tableHtml, paginationHtml });
 		}
 
 		private bool LostInfoExists(int id)

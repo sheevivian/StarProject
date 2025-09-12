@@ -550,10 +550,9 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.PaymentNo).HasColumnName("Payment_No");
-            entity.Property(e => e.RegisterdDate).HasColumnType("datetime");
+            entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasColumnName("status");
@@ -569,7 +568,6 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.PaymentNoNavigation).WithMany(p => p.Participants)
                 .HasForeignKey(d => d.PaymentNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Participant_PaymentTransaction");
 
             entity.HasOne(d => d.UsersNoNavigation).WithMany(p => p.Participants)
@@ -666,13 +664,13 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductImage>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("ProductImage");
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("ProductImage");
 
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
 
-            entity.HasOne(d => d.ProductNoNavigation).WithMany()
+            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Img_ProNo_FK");

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Build.Graph;
 using Microsoft.EntityFrameworkCore;
@@ -299,39 +300,47 @@ namespace StarProject.Controllers
 			return PartialView("_PicturePartial", vm);
 		}
 
-		// 取得照片序號(GET)
-		[HttpGet]
-		public int GetImgId(int id) {
-			return id;
-		}
-
 		public class ImgOrderDto
 		{
-			public int id { get; set; }
-			public int order { get; set; }
+			public int OrderId { get; set; }  // 圖片 ID
+			public int OrderOd { get; set; }  // 新的排序
+		}
+
+		public class ImgSaveDto
+		{
+			public List<ImgOrderDto> ImgData { get; set; }
+			public List<int> DeletedIds { get; set; }
 		}
 
 		// 更新照片區(POST)
 		[HttpPost]
-		public async Task<IActionResult> ImgSave([FromBody] List<ImgOrderDto> imgOrders)
+		public async Task<IActionResult> ImgSave([FromBody] ImgSaveDto imgSaveDto)
 		{
-			if (imgOrders == null || !imgOrders.Any())
-				return BadRequest();
+			// 刪除資料庫圖片
+			if (imgSaveDto.DeletedIds != null && imgSaveDto.DeletedIds.Any())
+			{
+				var imgsToDelete = _context.ProductImages
+										   .Where(i => imgSaveDto.DeletedIds.Contains(i.No));
+				_context.ProductImages.RemoveRange(imgsToDelete);
+			}
 
 			// 依序更新
-			foreach (var item in imgOrders)
+			if (imgSaveDto.ImgData != null && imgSaveDto.ImgData.Any())
 			{
-				var img = await _context.ProductImages.FirstOrDefaultAsync(x => x.No == item.id);
-				if (img != null)
+				foreach (var item in imgSaveDto.ImgData)
 				{
-					img.ImgOrder = item.order;
+					var img = await _context.ProductImages.FirstOrDefaultAsync(i => i.No == item.OrderId);
+					if (img != null)
+					{
+						img.ImgOrder = item.OrderOd;
+					}
 				}
 			}
 
 			await _context.SaveChangesAsync();
 
 			// 把更新後的圖片再抓出來顯示
-			var firstId = imgOrders.First().id;
+			var firstId = imgSaveDto.ImgData.First().OrderId;
 			var productNo = _context.ProductImages
 				.Where(x => x.No == firstId)
 				.Select(x => x.ProductNo)

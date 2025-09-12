@@ -18,15 +18,17 @@ namespace StarProject.Metadatas
 		[Required(ErrorMessage = "請輸入商品定價")]
 		[RegularExpression(@"^\d+$", ErrorMessage = "請輸入整數數字")]
 		[Range(0, 999999, ErrorMessage = "請輸入正確範圍的數字")]
+		[DisplayFormat(DataFormatString = "{0:N0}", ApplyFormatInEditMode = true)]
 		public decimal Price { get; set; }
 
-		[Display(Name = "狀態")]
+		[Display(Name = "商品狀態")]
 		[Required(ErrorMessage = "請選擇商品狀態")]
 		public string Status { get; set; } = null!;
 
 		[Display(Name = "上架日期")]
 		[Required(ErrorMessage = "請選擇商品上架日期")]
 		[DataType(DataType.DateTime)]
+		[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
 		public DateTime? ReleaseDate { get; set; }
 
 		[Display(Name = "最後更新")]

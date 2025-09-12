@@ -21,7 +21,7 @@ namespace StarProject.Controllers
 {
     public partial class ProductController : Controller
     {
-		private const int pageNumber = 3;
+		private const int pageNumber = 10;
 
 		private readonly StarProjectContext _context;
 
@@ -30,13 +30,13 @@ namespace StarProject.Controllers
             _context = context;
         }
 
-		// 商品查詢+頁數
+		// 商品列表+頁數
         // GET: Product
         [HttpGet]
 		public async Task<IActionResult> Index(int page = 1, int pageSize = pageNumber)
         {
 			// 先組 IQueryable (全部資料，還沒篩選)
-			var query = _context.Products.OrderByDescending(p => p.No);
+			var query = _context.Products.OrderByDescending(x => x.No);
 			// 呼叫分頁工具
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
 

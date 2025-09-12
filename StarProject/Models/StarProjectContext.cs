@@ -19,6 +19,8 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<Collection> Collections { get; set; }
 
+    public virtual DbSet<CompanyNotify> CompanyNotifies { get; set; }
+
     public virtual DbSet<CustomerService> CustomerServices { get; set; }
 
     public virtual DbSet<Dept> Depts { get; set; }
@@ -197,6 +199,17 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_Collection_Users");
         });
 
+        modelBuilder.Entity<CompanyNotify>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("CompanyNotify");
+
+            entity.Property(e => e.Category).HasMaxLength(30);
+            entity.Property(e => e.PublishDate).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<CustomerService>(entity =>
         {
             entity.HasKey(e => e.No);
@@ -259,6 +272,16 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.PasswordSalt).HasMaxLength(50);
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.RoleNo).HasColumnName("Role_No");
+
+            entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
+                .HasForeignKey(d => d.DeptNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Emps_Dept");
+
+            entity.HasOne(d => d.RoleNoNavigation).WithMany(p => p.Emps)
+                .HasForeignKey(d => d.RoleNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Emps_Roles");
         });
 
         modelBuilder.Entity<Event>(entity =>
@@ -550,10 +573,9 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.PaymentNo).HasColumnName("Payment_No");
-            entity.Property(e => e.RegisterdDate).HasColumnType("datetime");
+            entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasColumnName("status");
@@ -569,7 +591,6 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.PaymentNoNavigation).WithMany(p => p.Participants)
                 .HasForeignKey(d => d.PaymentNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Participant_PaymentTransaction");
 
             entity.HasOne(d => d.UsersNoNavigation).WithMany(p => p.Participants)

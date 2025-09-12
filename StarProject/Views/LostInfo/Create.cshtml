@@ -1,7 +1,7 @@
 ﻿@model StarProject.ViewModel.LostInfoVM
 
 @{
-    ViewData["Title"] = "新增遺失物";
+    ViewData["Title"] = "遺失物新增";
 }
 
 <head>
@@ -52,10 +52,15 @@
 
 			--bs-gradient: none;
 		}
+
+        .text-distance {
+            letter-spacing: 5px; /* 正值：字母間距變大，負值：變小 */
+            text-align: center; /* 文字置中 */
+        }
     </style>
 </head>
 
-<h1 class="fw-bold">新增遺失物</h1>
+<h1 class="fw-bold">遺失物新增</h1>
 <hr />
 <div class="row">
     <div class="d-flex">
@@ -106,9 +111,9 @@
                 </div>
             </div>
 
-            <div class="form-group d-flex gap-2 mt-2">
-                <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5">
-                    <i class="fa-solid fa-plus me-2"></i>新增
+            <div class="form-group d-flex gap-2 mt-2 text-distance">
+                <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5 text-distance">
+                    <i class="fa-solid fa-plus"></i>新增
                 </button>
                 <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
             </div>
@@ -123,17 +128,6 @@
     </div>
 </div>
 
-<script>
-    function previewImage(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const preview = document.getElementById('preview');
-            preview.src = URL.createObjectURL(file); // 建立臨時 URL
-            preview.style.display = 'block';         // 顯示圖片
-        }
-    }
-</script>
-
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
@@ -147,9 +141,7 @@
                 preview.style.display = 'block';         // 顯示圖片
             }
         }
-    </script>
 
-    <script>
         document.addEventListener("DOMContentLoaded", function () {
             let statusSelect = document.getElementById("status");
             let ownerInfo = document.getElementById("ownerInfo");

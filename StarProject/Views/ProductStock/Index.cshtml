@@ -1,0 +1,42 @@
+﻿@model List<StarProject.ViewModels.ProductStockSumViewModel>
+
+@{
+	ViewData["Title"] = "商品管理｜庫存查詢";
+}
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model[0].ProductNo)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].ProductName)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].SumQuantity)
+			</th>
+			<th>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@item.ProductNo
+				</td>
+				<td>
+					@item.ProductName
+				</td>
+				<td>
+					@item.SumQuantity
+				</td>
+				<td>
+					<a asp-action="Details" asp-route-id="@item.ProductNo">Details</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

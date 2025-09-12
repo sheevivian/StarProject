@@ -141,55 +141,50 @@
 
 <script>
     $(document).ready(function() {
-        // $(document).on('click', '.del-btn-uped', function() {
-        //     e.preventDefault(); 防止預設行為
 
-        //     const imgId = $(this).data("imgid");    取得 data-imgid 屬性值
-        //     const productNo = $(this).data("productno");
-        //     const imgId = $(this).closest('.imgdiv').data("imgid")
+        let deletedIds = [];
+        let fileList = [];
+        const maxFiles = 5;
 
-        //     1. 前端移除該圖片區塊
-        //     $(this).closest('.imgdiv').remove();
-        //     closest('div') → <div style="position: relative...">
-        //     parent() → 外層包裹的 <div>，整個區塊一起移除
-
-
-
-        //     2. 如果要呼叫後端刪除，可以用 AJAX
-        //      $.ajax({
-        //         url: '/Product/GetImgId', 後端 Controller action
-        //         type: 'POST',
-        //         data: { id: imgId }
-        //     }); 
-        // });
+        $(document).on('click', '.del-btn-uped', function() {
+            const imgId = $(this).closest('.imgdiv').data("imgid");
+            deletedIds.push(imgId);
+            $(this).closest('.imgdiv').remove();
+        });
 
         
-        // $('#img-btn-save').on('click', function(){
+        $('#img-btn-save').on('click', function(){
+            // alert("img-btn-save");
+            const ImgData = [];
 
-        //     const imgData = [];
+            $('#imgContainer .imgdiv').each(function () {
+                const OrderId = $(this).data('imgid');
+                const OrderOd = parseInt($(this).find('.img-order').val()) || 0;
+                ImgData.push({ OrderId, OrderOd });
+            });
 
-        //     $('#imgContainer .imgdiv').each(function () {
-        //         const id = $(this).data('imgid');
-        //         const order = parseInt($(this).find('.img-order').val()) || 0;
-        //         imgData.push({ id, order });
-        //     });
-        //     $.ajax({
-        //         url: '/Product/ImgSave', 後端 Controller action
-        //         type: 'POST',
-        //         contentType: 'application/json',
-        //         data: JSON.stringify(imgData),
-        //         success: function(res) {
-        //             $("#imgContainer").html(res); 更新圖片區塊
-        //             alert('修改成功！');
-        //         },
-        //         error: function(err) {
-        //             alert('修改失敗！');
-        //         }
-        //     });
-        // })
+            let dataToSend = {
+                ImgData: ImgData,
+                DeletedIds: deletedIds
+            };
 
-        const maxFiles = 5;
-        let fileList = [];
+            $.ajax({
+                url: '/Product/ImgSave', // 後端Controller action
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dataToSend),
+                success: function(res) {
+                    $("#imgContainer").html(res); // 更新圖片區塊
+                    deletedIds = [];
+                    alert('修改成功！');
+                },
+                error: function(err) {
+                    alert('修改失敗！');
+                }
+            });
+        })
+
+
 
         // 選擇檔案的文字條
         $("#ImageFiles").on("change", function () {

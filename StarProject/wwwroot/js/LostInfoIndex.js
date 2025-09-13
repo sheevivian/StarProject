@@ -68,7 +68,7 @@ $(function () {
 			traditional: true, // 陣列傳送格式
 			success: function () {
 				let page = parseInt($('#paginationInfo').text()) || 1; // 取得目前頁碼
-				refreshLostInfoTable(page);
+				refreshTable(page);
 				$('.checkbox:checked').closest('tr').remove();
 				$('#delectAll, #selectNum').hide();
 				$('#checkAll').prop('checked', false);
@@ -79,19 +79,17 @@ $(function () {
 		});
 	})
 
-	var baseAddress = "https://localhost:7111";
-
 	// 點搜尋按鈕
 	$('#btnSearch').on("click", () => {
 		console.log($('#searchInput').val());
-		refreshLostInfoTable(1);
+		refreshTable(1);
 		updateSelectedFilters()
 	});
 
 	// 也可以輸入框 keyup 即時觸發
 	$('#searchInput').on("keyup", () => {
 		console.log($('#searchInput').val());
-		refreshLostInfoTable(1);
+		refreshTable(1);
 		updateSelectedFilters()
 	});
 
@@ -106,7 +104,7 @@ $(function () {
 
 		let filters = { categories, statuses, dateFrom, dateTo };
 
-		refreshLostInfoTable(1);
+		refreshTable(1);
 
 		// 找到最接近的 dropdown-toggle
 		var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
@@ -130,7 +128,7 @@ $(function () {
 		document.getElementById("searchInput").value = "";
 		updateSelectedFilters();
 		updateFilterCount()
-		refreshLostInfoTable(1);
+		refreshTable(1);
 	});
 
 	// 日期區間邏輯
@@ -201,7 +199,7 @@ $(function () {
 	$(".pagination").on("click", ".pagination .page-link", function (e) {
 		e.preventDefault();
 		let page = $(this).data("page");
-		refreshLostInfoTable(page);
+		refreshTable(page);
 	});
 
 
@@ -269,7 +267,7 @@ $(function () {
 			});
 
 			// 刪除後刷新列表
-			refreshLostInfoTable(page);
+			refreshTable(page);
 
 
 			// 關閉 Offcanvas
@@ -290,13 +288,13 @@ $(function () {
 		pageNumber = parseInt($(this).val()); // 更新 pageNumber
 		console.log("pageNumber 更新為:", pageNumber);
 
-		refreshLostInfoTable(1);
+		refreshTable(1);
 	});
 
 });
 
 // 統一刷新列表
-async function refreshLostInfoTable(page = 1, filters = {}) {
+async function refreshTable(page = 1, filters = {}) {
 	try {
 
 		filters.Page = page;
@@ -319,7 +317,7 @@ async function refreshLostInfoTable(page = 1, filters = {}) {
 
 		// 如果本頁沒有資料且頁數大於 1，自動回前一頁
 		if (response.tableHtml.trim() === "" && page > 1) {
-			return await refreshLostInfoTable(page - 1, filters);
+			return await refreshTable(page - 1, filters);
 		}
 
 		// 更新 tableBody

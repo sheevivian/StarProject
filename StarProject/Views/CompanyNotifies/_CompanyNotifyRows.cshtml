@@ -1,0 +1,32 @@
+﻿@model IEnumerable<StarProject.Models.CompanyNotify>
+
+@foreach (var item in Model)
+{
+	<tr>
+		<td style="width:50px">
+			<input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No">
+		</td>
+		<td style="width:346px">
+			@Html.DisplayFor(modelItem => item.Title)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.Category)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.PublishDate)
+		</td>
+		<td style="width:116px;text-align: center;">
+			<button type="button"
+					class="btn btn-color btn-sm btn-detail"
+					data-id="@item.No"
+					data-title="@item.Title"
+					data-content="@item.Content"
+					data-bs-toggle="modal"
+					data-bs-target="#modalDetail" id="modelDetailBtn">
+				詳細內容
+			</button>
+		</td>
+	</tr>
+}
+
+

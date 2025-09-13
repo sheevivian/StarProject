@@ -2,17 +2,17 @@
 
 @foreach (var item in Model)
 {
-	<tr>
+	<tr class="d-flex">
 		<td style="width:50px">
 			<input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No">
 		</td>
-		<td style="width:346px">
+		<td class="flex-grow-1">
 			@Html.DisplayFor(modelItem => item.Title)
 		</td>
-		<td>
+		<td style="width:200px;text-align: center;">
 			@Html.DisplayFor(modelItem => item.Category)
 		</td>
-		<td>
+		<td style="width:200px;text-align: center;">
 			@Html.DisplayFor(modelItem => item.PublishDate)
 		</td>
 		<td style="width:116px;text-align: center;">

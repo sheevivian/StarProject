@@ -142,18 +142,18 @@
         <table class="table">
             <!-- 欄位 -->
             <thead>
-                <tr>
+				<tr class="d-flex">
                     <th style="width:50px">
                         <input class="form-check-input ms-4" type="checkbox" value="" id="checkAll" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                data-bs-title="全選" data-bs-trigger="hover">
                     </th>
-                    <th style="width:346px">
+					<th class="flex-grow-1 text-center" style="letter-spacing: 10px;">
                         @Html.DisplayNameFor(model => model.Title)
                     </th>
-                    <th>
+					<th style="width:200px;text-align: center;">
                         @Html.DisplayNameFor(model => model.Category)
                     </th>
-                    <th>
+					<th style="width:200px;text-align: center;">
                         @Html.DisplayNameFor(model => model.PublishDate)
                     </th>
 					<th style="width:116px">
@@ -176,7 +176,7 @@
 
 		<!-- 詳細內容 -->
 		<div class="modal fade" id="modalDetail" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-			<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
 				<div class="modal-content">
 					<div class="modal-header">
 						<h5 class="modal-title" id="modelTitle"></h5>
@@ -185,43 +185,32 @@
 					<div class="modal-body" id="modelCon"></div>
 
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<a id="modelEditBtn" class="btn btn-edit br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+						<button type="button" class="btn btn-outline-delect br20px" id="modelDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>刪除</button>
 					</div>
 				</div>
 			</div>
+		</div>
 
-
-			@* <div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
-				<h3 class="offcanvas-title fw-bolder">詳細內容</h3>
-				<div class="d-flex justify-content-end align-items-center gap-2">
-					<a id="offcanvasEditBtn" class="btn btn-edit br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
-
-					<button type="button" class="btn btn-outline-delect br20px" id="offcanvasDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>刪除</button>
-					<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
-				</div>
-
-				<!-- 確認刪除彈窗 -->
-				<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true" data-bs-backdrop="false">
-					<div class="modal-dialog modal-dialog-centered">
-						<div class="modal-content">
-							<div class="modal-header">
-								<h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
-								<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-							</div>
-							<div class="modal-body">
-								確定要刪除這筆資料嗎？
-							</div>
-							<div class="modal-footer">
-								<!-- 真正的刪除表單 (動態改 action) -->
-								<form id="deleteOne" asp-action="Delete" method="post" class="d-inline">
-									<button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
-								</form>
-								<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
-							</div>
-						</div>
+		<!-- 確認刪除彈窗 -->
+		<div class="modal fade" id="deleteModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="deleteModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content shadow bg-body-tertiary">
+					<div class="modal-header">
+						<h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+					</div>
+					<div class="modal-body">
+						確定要刪除這筆資料嗎？
+					</div>
+					<div class="modal-footer">
+						<!-- 真正的刪除表單 (動態改 action) -->
+						<form id="deleteOne" asp-action="Delete" method="post" class="d-inline">
+							<button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
+						</form>
+						<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
 					</div>
 				</div>
-			</div> *@
+			</div>
 		</div>
 
         <!-- 全選垃圾桶及文字 -->
@@ -448,33 +437,25 @@
 			});
 
 
-			// Offcanvas 詳細資料
+			// 詳細資料
 			$(document).on('click', '.btn-detail', function () {
 				var btn = $(this);
 				// 🔑 取得這筆資料的 ID
 				var id = btn.data('id');
 
 				$('#modelTitle').text(btn.data('title'));
-				$('#modelCon').text(btn.data('content'));
-
-
-				
+				$('#modelCon').html(btn.data('content'));
 
 				// 1️⃣ 設定「編輯」按鈕連結
-				$('#offcanvasEditBtn').attr("href", "/LostInfo/Edit/" + id);
+				$('#modelEditBtn').attr("href", "/CompanyNotifies/Edit/" + id);
 
 				// 2️⃣ 設定「刪除」按鈕 data-id
-				$('#offcanvasDeleteBtn').attr("data-id", id);
+				$('#modelDeleteBtn').attr("data-id", id);
 
 				// 3️⃣ 刪除 Modal 開啟時，動態修改表單 action
 				$('#deleteModal').on('show.bs.modal', function () {
-					$('#deleteOne').attr("action", "/LostInfo/Delete/" + id);
+					$('#deleteOne').attr("action", "/CompanyNotifies/Delete/" + id);
 				});
-
-				// 打開 Offcanvas
-				var offcanvasEl = document.getElementById('offcanvasDetail');
-				var offcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
-				offcanvas.show();
 			});
 
 			//單一刪除分頁更新
@@ -483,8 +464,8 @@
 
 				// 從 form 的 action 拿 id
 				let form = $(this).closest('form');
-				let action = form.attr('action'); // /LostInfo/Delete/123
-				let id = action.split('/').pop(); // 拿最後一段
+				let action = form.attr('action'); 
+				let id = action.split('/').pop(); 
 
 				if (!id) return;
 
@@ -502,10 +483,8 @@
 					refreshTable(page);
 
 
-					// 關閉 Offcanvas
-					var offcanvasEl = document.getElementById('offcanvasDetail');
-					var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
-					if (offcanvas) offcanvas.hide();
+					// 關閉 Detail Modal
+					$('#modalDetail').modal('hide');
 
 					// 關閉 Modal
 					$('#deleteModal').modal('hide');

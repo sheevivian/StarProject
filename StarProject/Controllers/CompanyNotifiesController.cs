@@ -186,11 +186,11 @@ namespace StarProject.Controllers
 				return BadRequest();
 			}
 
-			var items = await _context.LostInfos.Where(x => ids.Contains(x.No)).ToListAsync();
+			var items = await _context.CompanyNotifies.Where(x => ids.Contains(x.No)).ToListAsync();
 
 			if (items.Any())
 			{
-				_context.LostInfos.RemoveRange(items);
+				_context.CompanyNotifies.RemoveRange(items);
 				await _context.SaveChangesAsync();
 			}
 

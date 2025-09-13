@@ -11,6 +11,7 @@
     <!-- 你的自訂 CSS -->
     <link rel="stylesheet" href="~/StarProject.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home.css">
+    <link href="~/css/companynotifyvc.css" rel="stylesheet" />
 
     <!-- fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
@@ -298,13 +299,16 @@
                 <div class="container-fluid">
                     <ul class="navbar-nav d-flex align-items-center w-100 ">
                         <!-- 公司廣播 -->
-                        <li class="nav-item d-flex me-auto ms-2">
-                            <div class="flex-grow-1 bg-white rounded-pill py-1 px-2">
-                                <i class="fa-solid fa-bullhorn text-danger"></i>
-                                員工中秋聚餐：2025/10/3 (五) 19:30 老井極上燒肉 信義店，敬請同仁出席！！！
+                        <li class="nav-item d-flex me-auto ms-2" style="width:700px;height: 32px;">
+                            <div class="flex-grow-1 position-relative bg-white rounded-pill py-1 px-2 d-flex align-items-center">
+                                <i class="fa-solid fa-bullhorn text-danger me-2"></i>
+
+                                <div id="notify-marquee" class="position-relative flex-grow-1" style="height: 24px; overflow: hidden;">
+                                    @await Component.InvokeAsync("CompanyNotify")
+                                </div>
                             </div>
                         </li>
-
+                       
                         <!-- 小鈴鐺 -->
                         <li class="nav-item position-relative">
                             <a class="nav-link " href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -385,6 +389,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/companynotifyvc.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script>

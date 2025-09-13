@@ -10,7 +10,7 @@
 		@for (int i = 1; i <= ViewBag.TotalPages; i++)
 		{
 			<li class="page-item @(i == ViewBag.Page ? "active" : "") @(ViewBag.TotalPages == 1 ? "disabled" : "")">
-				<a class="page-link" href="javascript:void(0);" onclick="refreshLostInfoTable(@i)" data-page="@i">@i</a>
+				<a class="page-link" href="javascript:void(0);" onclick="refreshProductTable(@i)" data-page="@i">@i</a>
 			</li>
 		}
 	</ul>

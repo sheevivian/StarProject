@@ -29,151 +29,169 @@
         </button>
 
         <div class="d-flex gap-3">
-        <!-- 進階篩選 -->
-        <div class="dropdown">
-            <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
-                <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                   data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
 
-                <!-- Counter - Alerts -->
-                <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
-            </button>
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
 
-            <ul class="dropdown-menu p-2" style="width:180px">
-                <!-- 商品分類 -->
-                <li>
-                    <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
-                        - 商品分類
-                    </button>
-                </li>
-                <!-- 商品分類內容 -->
-                <li>
-                    <div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
-                        <div class="p-2">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROCAR" id="cat1">
-                                <label class="form-check-label" for="cat1">
-                                    卡片書籤
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROCLO" id="cat2">
-                                <label class="form-check-label" for="cat2">
-                                    服包飾品
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROGAM" id="cat3">
-                                <label class="form-check-label" for="cat3">
-                                    益智桌遊
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROGLO" id="cat4">
-                                <label class="form-check-label" for="cat4">
-                                    地球儀
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROGRO" id="cat5">
-                                <label class="form-check-label" for="cat5">
-                                    生活雜貨
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROJOU" id="cat5">
-                                <label class="form-check-label" for="cat5">
-                                    書籍刊物
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROKIT" id="cat5">
-                                <label class="form-check-label" for="cat5">
-                                    餐廚用品
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROPAS" id="cat5">
-                                <label class="form-check-label" for="cat5">
-                                    交通卡
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROSTA" id="cat5">
-                                <label class="form-check-label" for="cat5">
-                                     設計文具
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="PROTEL" id="cat5">
-                                <label class="form-check-label" for="cat5">
-                                    望遠鏡
-                                </label>
+                <ul class="dropdown-menu p-2" style="width:180px">
+                    <!-- 商品分類 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+                            - 商品分類
+                        </button>
+                    </li>
+                    <!-- 商品分類內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROCAR" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+                                        卡片書籤
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROCLO" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+                                        服包飾品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROGAM" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+                                        益智桌遊
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROGLO" id="cat4">
+                                    <label class="form-check-label" for="cat4">
+                                        地球儀
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROGRO" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        生活雜貨
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROJOU" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        書籍刊物
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROKIT" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        餐廚用品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROPAS" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        交通卡
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROSTA" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                         設計文具
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROTEL" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        望遠鏡
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </li>
+                    </li>
 
-                <!-- 商品狀態 -->
-                <li>
-                    <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
-                        - 商品狀態
-                    </button>
-                </li>
-                <!-- 商品狀態內容 -->
-                <li>
-                    <div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
-                        <div class="p-2">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="上架" id="status1">
-                                <label class="form-check-label" for="status1">
-                                    上架
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="預購" id="status1">
-                                <label class="form-check-label" for="status1">
-                                        預購
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="絕版" id="status1">
-                                <label class="form-check-label" for="status1">
-                                    絕版
-                                </label>
+                    <!-- 商品狀態 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
+                            - 商品狀態
+                        </button>
+                    </li>
+                    <!-- 商品狀態內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="上架" id="status1">
+                                    <label class="form-check-label" for="status1">
+                                        上架
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="預購" id="status2">
+                                    <label class="form-check-label" for="status1">
+                                            預購
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="絕版" id="status3">
+                                    <label class="form-check-label" for="status1">
+                                        絕版
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </li>
+                    </li>
 
-                <li><hr class="dropdown-divider"></li>
+                    <!-- 上架日期 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
+                                - 上架日期
+                        </button>
+                    </li>
+                    <!-- 上架日期內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+                            <div class="p-2">
+                                <div class="mb-2">
+                                    <label for="dateFrom" class="form-label">起始日期</label>
+                                    <input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div>
+                                    <label for="dateTo" class="form-label">結束日期</label>
+                                    <input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+                    </li>
 
-                <!-- 完成+清除 -->
-                <li class="d-flex gap-1">
-                    <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
-                        完成
-                    </button>
-                    <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
-                        清除
-                    </button>
-                </li>
-            </ul>
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- 完成+清除 -->
+                    <li class="d-flex gap-1">
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+                            完成
+                        </button>
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+                            清除
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 每頁顯示資料筆數 -->
+            <div style="width: 150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option selected value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
         </div>
-
-        <!-- 每頁顯示資料筆數 -->
-        <div style="width: 150px">
-            <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
-                <option selected value="10">每頁10筆</option>
-                <option value="15">每頁15筆</option>
-                <option value="20">每頁20筆</option>
-                <option value="25">每頁25筆</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="mt-1 text-end me-2" style="display:none" id="selectedFiltersDiv">
-        <span id="selectedFiltersText" class="text-secondary"></span>
-    </div>
     </div>
 
     <div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
@@ -186,10 +204,10 @@
             <!-- 欄位 -->
             <thead>
                 <tr>
-                    <th>
+                    <th style="padding-left: 10px">
                         @Html.DisplayNameFor(model => model.First().No)
                     </th>
-                    <th>
+                    <th style="width:430px">
                         @Html.DisplayNameFor(model => model.First().Name)
                     </th>
                     <th>
@@ -214,14 +232,14 @@
             </thead>
             
             <!-- 內容 -->
-            <tbody>
+            <tbody id="tableBody">
                 @await Html.PartialAsync("_ProductRows", Model)
             </tbody>
         </table>
 
         <!-- 分頁 -->
         <div id="pagination">
-            @await Html.PartialAsync("_Pagination", Model)
+            @await Html.PartialAsync("_ProductPagination", Model)
         </div>
 
         <!-- 詳細內容 -->
@@ -230,43 +248,16 @@
                 <h3 class="offcanvas-title fw-bolder">詳細內容</h3>
                 <div class="d-flex justify-content-end align-items-center gap-2">
                     <a id="offcanvasEditBtn" class="btn btn-primary br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
-
-                    <button type="button" class="btn btn-outline-delect br20px" id="offcanvasDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>刪除</button>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
-                </div>
-
-                <!-- 確認刪除彈窗 -->
-                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true" data-bs-backdrop="false">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                確定要刪除這筆資料嗎？
-                            </div>
-                            <div class="modal-footer">
-                                <!-- 真正的刪除表單 (動態改 action) -->
-                                <form id="deleteOne" asp-action="Delete" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
-                                </form>
-                                <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             <div class="offcanvas-body">
-                <div class="img550px rounded mb-3"><img id="offcanvasImage" src="" alt="物品照片" class="rounded" /></div>
-                <p><strong>物品名稱：</strong><span id="offcanvasName"></span></p>
-                <p><strong>描述：</strong><span id="offcanvasDesc"></span></p>
-                <p><strong>拾獲日期：</strong><span id="offcanvasfounddate"></span></p>
-                <p><strong>發布日期：</strong><span id="offcanvasCreatedDate"></span></p>
+                <div class="img550px rounded mb-3" id="imgWrapper"><img id="offcanvasImage" src="" alt="商品照片" class="rounded" /></div>
+                <p><strong>商品名稱：</strong><span id="offcanvasName"></span></p>
+                <p><strong>商品狀態：</strong><span id="offcanvasStatus"></span></p>
                 <hr>
-                <p><strong>狀態：</strong><span id="offcanvasStatus"></span></p>
-                <p id="ownerNameWrapper" style="display:none;"><strong>擁有者姓名：</strong><span id="offcanvasOwnerName"></span></p>
-                <p id="ownerPhoneWrapper" style="display:none;"><strong>擁有者電話：</strong><span id="offcanvasOwnerPhone"></span></p>
+                <p><strong>上架日期：</strong><span id="offcanvasReleaseDate"></span></p>
+                <p><strong>更新日期：</strong><span id="offcanvasUpdateDate"></span></p>
             </div>
         </div> 
     </div>
@@ -275,25 +266,31 @@
 
 
 @section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         let pageNumber = parseInt($('#pageSizeSelect').val()) || 10; // 預設每頁數量
 
-                var baseAddress = "https://localhost:7111";
+        $(function () {
+            var baseAddress = "https://localhost:7111";
 
             // 點搜尋按鈕
             $('#btnSearch').on("click", () => {
                 console.log($('#searchInput').val());
-                refreshLostInfoTable(1);
+                refreshProductTable(1);
                 updateSelectedFilters()
             });
 
             // 也可以輸入框 keyup 即時觸發
             $('#searchInput').on("keyup", () => {
                 console.log($('#searchInput').val());
-                refreshLostInfoTable(1);
+                refreshProductTable(1);
                 updateSelectedFilters()
             });
 
+            // 進階篩選>完成
             $('#filterFinsh').click(function () {
                 updateFilterCount();
                 updateSelectedFilters()
@@ -303,9 +300,9 @@
                 let dateFrom = $("#dateFrom").val();
                 let dateTo = $("#dateTo").val();
 
-                let filters = { categories, statuses, dateFrom, dateTo };
+                let filters = { categories, statuses };
 
-                refreshLostInfoTable(1);
+                refreshProductTable(1);
 
                 // 找到最接近的 dropdown-toggle
                 var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
@@ -320,16 +317,15 @@
                 dropdown.hide();
             });
 
-
-            // 搜尋清除按鈕
+            // 搜尋框+進階篩選>清除
             document.querySelector(".btn-outline-search").addEventListener("click", function () {
                 document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+                document.getElementById("searchInput").value = "";
                 document.getElementById("dateFrom").value = "";
                 document.getElementById("dateTo").value = "";
-                document.getElementById("searchInput").value = "";
                 updateSelectedFilters();
                 updateFilterCount()
-                refreshLostInfoTable(1);
+                refreshProductTable(1);
             });
 
             // 日期區間邏輯
@@ -347,23 +343,22 @@
                 }
             });
 
-
-            // 更新篩選顯示文字
+            // 【功能】更新篩選的顯示文字
             function updateSelectedFilters() {
                 let selected = [];
 
-                // 物品分類
+                // 商品分類
                 let categories = $("#collapseCategory input:checked").map(function () { return $(this).next("label").text(); }).get();
                 if (categories.length) selected.push("<strong>分類：</strong>" + categories.join(", "));
 
-                // 領取狀態
+                // 商品狀態
                 let statuses = $("#collapseStatus input:checked").map(function () { return $(this).next("label").text(); }).get();
                 if (statuses.length) selected.push("<strong>狀態：</strong>" + statuses.join(", "));
 
                 // 日期區間
                 let from = $("#dateFrom").val();
                 let to = $("#dateTo").val();
-                if (from || to) selected.push("<strong>日期：</strong>" + (from ? from : "不限") + " ~ " + (to ? to : "不限"));
+                if (from || to) selected.push("<strong>上架日期：</strong>" + (from ? from : "不限") + " ~ " + (to ? to : "不限"));
 
                 // 顯示或隱藏 div
                 if (selected.length) {
@@ -375,16 +370,17 @@
                 }
             }
 
+            // 【功能】更新篩選的數量
             function updateFilterCount() {
                 let count = 0;
 
-                // 物品分類
+                // 商品分類
                 if ($("#collapseCategory input:checked").length > 0) count++;
 
-                // 領取狀態
+                // 商品狀態
                 if ($("#collapseStatus input:checked").length > 0) count++;
-
-                // 拾獲日期 (任意一個日期不空算1)
+                
+                // 上架日期 (任意一個日期不空算1)
                 if ($("#dateFrom").val() || $("#dateTo").val()) count++;
 
                 // 更新右上角 tooltip
@@ -400,45 +396,31 @@
             $(".pagination").on("click", ".pagination .page-link", function (e) {
                 e.preventDefault();
                 let page = $(this).data("page");
-                refreshLostInfoTable(page);
+                refreshProductTable(page);
             });
-
 
             // Offcanvas 詳細資料
             $(document).on('click', '.btn-detail', function () {
                 var btn = $(this);
-
-                $('#offcanvasName').text(btn.data('name'));
-                $('#offcanvasDesc').text(btn.data('desc'));
-                $('#offcanvasfounddate').text(btn.data('founddate'));
-                $('#offcanvasCreatedDate').text(btn.data('createddate'));
-                $('#offcanvasStatus').text(btn.data('status'));
                 $('#offcanvasImage').attr("src", btn.data('image'));
+                $('#offcanvasName').text(btn.data('name'));
+                $('#offcanvasStatus').text(btn.data('status'));
+                $('#offcanvasReleaseDate').text(btn.data('releasedate'));
+                $('#offcanvasUpdateDate').text(btn.data('updatedate'));
 
-                // 顯示擁有者資訊 (只在狀態為已領取時)
-                if (btn.data('status') === "已領取") {
-                    $('#ownerNameWrapper').show();
-                    $('#ownerPhoneWrapper').show();
-                    $('#offcanvasOwnerName').text(btn.data('ownername'));
-                    $('#offcanvasOwnerPhone').text(btn.data('ownerphone'));
-                } else {
-                    $('#ownerNameWrapper').hide();
-                    $('#ownerPhoneWrapper').hide();
-                }
-
-                // 🔑 取得這筆資料的 ID
+                // 取得這筆資料的 ID
                 var id = btn.data('id');
 
-                // 1️⃣ 設定「編輯」按鈕連結
-                $('#offcanvasEditBtn').attr("href", "/LostInfo/Edit/" + id);
+                // 設定「編輯」按鈕連結
+                $('#offcanvasEditBtn').attr("href", "/Product/Edit/" + id);
 
-                // 2️⃣ 設定「刪除」按鈕 data-id
-                $('#offcanvasDeleteBtn').attr("data-id", id);
-
-                // 3️⃣ 刪除 Modal 開啟時，動態修改表單 action
-                $('#deleteModal').on('show.bs.modal', function () {
-                    $('#deleteOne').attr("action", "/LostInfo/Delete/" + id);
-                });
+                // 圖片值null，圖片區不顯示
+                if (!btn.data('image')) {
+                    $('#imgWrapper').hide();
+                }
+                else {
+                    $('#imgWrapper').show().find('#offcanvasImage').attr("src", image);
+                }
 
                 // 打開 Offcanvas
                 var offcanvasEl = document.getElementById('offcanvasDetail');
@@ -446,56 +428,17 @@
                 offcanvas.show();
             });
 
-            //單一刪除分頁更新
-            $(document).on('click', '#deleteOnebtn', async function (e) {
-                e.preventDefault();
-
-                // 從 form 的 action 拿 id
-                let form = $(this).closest('form');
-                let action = form.attr('action'); // /LostInfo/Delete/123
-                let id = action.split('/').pop(); // 拿最後一段
-
-                if (!id) return;
-
-                let token = $('input[name="__RequestVerificationToken"]').val();
-                let page = parseInt($('#paginationInfo').text()) || 1;
-
-                try {
-                    await $.ajax({
-                        url: '/LostInfo/Delete',  // 改成 Delete
-                        type: 'POST',
-                        data: { id: id, __RequestVerificationToken: token }
-                    });
-
-                    // 刪除後刷新列表
-                    refreshLostInfoTable(page);
-
-
-                    // 關閉 Offcanvas
-                    var offcanvasEl = document.getElementById('offcanvasDetail');
-                    var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
-                    if (offcanvas) offcanvas.hide();
-
-                    // 關閉 Modal
-                    $('#deleteModal').modal('hide');
-
-                } catch (err) {
-                    alert("刪除失敗：" + (err.responseText || err.statusText));
-                }
-            });
-
-            // 當 select 改變時
+            // 每頁筆數
             $('#pageSizeSelect').on('change', function () {
                 pageNumber = parseInt($(this).val()); // 更新 pageNumber
-                console.log("pageNumber 更新為:", pageNumber);
+                // console.log("pageNumber 更新為:", pageNumber);
 
-                refreshLostInfoTable(1);
+                refreshProductTable(1);
             });
-
         });
-
+        
         // 統一刷新列表
-        async function refreshLostInfoTable(page = 1, filters = {}) {
+        async function refreshProductTable(page = 1, filters = {}) {
             try {
 
                 filters.Page = page;
@@ -510,7 +453,7 @@
                 filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
 
                 let response = await $.ajax({
-                    url: '/LostInfo/SearchSelect', // 或 DeleteConfirmed 也可以共用
+                    url: '/Product/SearchSelect',
                     type: 'POST',
                     data: JSON.stringify(filters),
                     contentType: "application/json"
@@ -518,7 +461,7 @@
 
                 // 如果本頁沒有資料且頁數大於 1，自動回前一頁
                 if (response.tableHtml.trim() === "" && page > 1) {
-                    return await refreshLostInfoTable(page - 1, filters);
+                    return await refreshProductTable(page - 1, filters);
                 }
 
                 // 更新 tableBody
@@ -530,47 +473,11 @@
                 // 更新分頁顯示
                 $('#paginationInfo').text(page);
 
-                $('#delectAll, #selectNum').hide();
-                $('#checkAll').prop('checked', false);
+                $('#selectNum').hide();
 
-            } catch (err) {
+            } 
+            catch (err) {
                 alert("更新列表失敗：" + err.responseText || err.statusText);
             }
-
+        }
     </script>
-}
-
-
-
-
-
-
-@* <p>
-        <a asp-action="Create">Create New</a>
-    </p> *@
-
-@* <!-- 分頁按鈕 -->
-    <nav aria-label="Page navigation">
-        <ul class="pagination">
-            @if (Model.CurrentPage > 1)
-            {
-                <li class="page-item">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)">上一頁</a>
-                </li>
-            }
-
-            @for (int i = 1; i <= Model.TotalPages; i++)
-            {
-                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
-                </li>
-            }
-
-            @if (Model.CurrentPage < Model.TotalPages)
-            {
-                <li class="page-item">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)">下一頁</a>
-                </li>
-            }
-        </ul>
-    </nav> *@

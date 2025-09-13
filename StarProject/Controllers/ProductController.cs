@@ -1,6 +1,8 @@
 ﻿using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Build.Graph;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -10,6 +12,7 @@ using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
 using StarProject.Helpers;
 using StarProject.Models;
+using StarProject.ViewModel;
 using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -21,7 +24,7 @@ namespace StarProject.Controllers
 {
     public partial class ProductController : Controller
     {
-		private const int pageNumber = 10;
+		private const int pageNumber = 20;
 
 		private readonly StarProjectContext _context;
 
@@ -30,13 +33,16 @@ namespace StarProject.Controllers
             _context = context;
         }
 
-		// 商品列表+頁數
+		// 商品列表+頁數(GET)
         // GET: Product
         [HttpGet]
 		public async Task<IActionResult> Index(int page = 1, int pageSize = pageNumber)
         {
 			// 先組 IQueryable (全部資料，還沒篩選)
-			var query = _context.Products.OrderByDescending(x => x.No);
+			var query = _context.Products
+						.Include(p => p.ProCategoryNoNavigation)
+						.Include(p => p.ProductImages)
+						.OrderByDescending(x => x.No);
 			// 呼叫分頁工具
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
 
@@ -47,6 +53,91 @@ namespace StarProject.Controllers
 			ViewBag.PageSize = pageSize;
 
 			return View(items);
+		}
+
+		// 商品列表-搜尋+進階篩選功能
+		// POST: Product/SearchSelect
+		[HttpPost]
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
+		{
+			// 從 filters 取得 pageSize，如果沒有就給預設值
+			int page = filters.Page > 0 ? filters.Page : 1;
+			int pageSize = filters.PageSize >= 0 ? filters.PageSize : 10;
+
+			var query = _context.Products
+						.Include(p => p.ProCategoryNoNavigation)
+						.Include(p => p.ProductImages).AsQueryable();
+			query = query.OrderByDescending(x => x.No);
+
+			// keyword
+			if (!string.IsNullOrEmpty(filters.keyword))
+			{
+				query = query.Where(x => x.Name.Contains(filters.keyword)
+									 || x.ProCategoryNoNavigation.Name.Contains(filters.keyword)
+									 || x.Status.Contains(filters.keyword));
+			}
+
+			// 進階篩選>分類
+			if (filters.Categories != null && filters.Categories.Any())
+				query = query.Where(x => filters.Categories.Contains(x.ProCategoryNo));
+
+			// 進階篩選>狀態
+			if (filters.Statuses != null && filters.Statuses.Any())
+				query = query.Where(x => filters.Statuses.Contains(x.Status));
+
+			// 日期區間
+			if (!string.IsNullOrEmpty(filters.DateFrom))
+				query = query.Where(x => x.ReleaseDate >= DateTime.Parse(filters.DateFrom));
+
+			if (!string.IsNullOrEmpty(filters.DateTo))
+				query = query.Where(x => x.ReleaseDate <= DateTime.Parse(filters.DateTo));
+
+
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			var tableHtml = await RenderPartialViewToString("_ProductRows", items);
+			var paginationHtml = await RenderPartialViewToString("_ProductPagination", null);
+
+			return Json(new { tableHtml, paginationHtml });
+		}
+
+		// 商品列表-更新頁碼+搜尋
+		// GET: Product/RenderPartialViewToString
+		[HttpGet]
+		public async Task<string> RenderPartialViewToString(string viewName, object model)
+		{
+			if (string.IsNullOrEmpty(viewName))
+				viewName = ControllerContext.ActionDescriptor.ActionName;
+
+			ViewData.Model = model;
+
+			using (var sw = new StringWriter())
+			{
+				var viewEngine = HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+				var viewResult = viewEngine.FindView(ControllerContext, viewName, false);
+
+				if (viewResult.Success == false)
+					throw new ArgumentNullException($"View {viewName} not found.");
+
+				var viewContext = new ViewContext(
+					ControllerContext,
+					viewResult.View,
+					ViewData,
+					TempData,
+					sw,
+					new HtmlHelperOptions()
+				);
+
+				await viewResult.View.RenderAsync(viewContext);
+				return sw.GetStringBuilder().ToString();
+			}
 		}
 
 		// 新品上架-單筆(GET)
@@ -191,6 +282,7 @@ namespace StarProject.Controllers
 				{
 					new SelectListItem { Value = "上架", Text = "上架" },
 					new SelectListItem { Value = "預購", Text = "預購" },
+					new SelectListItem { Value = "絕版", Text = "絕版" },
 				},
 				"Value", "Text", product.Status);
 			return View(vm); // 同一個 View
@@ -319,61 +411,6 @@ namespace StarProject.Controllers
 
 			return PartialView("_PicturePartial", vm);
 		}
-
-
-		// GET: Product/Details/5
-		public async Task<IActionResult> Details(int? id)
-		{
-			if (id == null)
-			{
-				return NotFound();
-			}
-
-			var product = await _context.Products
-				.Include(p => p.ProCategoryNoNavigation)
-				.FirstOrDefaultAsync(m => m.No == id);
-			if (product == null)
-			{
-				return NotFound();
-			}
-
-			return View(product);
-		}
-
-
-		// GET: Product/Delete/5
-		public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .Include(p => p.ProCategoryNoNavigation)
-                .FirstOrDefaultAsync(m => m.No == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-        // POST: Product/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
-            {
-                _context.Products.Remove(product);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
 
         private bool ProductExists(int id)
         {

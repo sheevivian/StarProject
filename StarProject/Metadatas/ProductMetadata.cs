@@ -26,9 +26,9 @@ namespace StarProject.Metadatas
 		public string Status { get; set; } = null!;
 
 		[Display(Name = "上架日期")]
-		[Required(ErrorMessage = "請選擇商品上架日期")]
-		[DataType(DataType.DateTime)]
+		[DataType(DataType.Date)]
 		[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+		[Required(ErrorMessage = "請選擇商品上架日期")]
 		public DateTime? ReleaseDate { get; set; }
 
 		[Display(Name = "最後更新")]

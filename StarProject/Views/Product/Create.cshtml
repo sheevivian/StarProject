@@ -120,11 +120,11 @@
         <div class="tab-pane fade" id="multiple">
             <div class="row">
                 <div class="col-6 m-5">
-                    <button asp-action="DownloadTemplate" asp-controller="Product" class="btn btn-outline-excel fw-bold fs-5 mb-3">
+                    <a asp-controller="Product" asp-action="DownloadTemplate" class="btn btn-outline-excel fw-bold fs-5 mb-3">
                         <i class="fa-solid fa-file-excel"></i>下載excel範本
-                    </button>
+                    </a>
                     <form asp-controller="Product" asp-action="CreateMultiple" method="post" enctype="multipart/form-data">
-                        <input type="file" class="form-control" name="excelFile">
+                        <input type="file" class="form-control fs-5" name="excelFile">
                         <div class="form-group d-flex gap-2 mt-3">
                             <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5" for="excelFile">上傳匯入</button>
                             <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>

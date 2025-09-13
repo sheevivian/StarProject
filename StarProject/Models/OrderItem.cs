@@ -5,6 +5,8 @@ namespace StarProject.Models;
 
 public partial class OrderItem
 {
+    public int ListId { get; set; }
+
     public string OrderNo { get; set; } = null!;
 
     public string Name { get; set; } = null!;
@@ -23,5 +25,7 @@ public partial class OrderItem
 
     public string? CouponCode { get; set; }
 
-    public virtual OrderMaster OrderNoNavigation { get; set; } = null!;
+    public string? Type { get; set; }
+
+    public string? DiscountType { get; set; }
 }

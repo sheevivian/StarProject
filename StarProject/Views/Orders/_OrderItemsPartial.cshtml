@@ -1,0 +1,21 @@
+﻿@model IEnumerable<StarProject.Models.OrderItem>
+
+<table class="table table-sm table-striped">
+    <thead>
+        <tr>
+            <th>項目編號</th>
+            <th>商品名稱</th>
+            <th>數量</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                
+                <td>@item.Name</td>
+                <td>@item.Quantity</td>
+            </tr>
+        }
+    </tbody>
+</table>

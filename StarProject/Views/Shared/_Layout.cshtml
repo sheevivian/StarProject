@@ -27,6 +27,9 @@
 
     <!-- 動畫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <!-- chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body class="d-flex">
@@ -237,9 +240,8 @@
 
                 <div id="collapseOrd" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="#">訂單明細</a>
-                        <a class="collapse-item" href="#">訂單狀態</a>
-                        <a class="collapse-item" href="#">訂單紀錄</a>
+                        <a class="collapse-item" href="https://localhost:7111/Orders">訂單紀錄</a>
+                        <a class="collapse-item" href="https://localhost:7111/Orders">出貨管理</a>
                         <a class="collapse-item" href="#">請款/退款作業</a>
                     </div>
                 </div>
@@ -362,6 +364,7 @@
             <div class="content">
                 <!-- 請把網頁內容放在這！！！! -->
                 @RenderBody()
+               
             </div>
 
 

@@ -1,0 +1,61 @@
+﻿@{
+    var order = ViewBag.Order;
+    var items = ViewBag.Items as List<StarProject.Models.OrderItem>;
+    
+}
+@{
+    ViewData["Title"] = "訂單明細";
+}
+
+
+<h1 class="my-4">訂單明細 - 訂單編號: @order.No</h1>
+<p>會員: @order.UserNoNavigation.Name</p>
+<p>日期: @order.Date.ToString("yyyy-MM-dd")</p>
+
+@if(items != null && items.Count > 0)
+{
+    <!-- 分組：Category -->
+    var grouped = items.GroupBy(i => i.Category);
+
+    foreach(var group in grouped)
+    {
+        <h4 class="mt-3 category-title">@group.Key</h4>
+
+        <!-- Category: 商品 or 票券 -->
+        <table class="table table-striped mt-1">
+            <thead>
+                <tr>
+                    <th>品項名稱</th>
+                    <th>品項圖片</th>
+                    <th>類型</th>
+                    <th>數量</th>
+                    <th>單價</th>
+                    <th>折扣</th>
+                    <th>折扣後價格</th>
+                   
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in group)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td><img src="@item.Image" alt="@item.Name" style="max-width:100px; height:auto;" /></td>
+                        <td>@item.Type</td>
+                        <td>@item.Quantity</td>
+                        <td>@string.Format("{0:C}", item.UnitPrice)</td>
+                        <td>@string.Format("{0:P}", item.Discount)</td>
+                        <td>@string.Format("{0:C}", item.DiscountedPrice)</td>
+                        
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <p>此訂單沒有任何品項</p>
+}
+
+<a asp-action="Index" class="btn btn-secondary mt-3">回訂單列表</a>

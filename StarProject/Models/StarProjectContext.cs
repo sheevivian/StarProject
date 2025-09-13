@@ -247,12 +247,18 @@ public partial class StarProjectContext : DbContext
             entity.HasIndex(e => e.EmpCode, "UQ_Emps_EmpCode").IsUnique();
 
             entity.Property(e => e.No).HasMaxLength(50);
+            entity.Property(e => e.BirthDate).HasColumnType("datetime");
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
+            entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
+            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
+            entity.Property(e => e.IdNumber).HasMaxLength(50);
+            entity.Property(e => e.LastLogin).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.PasswordHash).HasMaxLength(50);
             entity.Property(e => e.PasswordSalt).HasMaxLength(50);
+            entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.RoleNo).HasColumnName("Role_No");
 
             entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
@@ -396,6 +402,7 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("LostInfo");
 
+            entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.FoundDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
@@ -478,23 +485,21 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<OrderItem>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("OrderItem");
+            entity.HasKey(e => e.ListId);
+
+            entity.ToTable("OrderItem");
 
             entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CouponCode).HasMaxLength(50);
             entity.Property(e => e.Discount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountType).HasMaxLength(50);
             entity.Property(e => e.DiscountedPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Name).HasMaxLength(30);
             entity.Property(e => e.OrderNo)
                 .HasMaxLength(10)
                 .HasColumnName("Order_No");
+            entity.Property(e => e.Type).HasMaxLength(30);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.OrderNoNavigation).WithMany()
-                .HasForeignKey(d => d.OrderNo)
-                .HasConstraintName("FK_OrderItem_Order");
         });
 
         modelBuilder.Entity<OrderMaster>(entity =>
@@ -511,6 +516,7 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Deliveryfee).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Deliveryway).HasMaxLength(50);
             entity.Property(e => e.DiscountAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountType).HasMaxLength(50);
             entity.Property(e => e.MerchantTradeNo).HasMaxLength(50);
             entity.Property(e => e.PaymentStatus).HasMaxLength(50);
             entity.Property(e => e.Total).HasColumnType("decimal(10, 2)");
@@ -613,7 +619,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A82EC4511E");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8A556761F");
 
             entity.ToTable("ProCategory");
 
@@ -671,13 +677,13 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductImage>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("ProductImage");
+            entity.HasKey(e => e.No).HasName("PK__ProductI__3214D4A8DA1BF336");
+
+            entity.ToTable("ProductImage");
 
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
 
-            entity.HasOne(d => d.ProductNoNavigation).WithMany()
+            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Img_ProNo_FK");
@@ -763,10 +769,15 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("PromotionRule");
 
-            entity.Property(e => e.Action).HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
-            entity.Property(e => e.Rule).HasMaxLength(255);
-            entity.Property(e => e.Scope).HasMaxLength(10);
+            entity.Property(e => e.RuleType)
+                .HasMaxLength(50)
+                .HasDefaultValue("Percentage");
+            entity.Property(e => e.TargetCategory)
+                .HasMaxLength(50)
+                .HasDefaultValue("ALL");
 
             entity.HasOne(d => d.PromotionNoNavigation).WithMany()
                 .HasForeignKey(d => d.PromotionNo)
@@ -832,7 +843,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8BAD104E2");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A85A43C894");
 
             entity.ToTable("TicCategory");
 

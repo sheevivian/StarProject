@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using NETCore.MailKit.Core;
 using StarProject.Models;
 using StarProject.ViewModels;
+using StarProject.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace StarProject.Controllers
 			_emailService = emailService;
 		}
 
+		// 查看員工清單 - 需要員工管理或用戶管理權限
+		[Permission("emp", "user")]
 		// GET: Emps
 		public async Task<IActionResult> Index()
 		{
@@ -50,6 +53,8 @@ namespace StarProject.Controllers
 			return View(emp);
 		}
 
+		// 建立員工 - 只有員工管理權限可以
+		[Permission("emp")]
 		// GET: Emps/Create
 		public IActionResult Create()
 		{
@@ -63,7 +68,7 @@ namespace StarProject.Controllers
 
 			return View(viewModel);
 		}
-
+		[Permission("emp")]
 		// POST: Emps/Create
 		[HttpPost]
 		[ValidateAntiForgeryToken]
@@ -184,7 +189,7 @@ namespace StarProject.Controllers
 			string empCode = $"{deptCode}{(count + 1):D3}";
 			return empCode;
 		}
-
+		[Permission("emp")]
 		// GET: Emps/Edit/5
 		public async Task<IActionResult> Edit(string id)
 		{
@@ -199,9 +204,10 @@ namespace StarProject.Controllers
 			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", emp.RoleNo);
 			return View(emp);
 		}
-
+		
 		// POST: Emps/Edit/5
 		[HttpPost]
+		[Permission("emp")]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(string id, [Bind("No,Name,RoleNo,DeptNo,HireDate,PasswordHash,PasswordSalt,EmpCode,Status,ForceChangePassword,Email,Phone,IdNumber,BirthDate")] Emp emp)
 		{
@@ -229,7 +235,7 @@ namespace StarProject.Controllers
 			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", emp.RoleNo);
 			return View(emp);
 		}
-
+		[Permission("emp")]
 		// GET: Emps/Delete/5
 		public async Task<IActionResult> Delete(string id)
 		{
@@ -246,7 +252,7 @@ namespace StarProject.Controllers
 
 			return View(emp);
 		}
-
+		[Permission("emp")]
 		// POST: Emps/Delete/5
 		[HttpPost, ActionName("Delete")]
 		[ValidateAntiForgeryToken]

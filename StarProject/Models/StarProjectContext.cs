@@ -927,7 +927,31 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_UserAchievements_Users");
         });
 
-        modelBuilder.Entity<UserSecurity>(entity =>
+		modelBuilder.Entity<EventNotif>(entity =>
+		{
+			entity.ToTable("EventNotif");
+
+            entity.HasKey(e => new { e.EventNo, e.ParticipantNo, e.Category });
+
+			entity.Property(e => e.Senttime).HasColumnType("datetime2"); 
+			entity.Property(e => e.Category).HasMaxLength(20);           
+			entity.Property(e => e.Status).HasMaxLength(20);
+
+			entity.HasOne(e => e.EventNoNavigation)
+				  .WithMany()
+				  .HasForeignKey(e => e.EventNo)
+				  .OnDelete(DeleteBehavior.ClientSetNull);
+
+			entity.HasOne(e => e.ParticipantNoNavigation)
+				  .WithMany()
+				  .HasForeignKey(e => e.ParticipantNo)
+				  .OnDelete(DeleteBehavior.ClientSetNull);
+
+			entity.ToTable(tb => tb.UseSqlOutputClause(false));
+		});
+
+
+		modelBuilder.Entity<UserSecurity>(entity =>
         {
             entity
                 .HasNoKey()

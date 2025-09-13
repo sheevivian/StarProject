@@ -33,14 +33,14 @@ namespace StarProject.Services
 		}
 
 		// 報名成功通知
-		public async Task SendRegistrationSuccessEmail(string to, string eventName, DateTime eventDate)
+		public async Task SendRegistrationSuccessEmail(string to, string eventName, DateTime eventTime)
 		{
 			var message = new MailMessageModel
 			{
 				To = to,
 				Subject = $"【{eventName}】報名成功通知",
 				Body = $"<p>您好，您已成功報名活動：<strong>{eventName}</strong></p>" +
-					   $"<p>活動日期：{eventDate:yyyy-MM-dd}</p>" +
+					   $"<p>活動日期：{eventTime:fyyyy-MM-dd hh:mm}</p>" +
 					   "<p>期待您的參與！</p>"+
 					   "<p>阿波羅天文館</p>"
 			};

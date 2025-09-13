@@ -1,0 +1,61 @@
+﻿@model StarProject.Models.Participant
+@{
+    ViewData["Title"] = "新增報名";
+}
+
+<h2>新增報名</h2>
+<hr />
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+    @Html.AntiForgeryToken()
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <label asp-for="EventNo" class="form-label">活動</label>
+            <select asp-for="EventNo" class="form-select" asp-items="ViewBag.EventNo" required>
+                <option value="">-- 請選擇活動 --</option>
+            </select>
+            <span asp-validation-for="EventNo" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="UsersNo" class="form-label">會員</label>
+            <select asp-for="UsersNo" class="form-select" asp-items="ViewBag.UsersNo" required>
+                <option value="">-- 請選擇會員 --</option>
+            </select>
+            <span asp-validation-for="UsersNo" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="Status" class="form-label">狀態</label>
+            <select asp-for="Status" class="form-select" required>
+                <option value="">-- 請選擇狀態 --</option>
+                <option value="Success">Success（立即寄信並報名成功）</option>
+                <option value="Canceled">Canceled（報名取消）</option>
+            </select>
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="PaymentNo" class="form-label">付款編號</label>
+            <select asp-for="PaymentNo" class="form-select" asp-items="ViewBag.PaymentNo">
+                <option value="">-- 無／尚無資料 --</option>
+            </select>
+            <span asp-validation-for="PaymentNo" class="text-danger"></span>
+        </div>
+
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.innerText='建立中…'; this.form.submit();">建立</button>
+
+        <a asp-action="Index" class="btn btn-outline-secondary">返回列表</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

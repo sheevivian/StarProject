@@ -19,6 +19,8 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<Collection> Collections { get; set; }
 
+    public virtual DbSet<CompanyNotify> CompanyNotifies { get; set; }
+
     public virtual DbSet<CustomerService> CustomerServices { get; set; }
 
     public virtual DbSet<Dept> Depts { get; set; }
@@ -86,8 +88,6 @@ public partial class StarProjectContext : DbContext
     public virtual DbSet<StarMap> StarMaps { get; set; }
 
     public virtual DbSet<TicCategory> TicCategories { get; set; }
-
-    public virtual DbSet<TickestStock> TickestStocks { get; set; }
 
     public virtual DbSet<Ticket> Tickets { get; set; }
 
@@ -199,6 +199,17 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_Collection_Users");
         });
 
+        modelBuilder.Entity<CompanyNotify>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("CompanyNotify");
+
+            entity.Property(e => e.Category).HasMaxLength(30);
+            entity.Property(e => e.PublishDate).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<CustomerService>(entity =>
         {
             entity.HasKey(e => e.No);
@@ -253,7 +264,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
-            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
             entity.Property(e => e.IdNumber).HasMaxLength(50);
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
@@ -266,7 +276,7 @@ public partial class StarProjectContext : DbContext
             entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
                 .HasForeignKey(d => d.DeptNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Emps_Emps");
+                .HasConstraintName("FK_Emps_Dept");
 
             entity.HasOne(d => d.RoleNoNavigation).WithMany(p => p.Emps)
                 .HasForeignKey(d => d.RoleNo)
@@ -404,6 +414,7 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("LostInfo");
 
+            entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.FoundDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
@@ -501,10 +512,6 @@ public partial class StarProjectContext : DbContext
                 .HasColumnName("Order_No");
             entity.Property(e => e.Type).HasMaxLength(30);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.OrderNoNavigation).WithMany()
-                .HasForeignKey(d => d.OrderNo)
-                .HasConstraintName("FK_OrderItem_Order");
         });
 
         modelBuilder.Entity<OrderMaster>(entity =>
@@ -566,10 +573,9 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.PaymentNo).HasColumnName("Payment_No");
-            entity.Property(e => e.RegisterdDate).HasColumnType("datetime");
+            entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasColumnName("status");
@@ -585,7 +591,6 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.PaymentNoNavigation).WithMany(p => p.Participants)
                 .HasForeignKey(d => d.PaymentNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Participant_PaymentTransaction");
 
             entity.HasOne(d => d.UsersNoNavigation).WithMany(p => p.Participants)
@@ -624,7 +629,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A86C97313E");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8C77E0BC9");
 
             entity.ToTable("ProCategory");
 
@@ -682,13 +687,13 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductImage>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("ProductImage");
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("ProductImage");
 
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
 
-            entity.HasOne(d => d.ProductNoNavigation).WithMany()
+            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Img_ProNo_FK");
@@ -816,6 +821,10 @@ public partial class StarProjectContext : DbContext
         {
             entity.HasKey(e => e.No);
 
+            entity.Property(e => e.CoNe).HasColumnName("CoNE");
+            entity.Property(e => e.CoNlist).HasColumnName("CoNList");
+            entity.Property(e => e.Cs).HasColumnName("CS");
+            entity.Property(e => e.Oa).HasColumnName("OA");
             entity.Property(e => e.RoleName).HasMaxLength(50);
         });
 
@@ -848,22 +857,12 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A805940E5D");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8F8D1D924");
 
             entity.ToTable("TicCategory");
 
             entity.Property(e => e.No).HasMaxLength(6);
             entity.Property(e => e.Name).HasMaxLength(20);
-        });
-
-        modelBuilder.Entity<TickestStock>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("TickestStock");
-
-            entity.Property(e => e.Date).HasColumnType("datetime");
-            entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
         });
 
         modelBuilder.Entity<Ticket>(entity =>

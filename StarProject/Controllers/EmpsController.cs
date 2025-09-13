@@ -51,7 +51,6 @@ namespace StarProject.Controllers
 		}
 
 		// GET: Emps/Create
-		[Authorize(Roles = "HR_Manager")]
 		public IActionResult Create()
 		{
 			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName");

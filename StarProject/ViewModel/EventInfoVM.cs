@@ -19,6 +19,7 @@ namespace StarProject.ViewModel
 		public string Location { get; set; }
 		public IFormFile ImageFile { get; set; } // 上傳用
 		public string? Image { get; set; }        // 原圖 URL
+		[DisplayFormat(DataFormatString = "{0:yyyy-MM-ddTHH:mm}", ApplyFormatInEditMode = true)]
 		public DateTime StartDate { get; set; }
 		[DisplayFormat(DataFormatString = "{0:yyyy-MM-ddTHH:mm}", ApplyFormatInEditMode = true)]
 		public DateTime? EndDate { get; set; }

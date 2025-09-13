@@ -181,7 +181,8 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.EventNoNavigation).WithMany()
                 .HasForeignKey(d => d.EventNo)
-                .HasConstraintName("FK_Collection_Event");
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("FK_Collection_Event");
 
             entity.HasOne(d => d.KnowledgeNoNavigation).WithMany()
                 .HasForeignKey(d => d.KnowledgeNo)
@@ -301,8 +302,8 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.EventNoNavigation).WithMany()
                 .HasForeignKey(d => d.EventNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_eventNotif_event");
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("FK_eventNotif_event");
 
             entity.HasOne(d => d.ParticipantNoNavigation).WithMany()
                 .HasForeignKey(d => d.ParticipantNo)
@@ -817,15 +818,16 @@ public partial class StarProjectContext : DbContext
         {
 			entity.ToTable("Schedule");
 			entity.HasKey(e => e.EventNo);
-            entity.Property(e => e.EventNo).HasColumnName("Event_No");
-            entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
-            entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
+			entity.Property(e => e.EventNo).HasColumnName("Event_No");
+			entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
+			entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
 
-            entity.HasOne(d => d.EventNoNavigation).WithMany()
-                .HasForeignKey(d => d.EventNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Schedule_event");
-        });
+			entity.HasOne(d => d.EventNoNavigation)
+				.WithOne() // 一對一
+				.HasForeignKey<Schedule>(d => d.EventNo)
+				.OnDelete(DeleteBehavior.Cascade) // 連帶刪除
+				.HasConstraintName("FK_Schedule_event");
+		});
 
         modelBuilder.Entity<StarMap>(entity =>
         {

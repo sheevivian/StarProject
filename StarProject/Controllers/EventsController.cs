@@ -17,6 +17,10 @@ namespace StarProject.Controllers
 	{
 		private readonly StarProjectContext _context;
 
+		// 只保留到「分鐘」的工具方法
+		private static DateTime TrimToMinute(DateTime dt)
+			=> new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
+
 		// 在 EventsController 類別裡新增
 		private async Task<string> UploadWithTimeoutOrFallbackAsync(IFormFile? file, string fallbackUrl, int timeoutSeconds = 15)
 		{
@@ -154,14 +158,18 @@ namespace StarProject.Controllers
 						throw new InvalidOperationException("圖片上傳失敗（回傳空 URL）。");
 				}
 
+				// ▼ 時間截到「分鐘」
+				var start = TrimToMinute(vm.StartDate);
+				var end = vm.EndDate.HasValue ? TrimToMinute(vm.EndDate.Value) : (DateTime?)null;
+
 				var entity = new Event
 				{
 					Title = vm.Title,
 					Category = vm.Category,
 					Desc = vm.Desc,
 					Status = vm.Status,
-					StartDate = vm.StartDate,
-					EndDate = vm.EndDate,
+					StartDate = start,
+					EndDate = end,
 					CreatedTime = DateTime.Now,
 					UpdatedTime = DateTime.Now,
 					Location = vm.Location,
@@ -174,23 +182,23 @@ namespace StarProject.Controllers
 				_context.Events.Add(entity);
 				await _context.SaveChangesAsync(); // 取得 entity.No
 
-				// ===== 排程：Upsert Schedule =====
-				var now = DateTime.Now;
+				// ===== 排程：Upsert Schedule（時間也截到分鐘） =====
+				var nowMin = TrimToMinute(DateTime.Now);
 				var schedule = await _context.Schedules.FirstOrDefaultAsync(s => s.EventNo == entity.No)
 							   ?? new Schedule { EventNo = entity.No };
 
 				if (string.Equals(PublishMode, "now", StringComparison.OrdinalIgnoreCase))
 				{
-					schedule.ReleaseDate = now;
-					schedule.ExpirationDate = ExpirationDate ?? DateTime.MinValue; // 非 Nullable，用 MinValue 當「不下架」
+					schedule.ReleaseDate = nowMin;
+					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue; // 不下架用 MinValue
 					schedule.Executed = true;
 				}
 				else
 				{
-					var rel = ReleaseDate ?? now;
+					var rel = ReleaseDate.HasValue ? TrimToMinute(ReleaseDate.Value) : nowMin;
 					schedule.ReleaseDate = rel;
-					schedule.ExpirationDate = ExpirationDate ?? DateTime.MinValue;
-					schedule.Executed = rel <= now;
+					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
+					schedule.Executed = rel <= nowMin;
 				}
 
 				if (_context.Entry(schedule).State == EntityState.Detached)
@@ -301,13 +309,13 @@ namespace StarProject.Controllers
 					imageUrl = uploadedUrl;
 				}
 
-				// 2) 更新活動欄位
+				// 2) 更新活動欄位（時間截到分鐘）
 				entity.Title = evm.Title;
 				entity.Category = evm.Category;
 				entity.Location = evm.Location;
 				entity.Desc = evm.Desc;
-				entity.StartDate = evm.StartDate;
-				entity.EndDate = evm.EndDate;
+				entity.StartDate = TrimToMinute(evm.StartDate);
+				entity.EndDate = evm.EndDate.HasValue ? TrimToMinute(evm.EndDate.Value) : (DateTime?)null;
 				entity.CreatedTime = original.CreatedTime;
 				entity.UpdatedTime = DateTime.Now;
 				entity.MaxParticipants = evm.MaxParticipants;
@@ -318,23 +326,23 @@ namespace StarProject.Controllers
 
 				await _context.SaveChangesAsync();
 
-				// ===== 排程：Upsert Schedule =====
-				var now = DateTime.Now;
+				// ===== 排程：Upsert Schedule（時間也截到分鐘） =====
+				var nowMin = TrimToMinute(DateTime.Now);
 				var s = await _context.Schedules.FirstOrDefaultAsync(x => x.EventNo == id)
 						?? new Schedule { EventNo = id };
 
 				if (string.Equals(PublishMode, "now", StringComparison.OrdinalIgnoreCase))
 				{
-					s.ReleaseDate = now;
-					s.ExpirationDate = ExpirationDate ?? DateTime.MinValue;
+					s.ReleaseDate = nowMin;
+					s.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
 					s.Executed = true;
 				}
 				else
 				{
-					var rel = ReleaseDate ?? now;
+					var rel = ReleaseDate.HasValue ? TrimToMinute(ReleaseDate.Value) : nowMin;
 					s.ReleaseDate = rel;
-					s.ExpirationDate = ExpirationDate ?? DateTime.MinValue;
-					s.Executed = rel <= now;
+					s.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
+					s.Executed = rel <= nowMin;
 				}
 
 				if (_context.Entry(s).State == EntityState.Detached)

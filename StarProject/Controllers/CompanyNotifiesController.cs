@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using StarProject.Helpers;
+using StarProject.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using StarProject.Models;
 
 namespace StarProject.Controllers
 {
@@ -152,5 +153,29 @@ namespace StarProject.Controllers
         {
             return _context.CompanyNotifies.Any(e => e.No == id);
         }
-    }
+
+		[HttpPost]
+		public async Task<IActionResult> UploadImage(IFormFile upload)
+		{
+			if (upload == null || upload.Length == 0)
+				return Json(new { uploaded = false, error = new { message = "No file uploaded." } });
+
+			try
+			{
+				// 上傳到 ImgBB
+				string url = await ImgUploadHelper.UploadToImgBB(upload);
+
+				// 回傳 CKEditor 可接受的 JSON 格式
+				return Json(new
+				{
+					uploaded = true,
+					url = url
+				});
+			}
+			catch (Exception ex)
+			{
+				return Json(new { uploaded = false, error = new { message = ex.Message } });
+			}
+		}
+	}
 }

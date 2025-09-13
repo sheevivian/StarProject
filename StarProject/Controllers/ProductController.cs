@@ -7,6 +7,7 @@ using Microsoft.Build.Graph;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using NPOI.HSSF.UserModel;
+using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
@@ -288,6 +289,52 @@ namespace StarProject.Controllers
 			return View(vm); // 同一個 View
 		}
 
+		// 編輯商品(POST)
+		// POST: Tickets/Edit/5
+		// To protect from overposting attacks, enable the specific properties you want to bind to.
+		// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Edit(int id, ProductEditViewModel proEditVM)
+		{
+			if (id != proEditVM.Product.No)
+			{
+				return NotFound();
+			}
+
+			// 1. 先抓出資料庫裡的 Product
+			var product = await _context.Products.FirstOrDefaultAsync(p => p.No == id);
+			if (product == null)
+				return NotFound();
+
+			// 2. 更新有變更的欄位
+			product.Name = proEditVM.Product.Name;
+			product.ProCategoryNo = proEditVM.Product.ProCategoryNo;
+			product.Price = proEditVM.Product.Price;
+			product.Status = proEditVM.Product.Status;
+			product.ReleaseDate = proEditVM.Product.ReleaseDate;
+			product.UpdateDate = DateTime.Now; // 更新日期
+
+		
+			try
+			{
+				_context.Update(product);
+				await _context.SaveChangesAsync();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!ProductExists(product.No))
+				{
+					return NotFound();
+				}
+				else
+				{
+					throw;
+				}
+			}
+			return RedirectToAction("Edit", new { id = proEditVM.Product.No });
+		}
+
 		// 上傳照片(POST)
 		// POST: Product/ImgUpload
 		[HttpPost]
@@ -321,6 +368,14 @@ namespace StarProject.Controllers
 				_context.ProductImages.Add(proImg);
 				await _context.SaveChangesAsync();
 			}
+
+			// 只更新 UpdateDate
+			var product = await _context.Products.FirstOrDefaultAsync(p => p.No == proEditVM.Product.No);
+			if (product != null)
+				product.UpdateDate = DateTime.Now;
+
+			await _context.SaveChangesAsync();
+
 
 			var images = _context.ProductImages
 				.Where(i => i.ProductNo == proEditVM.Product.No)

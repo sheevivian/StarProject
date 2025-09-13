@@ -338,35 +338,8 @@ namespace StarProject.Controllers
 			// return RedirectToAction(nameof(Edit), new { id = proEditVM.ProImage.ProductNo });
 		}
 
-		// 刪除照片(POST)
-		// POST: Product/ImgDelete
-		[HttpPost]
-		public IActionResult ImgDelete(int id, int productNo)
-		{
-			var img = _context.ProductImages.FirstOrDefault(x => x.No == id);
-			if (img != null)
-			{
-				_context.ProductImages.Remove(img);
-				_context.SaveChanges();
-			}
-
-			// 刪除後重新撈圖片
-			var images = _context.ProductImages
-				.Where(i => i.ProductNo == productNo)
-				.OrderBy(i => i.ImgOrder)
-				.ToList();
-
-			var vm = new ProductEditViewModel
-			{
-				Product = _context.Products.FirstOrDefault(p => p.No == productNo),
-				ProImage = new ProductImage { ProductNo = productNo },
-				ProImages = images
-			};
-
-			return PartialView("_PicturePartial", vm);
-		}
-
 		// 更新照片區(POST)
+		// POST: Product/ImgSave
 		[HttpPost]
 		public async Task<IActionResult> ImgSave([FromBody] ImgSaveDto imgSaveDto)
 		{

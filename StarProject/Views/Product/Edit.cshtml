@@ -140,7 +140,7 @@
             <div id="imgContainer" style="display:flex; gap:5px; flex-wrap:wrap; width:1300px;">
                 <partial name="_PicturePartial" id="_PicturePartial"/>
             </div>
-            <div class="border border-2 rounded rounded-3 p-3 mt-3 mb-3">
+            <div class="border border-2 rounded rounded-3 p-3 mt-4 mb-3">
                 <form asp-controller="Product" asp-action="ImgUpload" id="ImgEdit" method="post" enctype="multipart/form-data">
                     <!-- 補hidden，讓binder知道ProImages存在 -->
                     <input type="hidden" asp-for="Product.No" />

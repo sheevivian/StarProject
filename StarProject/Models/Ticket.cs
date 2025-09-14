@@ -23,5 +23,7 @@ public partial class Ticket
 
     public string? Desc { get; set; }
 
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
     public virtual TicCategory TicCategoryNoNavigation { get; set; } = null!;
 }

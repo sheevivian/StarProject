@@ -9,7 +9,7 @@ public partial class ProductImage
 
     public string Image { get; set; } = null!;
 
-    public int ImgOrder { get; set; }
+    public int? ImgOrder { get; set; }
 
     public int No { get; set; }
 

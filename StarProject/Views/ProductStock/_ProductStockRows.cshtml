@@ -1,0 +1,33 @@
+﻿@using StarProject.ViewModels
+@model IEnumerable<ProductStockSumViewModel>
+
+@foreach (var item in Model)
+{
+	<tr>
+		<td>
+			@item.ProductNo
+		</td>
+		<td>
+			@item.ProductName
+		</td>
+		<td>
+			@item.ProCategoryName
+		</td>
+		<td>
+			@item.SumQuantity
+		</td>
+		<td>
+			@item.UpdateDate
+		</td>
+        <td style="width:116px; text-align: center;">
+            <button type="button"
+                    class="btn btn-color btn-sm btn-detail"
+                    data-no="@item.ProductNo"
+                    data-name="@item.ProductName"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasDetail">
+            異動紀錄
+			</button>
+		</td>
+	</tr>
+}

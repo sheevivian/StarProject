@@ -11,17 +11,19 @@ public partial class Participant
 
     public string UsersNo { get; set; } = null!;
 
-    public DateTime RegisteredDate { get; set; }
+    public DateTime RegisterdDate { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 
     public string Status { get; set; } = null!;
 
-    public int? PaymentNo { get; set; }
+    public int PaymentNo { get; set; }
 
     public virtual Event EventNoNavigation { get; set; } = null!;
 
-    public virtual PaymentTransaction? PaymentNoNavigation { get; set; }
+    public virtual PaymentTransaction PaymentNoNavigation { get; set; } = null!;
 
     public virtual User UsersNoNavigation { get; set; } = null!;
 }

@@ -5,7 +5,13 @@ namespace StarProject.Models;
 
 public partial class OrderItem
 {
+    public int ListId { get; set; }
+
     public string OrderNo { get; set; } = null!;
+
+    public int? ProductNo { get; set; }
+
+    public int? TicketNo { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -27,5 +33,7 @@ public partial class OrderItem
 
     public string? DiscountType { get; set; }
 
-    public virtual OrderMaster OrderNoNavigation { get; set; } = null!;
+    public virtual Product? ProductNoNavigation { get; set; }
+
+    public virtual Ticket? TicketNoNavigation { get; set; }
 }

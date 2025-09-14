@@ -40,8 +40,12 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-2">
-                <label asp-for="Title" class="control-label fw-bold fs-5"></label><span asp-validation-for="Title" class="text-danger ms-3"></span>
-                <input asp-for="Title" class="form-control" />
+                <div class="d-flex">
+                    <label asp-for="Title" class="control-label fw-bold fs-5"></label>
+                    <span asp-validation-for="Title" class="text-danger ms-3"></span>
+                    <span class="text-end text-secondary flex-grow-1 fs-5"><span id="wordCount">0</span> / 50</span>
+                </div>
+                <input asp-for="Title" class="form-control flex-grow-1" id="inputTitle" maxlength="50" />
             </div>
             <div class="form-group mb-2">
                 <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
@@ -71,7 +75,7 @@
                 <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
                     <i class="fa-solid fa-plus"></i>新增
                 </button>
-            <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
+                <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
             </div>
         </form>
 </div>
@@ -82,23 +86,35 @@
     }
 
     <script>
-        const select = document.getElementById("categorySelect");
-        const otherInput = document.getElementById("otherCategoryInput");
-        const hiddenInput = document.getElementById("categoryHidden");
+        $(function(){
+            const select = document.getElementById("categorySelect");
+            const otherInput = document.getElementById("otherCategoryInput");
+            const hiddenInput = document.getElementById("categoryHidden");
 
-        select.addEventListener("change", function () {
-            if (this.value === "其他") {
-                otherInput.classList.remove("d-none");
-                hiddenInput.value = ""; // 清空，等使用者輸入
-            } else {
-                otherInput.classList.add("d-none");
-                hiddenInput.value = this.value; // 選擇一般分類時直接帶值
-            }
-        });
+            select.addEventListener("change", function () {
+                if (this.value === "其他") {
+                    otherInput.classList.remove("d-none");
+                    hiddenInput.value = ""; // 清空，等使用者輸入
+                } else {
+                    otherInput.classList.add("d-none");
+                    hiddenInput.value = this.value; // 選擇一般分類時直接帶值
+                }
+            });
 
-        otherInput.addEventListener("input", function () {
-            hiddenInput.value = this.value; // 使用者輸入時，更新隱藏欄位
+            otherInput.addEventListener("input", function () {
+                hiddenInput.value = this.value; // 使用者輸入時，更新隱藏欄位
+            });
+
+            $("#inputTitle").on("keyup", function(){
+                let count =$(this).val().length;
+                if (count == 0){
+                    $("#wordCount").text("0");
+                }else{
+                    $("#wordCount").text(count);
+                }
+            });
         });
+        
     </script>
 
     <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>

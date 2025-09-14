@@ -44,8 +44,12 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <input type="hidden" asp-for="No" />
         <div class="form-group mb-2">
-            <label asp-for="Title" class="control-label fw-bold fs-5"></label><span asp-validation-for="Title" class="text-danger ms-3"></span>
-            <input asp-for="Title" class="form-control" />
+            <div class="d-flex">
+                <label asp-for="Title" class="control-label fw-bold fs-5"></label>
+                <span asp-validation-for="Title" class="text-danger ms-3"></span>
+                <span class="text-end text-secondary flex-grow-1 fs-5"><span id="wordCount">0</span> / 50</span>
+            </div>
+            <input asp-for="Title" class="form-control flex-grow-1" id="inputTitle" maxlength="50" />
         </div>
         <div class="form-group mb-2">
             <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
@@ -86,39 +90,53 @@
     }
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const select = document.getElementById("categorySelect");
-            const otherInput = document.getElementById("otherCategoryInput");
-            const hiddenInput = document.getElementById("categoryHidden");
+        $(function(){
+            let count = $("#inputTitle").val().length;
+            $("#wordCount").text(count);
 
-            // ===== 初始化：把 hidden 的值帶入 select / 文字框 =====
-            const predefinedOptions = ["行政公告","人事公告","活動公告","制度公告","資訊系統公告"];
-            if(predefinedOptions.includes(hiddenInput.value)) {
-                select.value = hiddenInput.value;
-                otherInput.classList.add("d-none");
-            } else if(hiddenInput.value) {
-                select.value = "其他";
-                otherInput.classList.remove("d-none");
-                otherInput.value = hiddenInput.value;
-            } else {
-                select.value = "";
-                otherInput.classList.add("d-none");
-            }
+            document.addEventListener("DOMContentLoaded", function() {
+                const select = document.getElementById("categorySelect");
+                const otherInput = document.getElementById("otherCategoryInput");
+                const hiddenInput = document.getElementById("categoryHidden");
 
-            // ===== 選單變更事件 =====
-            select.addEventListener("change", function () {
-                if (this.value === "其他") {
-                    otherInput.classList.remove("d-none");
-                    hiddenInput.value = ""; // 等使用者輸入
-                } else {
+                // ===== 初始化：把 hidden 的值帶入 select / 文字框 =====
+                const predefinedOptions = ["行政公告","人事公告","活動公告","制度公告","資訊系統公告"];
+                if(predefinedOptions.includes(hiddenInput.value)) {
+                    select.value = hiddenInput.value;
                     otherInput.classList.add("d-none");
-                    hiddenInput.value = this.value;
+                } else if(hiddenInput.value) {
+                    select.value = "其他";
+                    otherInput.classList.remove("d-none");
+                    otherInput.value = hiddenInput.value;
+                } else {
+                    select.value = "";
+                    otherInput.classList.add("d-none");
                 }
+
+                // ===== 選單變更事件 =====
+                select.addEventListener("change", function () {
+                    if (this.value === "其他") {
+                        otherInput.classList.remove("d-none");
+                        hiddenInput.value = ""; // 等使用者輸入
+                    } else {
+                        otherInput.classList.add("d-none");
+                        hiddenInput.value = this.value;
+                    }
+                });
+
+                // ===== 文字框輸入事件 =====
+                otherInput.addEventListener("input", function () {
+                    hiddenInput.value = this.value;
+                });
             });
 
-            // ===== 文字框輸入事件 =====
-            otherInput.addEventListener("input", function () {
-                hiddenInput.value = this.value;
+            $("#inputTitle").on("keyup", function(){
+                let count =$(this).val().length;
+                if (count == 0){
+                    $("#wordCount").text("0");
+                }else{
+                    $("#wordCount").text(count);
+                }
             });
         });
     </script>

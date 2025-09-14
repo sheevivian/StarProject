@@ -1,0 +1,234 @@
+﻿@model StarProject.ViewModel.StarMapVM
+
+@{
+    ViewData["Title"] = "觀星景點編輯";
+}
+
+<head>
+    <style>
+        .btn-edit {
+            --bs-btn-color: #fff;
+            --bs-btn-bg: #0d6efd;
+            --bs-btn-border-color: #0d6efd;
+            --bs-btn-hover-color: #fff;
+            --bs-btn-hover-bg: #527bcc;
+            --bs-btn-hover-border-color: #0d6efd;
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-color: #fff;
+            --bs-btn-active-bg: #527bcc;
+            --bs-btn-active-border-color: #0d6efd;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        }
+
+        .btn-outline-back {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+
+        .text-distance {
+            letter-spacing: 5px; /* 正值：字母間距變大，負值：變小 */
+            text-align: center; /* 文字置中 */
+        }
+    </style>
+</head>
+
+<h1 class="fw-bold">景點編輯</h1>
+<hr />
+
+<div class="row">
+    <form asp-action="Edit" style="width:100%" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="No" />
+        <div class="row g-3 align-items-stretch">
+            <!-- align-items-stretch 保持高度一致 -->
+            <!-- 左側：基本資訊 + 圖片 -->
+            <div class="col-lg-6 d-flex flex-column gap-3">
+                <div class="card">
+                    <div class="card-header fw-bold fs-4"><strong>觀星景點資訊</strong></div>
+                    <div class="card-body">
+                        <div class="form-group mb-2">
+                            <label asp-for="Name" class="control-label fw-bold fs-5"></label>
+                            <span asp-validation-for="Name" class="text-danger ms-3"></span>
+                            <input asp-for="Name" class="form-control" />
+                        </div>
+                        <div class="form-group mb-2">
+                            <label asp-for="Desc" class="control-label fw-bold fs-5"></label>
+                            <span asp-validation-for="Desc" class="text-danger ms-3"></span>
+                            <textarea asp-for="Desc" class="form-control" rows="10" placeholder="輸入景點描述..." style="resize: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 圖片上傳卡 -->
+                <div class="card h-50">
+                    <div class="row g-0 h-100">
+                        <div class="col-md-7 d-flex flex-column justify-content-center">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">修改圖片</h5>
+                                <hr>
+                                <div class="input-group mb-2">
+                                    <input asp-for="ImageFile" class="form-control" type="file" id="ImageFile">
+                                    <button type="button" class="btn btn-outline-secondary" id="btnPreviewImage">預覽</button>
+                                </div>
+                                <span asp-validation-for="ImageFile" class="text-danger ms-1"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-5 d-flex align-items-center">
+                            <img src="@Model.Image"
+                                 class="img-fluid rounded-end object-fit-cover w-100"
+                                 alt="目前圖片"
+                                 id="previewOnForm"
+                                 title="目前顯示的圖片">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 圖片預覽小視窗（Bootstrap 5 Modal） -->
+                <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title fw-bold">圖片預覽</h4>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img id="previewImg" alt="圖片預覽" class="img-fluid rounded border">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：地圖卡 -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header fw-bold fs-4">景點位置</div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="form-group mb-2">
+                            <label asp-for="Address" class="fw-bold fs-5"></label>
+                            <input asp-for="Address" class="form-control" id="addressInput" placeholder="輸入地址..." />
+                            <input type="hidden" asp-for="MapLatitude" id="latitude" />
+                            <input type="hidden" asp-for="MapLongitude" id="longitude" />
+                            <span asp-validation-for="Address" class="text-danger ms-3"></span>
+                        </div>
+                        <div id="map" style="flex:1; min-height:400px;" class="rounded border"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group d-flex gap-2 mt-2 text-distance">
+            <button type="submit" value="Save" class="btn btn-edit flex-fill fw-bold fs-5 text-distance">
+                <i class="fa-solid fa-pen-nib"></i>修改
+            </button>
+            <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
+        </div>
+    </form>
+
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        let map, marker, autocomplete, selectedLatLng;
+
+        function initMap() {
+            // 初始化地圖
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 24.985179749943747, lng: 121.22179620690764 }, // 預設聖德基督學院
+                zoom: 15,
+            });
+
+            marker = new google.maps.Marker({
+                map: map,
+            });
+
+            // Autocomplete
+            const input = document.getElementById("addressInput");
+            autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo("bounds", map);
+
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) return alert("找不到地點");
+
+                // 地圖移動到該地點
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);
+
+                // 標記點
+                marker.setPosition(place.geometry.location);
+                marker.setVisible(true);
+
+                // 更新欄位
+                document.getElementById("latitude").value = place.geometry.location.lat();
+                document.getElementById("longitude").value = place.geometry.location.lng();
+                document.getElementById("addressInput").value = place.formatted_address;
+            });
+        }
+
+        // ====== 圖片預覽小視窗 ======
+        const fileInput = document.getElementById('ImageFile');
+        const previewBtn = document.getElementById('btnPreviewImage');
+        const previewModalEl = document.getElementById('imagePreviewModal');
+        const previewModal = new bootstrap.Modal(previewModalEl);
+        const previewImg = document.getElementById('previewImg');
+        const imgOnForm = document.getElementById('previewOnForm');
+
+        let previewURL = null;
+
+        // 選檔後自動更新右側圖片並自動顯示 Modal
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+
+            // 釋放舊 URL
+            if (previewURL) URL.revokeObjectURL(previewURL);
+
+            previewURL = URL.createObjectURL(file);
+
+            // 更新表單右側圖片
+            imgOnForm.src = previewURL;
+
+            // 更新 Modal 圖片並顯示
+            previewImg.src = previewURL;
+            previewModal.show();
+        });
+
+        // 預覽按鈕點擊 → 顯示 Modal
+        previewBtn.addEventListener('click', () => {
+            const file = fileInput.files?.[0];
+
+            if (file) {
+                // 使用目前選檔 URL
+                if (!previewURL) previewURL = URL.createObjectURL(file);
+                previewImg.src = previewURL;
+            } else {
+                // 沒選檔案，顯示原本圖片
+                previewImg.src = "@Model.Image";
+            }
+
+            previewModal.show();
+        });
+
+        // 關閉 Modal 時釋放 URL
+        previewModalEl.addEventListener('hidden.bs.modal', () => {
+            if (previewURL) {
+                URL.revokeObjectURL(previewURL);
+                previewURL = null;
+            }
+        });
+
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBHKeAPNOEOZM4GGJ4Ylwrh2nP0rgJ_Pk8&libraries=places&callback=initMap" async defer></script>
+
+}

@@ -11,7 +11,9 @@ public partial class StarMap
 
     public string Desc { get; set; } = null!;
 
-    public byte[] Image { get; set; } = null!;
+    public string Image { get; set; } = null!;
+
+    public string Address { get; set; } = null!;
 
     public decimal MapLatitude { get; set; }
 

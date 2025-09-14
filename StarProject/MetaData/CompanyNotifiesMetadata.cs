@@ -4,10 +4,10 @@ namespace StarProject.MetaData
 {
 	internal class CompanyNotifyMetadata
 	{
-
 		[Display(Name = "標題")]
 		[Required(ErrorMessage = "請輸入標題")]
-		public string Title { get; set; } = null!;
+        [StringLength(50, ErrorMessage = "標題過長，請修正")]
+        public string Title { get; set; } = null!;
 
 		[Display(Name = "內容")]
 		public string? Content { get; set; }

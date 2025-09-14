@@ -47,6 +47,8 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<News> News { get; set; }
 
+    public virtual DbSet<NewsImage> NewsImages { get; set; }
+
     public virtual DbSet<OrderC> OrderCs { get; set; }
 
     public virtual DbSet<OrderDelivery> OrderDeliveries { get; set; }
@@ -433,6 +435,20 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Title).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<NewsImage>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("NewsImage");
+
+            entity.Property(e => e.NewsNo).HasColumnName("News_No");
+
+            entity.HasOne(d => d.NewsNoNavigation).WithMany()
+                .HasForeignKey(d => d.NewsNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_NewsImage_News");
+        });
+
         modelBuilder.Entity<OrderC>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK_OrderCS_1");
@@ -629,7 +645,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A82EC4511E");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A89D7DCEA3");
 
             entity.ToTable("ProCategory");
 
@@ -853,7 +869,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8BAD104E2");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8214846C7");
 
             entity.ToTable("TicCategory");
 

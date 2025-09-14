@@ -197,8 +197,8 @@ namespace StarProject.Controllers
 			return Ok();
 		}
 
-		// POST: LostInfo/SearchSelect
-		[HttpPost]
+        // POST: CompanyNotifies/SearchSelect
+        [HttpPost]
 		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
 		{
 			// 從 filters 取得 pageSize，如果沒有就給預設值

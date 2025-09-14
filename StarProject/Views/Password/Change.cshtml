@@ -1,0 +1,141 @@
+﻿@model StarProject.ViewModels.ChangePasswordViewModel
+
+@{
+    ViewData["Title"] = Model.IsForced ? "強制修改密碼" : "修改密碼";
+    Layout = "_Layout";
+}
+
+<head>
+    <link href="~/css/change_password.css" rel="stylesheet" />
+</head>
+    
+
+<div class="container password-change-container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow password-card">
+                @{
+                    var title = Model.IsForced ? "強制修改密碼" : "修改密碼";
+                    var iconClass = Model.IsForced ? "fas fa-shield-alt" : "fas fa-key";
+                }
+
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="@iconClass"></i>
+                        @title
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.IsForced)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>安全提醒：</strong>為了您的帳戶安全，請立即修改預設密碼。
+                        </div>
+                    }
+
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="alert alert-info">
+                            @ViewBag.Message
+                        </div>
+                    }
+
+                    <form asp-action="Change" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        @Html.HiddenFor(m => m.IsForced)
+
+                        <div class="form-group mb-3">
+                            <label asp-for="CurrentPassword" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="CurrentPassword" type="password" class="form-control" placeholder="請輸入目前密碼" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('CurrentPassword')">
+                                    <i class="fas fa-eye" id="CurrentPassword-icon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="NewPassword" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="NewPassword" type="password" class="form-control" placeholder="請輸入新密碼" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('NewPassword')">
+                                    <i class="fas fa-eye" id="NewPassword-icon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="NewPassword" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                密碼必須至少6個字元，包含大小寫字母和數字
+                            </small>
+                            <!-- 密碼強度指示器 -->
+                            <div class="password-strength">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" id="password-strength-bar"
+                                         style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted" id="password-strength-text"></small>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="請再次輸入新密碼" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('ConfirmPassword')">
+                                    <i class="fas fa-eye" id="ConfirmPassword-icon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> 確認修改
+                            </button>
+                            @if (!Model.IsForced)
+                            {
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg ms-2">
+                                    <i class="fas fa-times"></i> 取消
+                                </a>
+                            }
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model.IsForced)
+            {
+                <div class="card mt-3 security-tips-card">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">
+                            <i class="fas fa-info-circle"></i> 密碼安全提醒
+                        </h6>
+                        <ul class="text-muted small">
+                            <li>使用至少6個字元的複雜密碼</li>
+                            <li>包含大寫字母、小寫字母和數字</li>
+                            <li>不要使用容易被猜測的個人資訊</li>
+                            <li>定期更換密碼以確保帳戶安全</li>
+                        </ul>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/change_password.js"></script>
+}
+
+@if (Model.IsForced)
+{
+    <script>
+        document.body.classList.add('forced-password-change');
+    </script>
+}

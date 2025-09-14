@@ -83,6 +83,11 @@ namespace StarProject.Controllers
 				employee.LastLogin = DateTime.Now;
 				await _context.SaveChangesAsync();
 
+				// 檢查是否需要強制修改密碼
+				if (employee.ForceChangePassword)
+				{
+					return RedirectToAction("Change", "Password", new { forced = true });
+				}
 				return RedirectToAction("Index", "Home");
 			}
 			catch (Exception ex)

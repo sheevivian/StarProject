@@ -8,6 +8,7 @@ using NETCore.MailKit.Extensions;
 using NETCore.MailKit.Infrastructure.Internal;
 using StarProject.Data;
 using StarProject.Models;
+using StarProject.Attributes;
 using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
 
 namespace StarProject
@@ -36,8 +37,12 @@ namespace StarProject
 				options.SignIn.RequireConfirmedAccount = true)
 				.AddEntityFrameworkStores<ApplicationDbContext>();
 
-			// MVC 配置
-			builder.Services.AddControllersWithViews();
+			// MVC 配置 - 加入全域過濾器
+			builder.Services.AddControllersWithViews(options =>
+			{
+				// 全域註冊強制密碼修改過濾器
+				options.Filters.Add<ForcePasswordChangeAttribute>();
+			});
 			builder.Services.AddRazorPages();
 
 			// 郵件服務配置

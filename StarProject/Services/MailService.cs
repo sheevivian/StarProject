@@ -3,6 +3,9 @@ using MimeKit;
 using Microsoft.Extensions.Configuration;
 using StarProject.Models;
 using System.Threading.Tasks;
+using System.Net; // 用於 HtmlEncode
+using QRCoder;
+using System.IO;
 
 namespace StarProject.Services
 {
@@ -32,34 +35,74 @@ namespace StarProject.Services
 			await client.DisconnectAsync(true);
 		}
 
-		// 報名成功通知
-		public async Task SendRegistrationSuccessEmail(string to, string eventName, DateTime eventTime)
+		// 產生 QR 圖（PNG bytes）
+		private static byte[] GenerateQrPng(string text)
 		{
-			var message = new MailMessageModel
-			{
-				To = to,
-				Subject = $"【{eventName}】報名成功通知",
-				Body = $"<p>您好，您已成功報名活動：<strong>{eventName}</strong></p>" +
-					   $"<p>活動日期：{eventTime:fyyyy-MM-dd hh:mm}</p>" +
-					   "<p>期待您的參與！</p>"+
-					   "<p>阿波羅天文館</p>"
-			};
-			await SendEmailAsync(message);
+			using var generator = new QRCodeGenerator();
+			using var data = generator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
+			var png = new PngByteQRCode(data);
+			return png.GetGraphic(20);
 		}
 
-		// 活動前提醒
-		public async Task SendEventReminderEmail(string to, string eventName, DateTime eventDate)
+		// 報名成功通知內容
+		public async Task SendRegistrationSuccessEmail(
+			string to,
+			string eventName,
+			DateTime eventTime,
+			string? qrPayload = null,
+			string? recipientName = null
+		)
 		{
-			var message = new MailMessageModel
+			var emailSettings = _config.GetSection("EmailSettings");
+
+			qrPayload ??= $"SP|EV={eventName}|DT={eventTime:yyyyMMddHHmm}|K={Guid.NewGuid():N}";
+			var qrBytes = GenerateQrPng(qrPayload);
+
+			var namePart = !string.IsNullOrWhiteSpace(recipientName)
+				? WebUtility.HtmlEncode(recipientName.Trim()) + " "
+				: string.Empty;
+			var greeting = $"{namePart}星際旅伴 您好";
+			var safeEventName = WebUtility.HtmlEncode(eventName);
+
+			var msg = new MimeMessage();
+			msg.From.Add(new MailboxAddress(emailSettings["SenderName"], emailSettings["SenderEmail"]));
+			msg.To.Add(MailboxAddress.Parse(to));
+			msg.Subject = $"【{eventName}】報名成功通知";
+
+			var cid = "qr1";
+			var builder = new BodyBuilder
 			{
-				To = to,
-				Subject = $"【{eventName}】活動即將開始提醒",
-				Body = $"<p>您好，提醒您參加的活動 <strong>{eventName}</strong> 即將開始</p>" +
-					   $"<p>活動日期：{eventDate:yyyy-MM-dd}</p>" +
-					   "<p>請準時於本館大廳報到，期待與您相見！</p>" +
-					   "<p>阿波羅天文館</p>"
+				HtmlBody =
+					$"<p>{greeting}，您已成功報名活動：<strong>{safeEventName}</strong></p>" +
+					$"<p>活動時間為 {eventTime:yyyy-MM-dd HH:mm}</p>" +
+					$"<p>這是您的入場 QR Code（請於報到時出示）：</p>" +
+					$"<p><img alt=\"QR Code\" src=\"cid:{cid}\" style=\"max-width:240px;\"/></p>" +
+					"<p>期待您的參與！</p>" +
+					"<p>阿波羅天文館</p>"
 			};
-			await SendEmailAsync(message);
+
+			var image = new MimePart("image", "png")
+			{
+				Content = new MimeContent(new MemoryStream(qrBytes)),
+				ContentId = cid,
+				ContentDisposition = new ContentDisposition(ContentDisposition.Inline),
+				ContentTransferEncoding = ContentEncoding.Base64,
+				FileName = "qrcode.png"
+			};
+			builder.LinkedResources.Add(image);
+			msg.Body = builder.ToMessageBody();
+
+			// 4) 寄送
+			using var client = new SmtpClient();
+			await client.ConnectAsync(
+				emailSettings["SmtpServer"],
+				int.Parse(emailSettings["Port"]),
+				MailKit.Security.SecureSocketOptions.StartTls
+			);
+			await client.AuthenticateAsync(emailSettings["Username"], emailSettings["Password"]);
+			await client.SendAsync(msg);
+			await client.DisconnectAsync(true);
 		}
+
 	}
 }

@@ -18,8 +18,7 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-
-<!-- 搜尋與篩選表單 -->
+<!-- 搜尋與篩選表單（GET） -->
 <form method="get" class="mb-4">
     <label for="selectedEventId">篩選活動：</label>
     <select id="selectedEventId" name="selectedEventId">
@@ -44,11 +43,11 @@
         }
     </select>
 
-    <label for="searchUserKeyword">會員姓名：</label>
+    <label for="searchUserKeyword" class="ms-2">會員姓名：</label>
     <input type="text" id="searchUserKeyword" name="searchUserKeyword" placeholder="輸入會員姓名" value="@searchUserKeyword" />
 
-    <button type="submit" class="btn btn-primary">搜尋</button>
-    <a class="btn btn-success" asp-controller="Participants" asp-action="Create">＋ 新增</a>
+    <button type="submit" class="btn btn-primary ms-2">搜尋</button>
+    <a class="btn btn-success ms-2" asp-controller="Participants" asp-action="Create">＋ 新增</a>
 </form>
 
 <!-- 報名資料表格 -->
@@ -60,7 +59,6 @@
             <th>活動名稱</th>
             <th>會員姓名</th>
             <th>狀態</th>
-            <th>付款編號</th>
             <th>操作</th>
         </tr>
     </thead>
@@ -72,35 +70,27 @@
                 <td>@item.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                 <td>@item.EventNoNavigation?.Title</td>
                 <td>@item.UsersNoNavigation?.Name</td>
-                <td>@item.Status</td>
                 <td>
-                    @if (item.PaymentNoNavigation != null)
-                    {
-                        @item.PaymentNoNavigation.No
-                    }
-                    else if (item.EventNoNavigation != null)
-                    {
-                        if (item.EventNoNavigation.Fee == 0)
+                    @{
+                        var zh = item.Status switch
                         {
-                            @:無
-                        }
-                        else
-                        {
-                            @:尚無資料
-                        }
+                            "Success" => "報名成功",
+                            "Pending" => "待處理",
+                            "Canceled" or "Cancelled" => "報名取消已退款",
+                            _ => item.Status // 其他值原樣顯示，方便偵錯
+                        };
                     }
-                    else
-                    {
-                        @:資料錯誤
-                    }
+                    @zh
                 </td>
-
                 <td>
                     <a href="javascript:void(0)" class="btn btn-sm btn-primary edit-btn" data-id="@item.No">編輯</a>
                     <a asp-controller="Participants" asp-action="Delete" asp-route-id="@item.No" class="btn btn-sm btn-danger">刪除</a>
-                    <form asp-action="ResendSignup" asp-route-id="@item.No" method="post" class="d-inline">
+                    <form asp-controller="Participants" asp-action="ResendSignup" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.No" />
                         <button type="submit" class="btn btn-sm btn-outline-secondary">重寄 Mail</button>
                     </form>
+
                 </td>
             </tr>
         }
@@ -110,25 +100,21 @@
 
 @section Scripts {
     <script>
+        // 既有的編輯抽屜邏輯
         $(document).ready(function () {
-            // 點擊編輯按鈕
             $(document).on("click", ".edit-btn", function () {
                 var id = $(this).data("id");
-
                 $.get('/Participants/Edit/' + id, function (html) {
                     $("#editDrawerContainer").html(html);
-
                     var offcanvasEl = document.querySelector('#editDrawer');
                     var bsOffcanvas = new bootstrap.Offcanvas(offcanvasEl);
                     bsOffcanvas.show();
                 });
             });
 
-            // AJAX 提交編輯表單
             $(document).on("submit", "#editDrawer form", function (e) {
                 e.preventDefault();
                 var form = $(this);
-
                 $.post(form.attr("action"), form.serialize(), function (data) {
                     if (data.success) {
                         var bsOffcanvas = bootstrap.Offcanvas.getInstance($("#editDrawer")[0]);
@@ -140,4 +126,3 @@
         });
     </script>
 }
-

@@ -34,21 +34,13 @@ namespace StarProject.Controllers
 				.AsQueryable();
 
 			if (selectedEventId > 0)
-			{
 				participants = participants.Where(p => p.EventNo == selectedEventId);
-			}
 
 			if (!string.IsNullOrEmpty(searchEventKeyword))
-			{
-				participants = participants.Where(p => p.EventNoNavigation != null &&
-					p.EventNoNavigation.Title.Contains(searchEventKeyword));
-			}
+				participants = participants.Where(p => p.EventNoNavigation != null && p.EventNoNavigation.Title.Contains(searchEventKeyword));
 
 			if (!string.IsNullOrEmpty(searchUserKeyword))
-			{
-				participants = participants.Where(p => p.UsersNoNavigation != null &&
-					p.UsersNoNavigation.Name.Contains(searchUserKeyword));
-			}
+				participants = participants.Where(p => p.UsersNoNavigation != null && p.UsersNoNavigation.Name.Contains(searchUserKeyword));
 
 			participants = participants
 				.OrderByDescending(p => p.RegisteredDate)
@@ -65,8 +57,7 @@ namespace StarProject.Controllers
 		// GET: Participants/Details/5
 		public async Task<IActionResult> Details(int? id)
 		{
-			if (id == null)
-				return NotFound();
+			if (id == null) return NotFound();
 
 			var participant = await _context.Participants
 				.Include(p => p.EventNoNavigation)
@@ -75,38 +66,74 @@ namespace StarProject.Controllers
 				.AsNoTracking()
 				.FirstOrDefaultAsync(m => m.No == id);
 
-			if (participant == null)
-				return NotFound();
+			if (participant == null) return NotFound();
 
 			return View(participant);
 		}
 
 		// GET: Participants/Create
-		public IActionResult Create()
+		[HttpGet]
+		public async Task<IActionResult> Create()
 		{
-			ViewData["EventNo"] = new SelectList(_context.Events, "No", "Title");
-			ViewData["PaymentNo"] = new SelectList(_context.PaymentTransactions, "No", "No");
-			ViewData["UsersNo"] = new SelectList(_context.Users, "No", "Name");
-			return View(); // Views/Participants/Create.cshtml
+			// 只提供「報名中」活動
+			var openEvents = await _context.Events
+				.AsNoTracking()
+				.Where(e => e.Status == "報名中")
+				.OrderBy(e => e.StartDate)
+				.Select(e => new { e.No, e.Title })
+				.ToListAsync();
+			ViewBag.EventNo = new SelectList(openEvents, "No", "Title");
+
+			// 會員下拉（UsersNo 為字串）
+			var users = await _context.Users
+				.AsNoTracking()
+				.OrderBy(u => u.Name)
+				.Select(u => new { Value = u.No.ToString(), Text = u.Name })
+				.ToListAsync();
+			ViewBag.UsersNo = new SelectList(users, "Value", "Text");
+
+			return View(new Participant { Status = "報名成功" });
 		}
 
 		// POST: Participants/Create
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Create([Bind("No,EventNo,UsersNo,RegisteredDate,Status,PaymentNo")] Participant participant)
+		public async Task<IActionResult> Create(
+			[Bind("No,EventNo,UsersNo,RegisteredDate,Status")] Participant participant)
 		{
+			// 狀態英中一致化（這段在記憶體中執行，與 EF 翻譯無關，保留可用）
+			if (string.Equals(participant.Status, "Success", StringComparison.OrdinalIgnoreCase))
+				participant.Status = "報名成功";
+
+			// 不連結付款單
+			participant.PaymentNo = null;
+
 			if (!ModelState.IsValid)
 			{
-				ViewData["EventNo"] = new SelectList(_context.Events, "No", "Title", participant.EventNo);
-				ViewData["PaymentNo"] = new SelectList(_context.PaymentTransactions, "No", "No", participant.PaymentNo);
-				ViewData["UsersNo"] = new SelectList(_context.Users, "No", "Name", participant.UsersNo);
+				await PopulateCreateDropdownsAsync(participant.EventNo, participant.UsersNo);
+				return View(participant);
+			}
+
+			// 後端把關：同會員 + 同活動 已有「報名成功」就拒絕
+			var duplicate = await _context.Participants
+				.AsNoTracking()
+				.AnyAsync(p =>
+					p.EventNo == participant.EventNo &&
+					p.UsersNo == participant.UsersNo &&
+					(p.Status == "報名成功" || p.Status == "Success")
+				);
+
+			if (duplicate)
+			{
+				ModelState.AddModelError(string.Empty, "此會員已報名該活動（狀態：報名成功），請勿重複建立。");
+				await PopulateCreateDropdownsAsync(participant.EventNo, participant.UsersNo);
 				return View(participant);
 			}
 
 			try
 			{
+				// 伺服端產碼與時間欄位
 				participant.Code = await GenerateNextParticipantCodeAsync();
-
 				participant.RegisteredDate = DateTime.Now;
 				participant.UpdatedAt = DateTime.Now;
 
@@ -125,16 +152,16 @@ namespace StarProject.Controllers
 						participant.Code = await GenerateNextParticipantCodeAsync();
 						participant.RegisteredDate = DateTime.Now;
 						participant.UpdatedAt = DateTime.Now;
-						_context.Add(participant);
-						continue;
+						// 繼續重試
 					}
 				}
 
-				// 報名成功才寄信（支援 "Success" 與「報名成功」）
+				// 報名成功才寄信
 				bool sent = false;
-				if (IsSuccessStatus(participant.Status))
+				if (IsSuccessStatus(participant.Status) || participant.Status == "報名成功")
 				{
-					sent = await SendSignupEmailAndRecordAsync(participant.No);
+					var (ok, _) = await SendSignupEmailAndRecordAsync(participant.No);
+					sent = ok;
 				}
 
 				TempData["Success"] = sent ? "新增成功，已寄出報名成功通知。" : "新增成功。";
@@ -150,20 +177,59 @@ namespace StarProject.Controllers
 				ModelState.AddModelError(string.Empty, $"建立失敗：{ex.Message}");
 			}
 
-			// 失敗回表單
-			ViewData["EventNo"] = new SelectList(_context.Events, "No", "Title", participant.EventNo);
-			ViewData["PaymentNo"] = new SelectList(_context.PaymentTransactions, "No", "No", participant.PaymentNo);
-			ViewData["UsersNo"] = new SelectList(_context.Users, "No", "Name", participant.UsersNo);
+			// 失敗回表單：回填下拉
+			await PopulateCreateDropdownsAsync(participant.EventNo, participant.UsersNo);
 			return View(participant);
 		}
 
-		//「重寄通知mail」按鈕
+		// ---- 私有小幫手：回填 Create 頁面下拉 ----
+		private async Task PopulateCreateDropdownsAsync(int? selectedEventNo, object? selectedUsersNo)
+		{
+			ViewBag.EventNo = new SelectList(
+				await _context.Events.AsNoTracking()
+					.Where(e => e.Status == "報名中")
+					.OrderBy(e => e.StartDate)
+					.Select(e => new { e.No, e.Title })
+					.ToListAsync(),
+				"No", "Title", selectedEventNo
+			);
+
+			var userItems = await _context.Users.AsNoTracking()
+				.OrderBy(u => u.Name)
+				.Select(u => new { Value = u.No.ToString(), Text = u.Name })
+				.ToListAsync();
+
+			ViewBag.UsersNo = new SelectList(
+				userItems, "Value", "Text",
+				selectedUsersNo?.ToString()
+			);
+		}
+
+		//「重寄通知mail」按鈕（強制重寄）
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> ResendSignup(int id)
 		{
-			var ok = await SendSignupEmailAndRecordAsync(id);
-			TempData["Success"] = ok ? "已重寄報名成功通知。" : "重寄失敗，請檢查收件者 Email 或 SMTP 設定。";
+			var (ok, reason) = await SendSignupEmailAndRecordAsync(id, forceResend: true);
+
+			if (ok)
+			{
+				TempData["Success"] = "已重寄報名成功通知。";
+			}
+			else
+			{
+				TempData["Error"] = reason switch
+				{
+					"NoParticipant" => "重寄失敗：找不到這筆報名資料。",
+					"NoEvent" => "重寄失敗：找不到對應的活動資訊。",
+					"NoEmail" => "重寄失敗：這位會員沒有 Email，請先補齊會員 Email。",
+					"InvalidEmail" => "重寄失敗：會員 Email 格式不正確。",
+					"SmtpAuth" => "重寄失敗：SMTP 驗證失敗，請檢查帳密/應用程式密碼。",
+					"SmtpConnect" => "重寄失敗：SMTP 連線失敗，請檢查 Server/Port/防火牆。",
+					_ => $"重寄失敗：{reason}"
+				};
+			}
+
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -221,9 +287,7 @@ namespace StarProject.Controllers
 			await _context.SaveChangesAsync();
 
 			if (willSendSignup)
-			{
 				await SendSignupEmailAndRecordAsync(existing.No);
-			}
 
 			return Json(new { success = true });
 		}
@@ -231,8 +295,7 @@ namespace StarProject.Controllers
 		// GET: Participants/Delete/5
 		public async Task<IActionResult> Delete(int? id)
 		{
-			if (id == null)
-				return NotFound();
+			if (id == null) return NotFound();
 
 			var participant = await _context.Participants
 				.Include(p => p.EventNoNavigation)
@@ -241,8 +304,7 @@ namespace StarProject.Controllers
 				.AsNoTracking()
 				.FirstOrDefaultAsync(m => m.No == id);
 
-			if (participant == null)
-				return NotFound();
+			if (participant == null) return NotFound();
 
 			return View(participant);
 		}
@@ -266,75 +328,124 @@ namespace StarProject.Controllers
 		}
 
 		// ===========================
-		// 共用：報名成功信 + EventNotif 防重寄（永遠先落 Pending）
+		// 共用：報名成功信 + EventNotif （含可強制重寄）
 		// ===========================
-		private async Task<bool> SendSignupEmailAndRecordAsync(int participantId)
+		private async Task<(bool ok, string reason)> SendSignupEmailAndRecordAsync(int participantId, bool forceResend = false)
 		{
 			var p = await _context.Participants
 				.Include(x => x.EventNoNavigation)
 				.Include(x => x.UsersNoNavigation)
 				.FirstOrDefaultAsync(x => x.No == participantId);
 
-			if (p == null || p.EventNoNavigation == null)
-				return false;
+			if (p == null) return (false, "NoParticipant");
+			if (p.EventNoNavigation == null) return (false, "NoEvent");
 
-			// 收件者：優先 Users.Email；若你有 Participant.Email 可在此退而求其次
-			var to = p.UsersNoNavigation?.Email;
-			// if (string.IsNullOrWhiteSpace(to)) to = p.Email;
+			var to = p.UsersNoNavigation?.Email?.Trim();
+			if (string.IsNullOrWhiteSpace(to)) return (false, "NoEmail");
 
-			// 先登記 Pending（NOT NULL 的 Senttime 以登記時間落帳）
-			var notif = new EventNotif
-			{
-				EventNo = p.EventNo,
-				ParticipantNo = p.No,
-				Category = "Signup",
-				Status = "Pending",
-				Senttime = DateTime.UtcNow
-			};
+			// 先做 Email 格式檢查
+			try { _ = MimeKit.MailboxAddress.Parse(to); }
+			catch { return (false, "InvalidEmail"); }
 
-			try
-			{
-				_context.EventNotifs.Add(notif); // DbSet 名稱請以你的 Context 為準
-				await _context.SaveChangesAsync(); // UNIQUE 索引重複會在此丟 DbUpdateException
-			}
-			catch (DbUpdateException)
-			{
-				// 已有同鍵（他處已處理/處理中）→ 視為成功，不重寄
-				return true;
-			}
+			var qr = $"SP|P={p.No}|E={p.EventNo}|T={DateTime.UtcNow:yyyyMMddHHmmss}|K={Guid.NewGuid():N}";
 
-			if (string.IsNullOrWhiteSpace(to))
+			if (!forceResend)
 			{
-				// 沒有收件者 Email → 標記 Failed（仍保留台帳）
+				var notif = new EventNotif
+				{
+					EventNo = p.EventNo,
+					ParticipantNo = p.No,
+					Category = "Signup",
+					Status = "Pending",
+					Senttime = DateTime.UtcNow
+				};
+
 				try
 				{
-					notif.Status = "Failed";
+					_context.EventNotifs.Add(notif);
 					await _context.SaveChangesAsync();
 				}
-				catch { }
-				return false;
-			}
+				catch (DbUpdateException)
+				{
+					return (true, "AlreadySent");
+				}
 
-			try
-			{
-				await _mail.SendRegistrationSuccessEmail(to, p.EventNoNavigation.Title, p.EventNoNavigation.StartDate);
-
-				notif.Status = "Success";
-				// 若要把 Senttime 視為「實際寄出時間」可改成：
-				// notif.Senttime = DateTime.UtcNow;
-				await _context.SaveChangesAsync();
-				return true;
-			}
-			catch
-			{
 				try
 				{
-					notif.Status = "Failed";
-					// notif.Senttime = DateTime.UtcNow;
+					await _mail.SendRegistrationSuccessEmail(
+						to: to!,
+						eventName: p.EventNoNavigation.Title,
+						eventTime: p.EventNoNavigation.StartDate,
+						qrPayload: qr,
+						recipientName: p.UsersNoNavigation?.Name
+					);
+
+					notif.Status = "Success";
 					await _context.SaveChangesAsync();
+					return (true, "OK");
 				}
-				catch { }
-				return false;
+				catch (MailKit.Security.AuthenticationException) { notif.Status = "Failed"; TrySave(); return (false, "SmtpAuth"); }
+				catch (MailKit.Net.Smtp.SmtpProtocolException) { notif.Status = "Failed"; TrySave(); return (false, "SmtpConnect"); }
+				catch (Exception ex) { notif.Status = "Failed"; TrySave(); return (false, GetInnermost(ex)); }
+			}
+			else
+			{
+				var notif = await _context.EventNotifs.FirstOrDefaultAsync(n =>
+					n.EventNo == p.EventNo &&
+					n.ParticipantNo == p.No &&
+					n.Category == "Signup"
+				);
+
+				if (notif == null)
+				{
+					notif = new EventNotif
+					{
+						EventNo = p.EventNo,
+						ParticipantNo = p.No,
+						Category = "Signup",
+						Status = "Pending",
+						Senttime = DateTime.UtcNow
+					};
+					try
+					{
+						_context.EventNotifs.Add(notif);
+						await _context.SaveChangesAsync();
+					}
+					catch (Exception ex)
+					{
+						return (false, $"CreateLogFailed: {GetInnermost(ex)}");
+					}
+				}
+
+				try
+				{
+					await _mail.SendRegistrationSuccessEmail(
+						to: to!,
+						eventName: p.EventNoNavigation.Title,
+						eventTime: p.EventNoNavigation.StartDate,
+						qrPayload: qr,
+						recipientName: p.UsersNoNavigation?.Name
+					);
+
+					notif.Status = "Success";
+					notif.Senttime = DateTime.UtcNow;
+
+					await _context.SaveChangesAsync();
+					return (true, "OK");
+				}
+				catch (MailKit.Security.AuthenticationException) { notif.Status = "Failed"; notif.Senttime = DateTime.UtcNow; TrySave(); return (false, "SmtpAuth"); }
+				catch (MailKit.Net.Smtp.SmtpProtocolException) { notif.Status = "Failed"; notif.Senttime = DateTime.UtcNow; TrySave(); return (false, "SmtpConnect"); }
+				catch (Exception ex) { notif.Status = "Failed"; notif.Senttime = DateTime.UtcNow; TrySave(); return (false, GetInnermost(ex)); }
+			}
+
+			void TrySave()
+			{
+				try { _context.SaveChanges(); } catch { /* ignore */ }
+			}
+			string GetInnermost(Exception ex)
+			{
+				while (ex.InnerException != null) ex = ex.InnerException;
+				return ex.Message;
 			}
 		}
 
@@ -346,7 +457,21 @@ namespace StarProject.Controllers
 			return s.Equals("Success", StringComparison.OrdinalIgnoreCase) || s == "報名成功";
 		}
 
-		// 產生下一個報名代碼（EV + 五位數遞增）
+		// GET: 前端檢查是否已存在「同會員 + 同活動」的『報名成功』資料
+		[HttpGet]
+		public async Task<IActionResult> CheckDuplicate(int eventId, string usersNo)
+		{
+			var exists = await _context.Participants
+				.AsNoTracking()
+				.AnyAsync(p =>
+					p.EventNo == eventId &&
+					p.UsersNo == usersNo &&
+					(p.Status == "報名成功" || p.Status == "Success")
+				);
+
+			return Json(new { exists });
+		}
+
 		private async Task<string> GenerateNextParticipantCodeAsync(CancellationToken ct = default)
 		{
 			var last5 = await _context.Participants
@@ -360,7 +485,7 @@ namespace StarProject.Controllers
 			return "EV" + (n + 1).ToString("D5"); // EV00001, EV00002, …
 		}
 
-		// 判斷是否為 UNIQUE 衝突（SQL Server 2627/2601）
+		// 判斷是否為 UNIQUE 衝突
 		private static bool IsUniqueCodeViolation(DbUpdateException ex)
 		{
 			return ex.GetBaseException() is SqlException sql && (sql.Number == 2627 || sql.Number == 2601);

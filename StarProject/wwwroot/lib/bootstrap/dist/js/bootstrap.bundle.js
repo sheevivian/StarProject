@@ -2534,7 +2534,8 @@
   } // eslint-disable-next-line import/no-unused-modules
 
 
-  var eventListeners = {
+
+    entListeners = {
     name: 'eventListeners',
     enabled: true,
     phase: 'write',

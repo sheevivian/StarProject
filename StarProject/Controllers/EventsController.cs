@@ -42,36 +42,60 @@ namespace StarProject.Controllers
 		}
 
 		// =================== 活動總覽 (Index) ==================
+		// =================== 活動總覽 (Index) ==================
 		public async Task<IActionResult> Index()
 		{
+			var now = DateTime.Now;
+			var firstDay = new DateTime(now.Year, now.Month, 1);
+			var nextMonthFirst = firstDay.AddMonths(1);
+
+			// 事件清單（保持你原本的排序與 AsNoTracking）
 			var allEvents = await _context.Events
-										  .OrderByDescending(e => e.CreatedTime)
-										  .ToListAsync();
+				.AsNoTracking()
+				.OrderByDescending(e => e.CreatedTime)
+				.ToListAsync();
 
-			var totalParticipants = await _context.Participants.CountAsync();
-
+			// 統計卡片（保留你原本的四個統計）
 			ViewBag.TotalEvents = allEvents.Count;
-			ViewBag.TotalParticipants = totalParticipants;
+			ViewBag.TotalParticipants = await _context.Participants.CountAsync();
 			ViewBag.TotalEndedEvents = allEvents.Count(e => e.Status == "已結束");
 			ViewBag.TotalOpenEvents = allEvents.Count(e => e.Status == "報名中");
 			ViewBag.TotalCancelledEvents = allEvents.Count(e => e.Status == "已取消");
 
-			var now = DateTime.Now;
+			// 本月活動（給表格用）：提供 No/Title/StartDate/Status/MaxParticipants
 			ViewBag.ThisMonthEvents = allEvents
-									  .Where(e => e.StartDate != null &&
-												  e.StartDate.Month == now.Month &&
-												  e.StartDate.Year == now.Year)
-									  .OrderBy(e => e.StartDate)
-									  .ToList();
-
-			ViewBag.UpcomingEvents = allEvents
-				.Where(e => e.StartDate != null && e.StartDate > now && e.StartDate <= now.AddDays(7))
+				.Where(e => e.StartDate >= firstDay && e.StartDate < nextMonthFirst)
 				.OrderBy(e => e.StartDate)
-				.Take(5)
+				.Select(e => new
+				{
+					e.No,
+					e.Title,
+					e.StartDate,      // 非 nullable DateTime
+					e.Status,
+					e.MaxParticipants // 可能是 int 或 int?，View 端已做防呆
+				})
 				.ToList();
 
+			// 7 天內即將到來（右上提醒）：只丟用得到的欄位
+			ViewBag.UpcomingEvents = allEvents
+				.Where(e => e.StartDate > now && e.StartDate <= now.AddDays(7))
+				.OrderBy(e => e.StartDate)
+				.Take(5)
+				.Select(e => new { e.No, e.Title, e.StartDate })
+				.ToList();
+
+			// 各活動「報名成功/Success」人數（供表格的進度條顯示）
+			ViewBag.RegsByEvent = await _context.Participants
+				.AsNoTracking()
+				.Where(p => p.Status == "報名成功" || p.Status == "Success")
+				.GroupBy(p => p.EventNo)
+				.Select(g => new { EventNo = g.Key, Count = g.Count() })
+				.ToDictionaryAsync(x => x.EventNo, x => x.Count);
+
+			// 保留你原先的回傳（index.cshtml 不吃 model 也沒關係）
 			return View(allEvents);
 		}
+
 
 		// =================== 活動列表 (List) ==================
 		public async Task<IActionResult> List(string category, string status, int page = 1)

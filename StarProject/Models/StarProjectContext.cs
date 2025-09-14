@@ -288,29 +288,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<EventNotif>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("EventNotif");
-
-            entity.Property(e => e.Category).HasMaxLength(20);
-            entity.Property(e => e.EventNo).HasColumnName("Event_No");
-            entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
-            entity.Property(e => e.Senttime).HasColumnType("datetime");
-            entity.Property(e => e.Status).HasMaxLength(20);
-
-            entity.HasOne(d => d.EventNoNavigation).WithMany()
-                .HasForeignKey(d => d.EventNo)
-				.OnDelete(DeleteBehavior.Cascade)
-				.HasConstraintName("FK_eventNotif_event");
-
-            entity.HasOne(d => d.ParticipantNoNavigation).WithMany()
-                .HasForeignKey(d => d.ParticipantNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EventNotif_Participant");
-        });
-
         modelBuilder.Entity<Faq>(entity =>
         {
             entity.HasKey(e => e.No);
@@ -932,7 +909,8 @@ public partial class StarProjectContext : DbContext
 			entity.ToTable("EventNotif");
 
             entity.HasKey(e => new { e.EventNo, e.ParticipantNo, e.Category });
-
+			entity.Property(e => e.EventNo).HasColumnName("Event_No");
+			entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
 			entity.Property(e => e.Senttime).HasColumnType("datetime2"); 
 			entity.Property(e => e.Category).HasMaxLength(20);           
 			entity.Property(e => e.Status).HasMaxLength(20);

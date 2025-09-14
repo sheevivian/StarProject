@@ -25,12 +25,10 @@ namespace StarProject
 			// 資料庫配置
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(connectionString));
-
 			builder.Services.AddDbContext<StarProjectContext>(options =>
 			{
 				options.UseSqlServer(builder.Configuration.GetConnectionString("StarProject"));
 			});
-
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 			// Identity 配置
@@ -48,23 +46,19 @@ namespace StarProject
 				config.UseMailKit(builder.Configuration.GetSection("Email").Get<MailKitOptions>());
 			});
 
-			// Cookie 驗證配置
+			// Cookie 驗證配置 - 修正路徑
 			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 				.AddCookie(options =>
 				{
-					options.LoginPath = "/Login";
-					options.LogoutPath = "/Login";
+					options.LoginPath = "/Login/Index";  // 修正：指向正確的控制器和動作
+					options.LogoutPath = "/Login/Index";
 					options.AccessDeniedPath = "/Home/AccessDenied";
 					options.ExpireTimeSpan = TimeSpan.FromHours(8);
+					options.SlidingExpiration = true; // 加入滑動過期時間
 				});
 
-			// 全域驗證策略
-			builder.Services.AddAuthorization(options =>
-			{
-				options.FallbackPolicy = new AuthorizationPolicyBuilder()
-					.RequireAuthenticatedUser()
-					.Build();
-			});
+			// 修正：移除全域驗證策略，改為在需要的控制器上加 [Authorize]
+			builder.Services.AddAuthorization();
 
 			var app = builder.Build();
 
@@ -80,23 +74,20 @@ namespace StarProject
 			}
 
 			app.UseHttpsRedirection();
-
-			// 靜態文件支援 - 必須在 UseRouting 之前
 			app.UseStaticFiles();
-
 			app.UseRouting();
 
-			// 驗證和授權 - 必須在這個順序
+			// 驗證和授權
 			app.UseAuthentication();
 			app.UseAuthorization();
 
-			// 狀態碼頁面處理 - 在授權之後
-			app.UseStatusCodePagesWithReExecute("/Home/AccessDenied");
+			// 移到授權之前，避免干擾登入流程
+			// app.UseStatusCodePagesWithReExecute("/Home/AccessDenied");
 
-			// 路由配置
+			// 路由配置 - 修正：預設導向登入頁面
 			app.MapControllerRoute(
 				name: "default",
-				pattern: "{controller=Home}/{action=Index}/{id?}");
+				pattern: "{controller=Login}/{action=Index}/{id?}");
 
 			app.MapRazorPages();
 

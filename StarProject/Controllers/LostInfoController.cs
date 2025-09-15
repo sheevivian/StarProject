@@ -20,7 +20,7 @@ namespace StarProject.Controllers
 {
     public class LostInfoController : Controller
     {
-		private const int pageNumber = 3;
+		private const int pageNumber = 10;
 
 		private readonly StarProjectContext _context;
 
@@ -201,7 +201,7 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
+			var paginationHtml = await RenderPartialViewToString("_Pagination", null);
 
 			return View(lostInfo);
         }
@@ -243,8 +243,12 @@ namespace StarProject.Controllers
 
 		// POST: LostInfo/SearchSelect
 		[HttpPost]
-		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters, int page = 1, int pageSize = pageNumber)
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
 		{
+			// 從 filters 取得 pageSize，如果沒有就給預設值
+			int page = filters.Page > 0 ? filters.Page : 1;
+			int pageSize = filters.PageSize >=0 ? filters.PageSize : 10;
+
 			var query = _context.LostInfos.AsQueryable();
 			query = query.OrderByDescending(x => x.CreatedDate);
 
@@ -282,25 +286,9 @@ namespace StarProject.Controllers
 			ViewBag.PageSize = pageSize;
 
 			var tableHtml = await RenderPartialViewToString("_LostInfoRows", items);
-			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
+			var paginationHtml = await RenderPartialViewToString("_Pagination", null);
 
 			return Json(new { tableHtml, paginationHtml });
-		}
-
-		public async Task<IActionResult> GetLostInfos(int page, int pageSize)
-		{
-			// 先組 IQueryable (全部資料，還沒篩選)
-			var query = _context.LostInfos.OrderByDescending(x => x.CreatedDate);
-			// 呼叫分頁工具
-			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
-
-			// 把分頁資訊丟給 View
-			ViewBag.Total = total;
-			ViewBag.TotalPages = totalPages;
-			ViewBag.Page = page;
-			ViewBag.PageSize = pageSize;
-
-			return PartialView("_LostInfoRows", items);
 		}
 
 		private bool LostInfoExists(int id)

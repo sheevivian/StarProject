@@ -39,5 +39,9 @@ public partial class Emp
 
     public virtual ICollection<CustomerService> CustomerServices { get; set; } = new List<CustomerService>();
 
+    public virtual Dept DeptNoNavigation { get; set; } = null!;
+
     public virtual ICollection<OrderC> OrderCs { get; set; } = new List<OrderC>();
+
+    public virtual Role RoleNoNavigation { get; set; } = null!;
 }

@@ -5,183 +5,7 @@
     ViewData["Title"] = "遺失物列表";
 }
 <head>
-    <style>
-        *{
-            padding:0;
-            margin:0;
-        }
-
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* cover = 等比縮放填滿框架，多的裁掉 */
-        }
-
-        .img550px{
-            width: 550px; /* 固定寬度 */
-            height: 550px; /* 固定高度 */
-            overflow: hidden; /* 超出的部分裁掉 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #ddd; /* 可選，看框線 */
-        }
-
-        .offcanvas{
-            --bs-offcanvas-width: 600px;
-            --bs-offcanvas-padding-x: 1rem;
-            --bs-offcanvas-padding-y: 0rem;
-        }
-
-        .form-check-input{
-            border: var(--bs-border-width) solid gray;
-        }
-
-		.table > thead > tr > th {
-            font-size:18px !important;
-			color:#FFFFFF;
-			background-color: #2B4C8C;
-			letter-spacing: 0.2rem;
-		}
-
-		.table > tbody > tr.active > td {
-			background-color: rgba(223, 245, 255, 0.521) !important;
-		}
-
-		.table > tbody > tr > td {
-			border-color: #D5D8DB !important; /* 比較深的灰 */
-		}
-
-        .search:hover {
-            background-color: rgba(253, 246, 222, 0.897);
-        }
-
-        .table tbody tr:hover td {
-			background-color: #F4F1FF !important;
-        }
-
-
-		.table-rounded {
-			border-radius: 10px;
-			overflow: hidden; /* 裁切 table 超出的邊框 */
-		}
-
-		.table {
-			border-collapse: separate !important; /* 取消 collapse */
-			border-spacing: 0; /* 避免格線中斷 */
-			border-radius: 20px; /* 四個角都有圓角 */
-			overflow: hidden; /* 超出的隱藏 */
-			vertical-align: middle; /* 上下置中，可選 */
-		}
-
-		.fs18px{
-			font-size:18px;
-			letter-spacing: 0.1rem;
-		}
-
-		.btn-color{
-			border: 1px solid gray;
-			/* background-color: #DCC7B0; */
-			/* color:#FFFFFF */
-			border-radius: 15px;
-		}
-
-		.btn-color:hover {
-			/* border: 1px solid black; */
-				background-color: #bbe3f3;
-			/* color:#FFFFFF */
-		}
-
-		.selectColor{
-			color: #EFF7FE;
-		}
-
-		.dropdown-toggle::after {
-			display: none;
-		}
-
-		.dropdown-item:hover {
-			background-color: #eaecf4;
-		}
-
-		.fs14px{
-			font-size:14px;
-		}
-
-		.br20px{
-			border-radius: 20px;
-		}
-
-		.btn-search {
-			--bs-btn-bg: rgb(250, 208, 72);
-			--bs-btn-border-color: rgb(250, 208, 72);
-
-			--bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
-			--bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
-
-			--bs-btn-focus-shadow-rgb: 217, 164, 6;
-
-			--bs-btn-active-bg: #ffcd39;
-			--bs-btn-active-border-color: #ffc720;
-			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-		}
-
-		.btn-outline-search {
-			--bs-btn-color: #ffc107;
-			--bs-btn-border-color: #ffc107;
-
-			--bs-btn-hover-color: #ffc107;
-			--bs-btn-hover-bg: rgba(253, 246, 222, 0.897);
-			--bs-btn-hover-border-color: #ffc107;
-
-			--bs-btn-focus-shadow-rgb: 255, 193, 7;
-			--bs-btn-active-color: #ffc107;
-			--bs-btn-active-border-color: #ffc107;
-			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-
-			--bs-gradient: none;
-		}
-
-		.no-btn-style {
-			padding: 6px 14px 6px 14px;
-			background-color: var(--bs-tertiary-bg); /* input-group-text 預設背景 */
-			border: 1px solid var(--bs-border-color); /* 保持邊框 */
-			border-radius: 0 0.375rem 0.375rem 0; /* 右側圓角 */
-			color: inherit;
-			box-shadow: none;
-			height: 100%; /* 對齊 input 高度 */
-		}
-
-		.filterCount {
-			display: flex; /* 使用 flex 方便垂直置中 */
-			align-items: center;
-			justify-content: center;
-			width: 24px;   /* 固定寬度 */
-			height: 24px;  /* 固定高度 */
-			font-size: 14px;
-			font-weight: 600;
-			background-color: rgb(250, 208, 72);
-			border-radius: 50%; /* 完全圓形 */
-			display: none; /* 預設隱藏，沒有篩選條件時不顯示 */
-		}
-
-		.btn-outline-delect {
-			--bs-btn-color: #DC3545;
-			--bs-btn-border-color: #DC3545;
-
-			--bs-btn-hover-color: #DC3545;
-			--bs-btn-hover-bg: #f8e6e9;
-			--bs-btn-hover-border-color: #DC3545;
-
-			--bs-btn-focus-shadow-rgb: 255, 193, 7;
-			--bs-btn-active-color: #DC3545;
-			--bs-btn-active-border-color: #DC3545;
-			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-
-			--bs-gradient: none;
-		}
-
-    </style>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
 </head>
 
 <main class="flex-fill position-relative">
@@ -196,133 +20,146 @@
 		@Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
 	</form>
 	
-	<!-- 搜尋框 -->
+	<!-- 搜尋框+每頁筆數 -->
     <div class="input-group input-group-lg">
-		<input id="searchInput" type="text" class="form-control" aria-label="Sizing example input">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input" placeholder="請輸入關鍵字（名稱、分類、領取狀態）">
 		<button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
                 data-bs-title="搜尋" data-bs-trigger="hover">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
 
-        <!-- 進階篩選 -->
-		<div class="dropdown">
-				<button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
-					<i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
-					   data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+		<div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
 
-					<!-- Counter - Alerts -->
-					<span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
-				</button>
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
 
-			<ul class="dropdown-menu p-2" style="width:180px">
-                <!-- 物品分類 -->
-				<li>
-					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
-						- 物品分類
-					</button>
-				</li>
-				<!-- 物品分類內容 -->
-				<li>
-					<div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
-						<div class="p-2">
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" value="一般物品" id="cat1">
-								<label class="form-check-label" for="cat1">
-									一般物品
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" value="電子產品" id="cat2">
-								<label class="form-check-label" for="cat2">
-									電子產品
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" value="證件" id="cat3">
-								<label class="form-check-label" for="cat3">
-									證件
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" value="金融票證" id="cat4">
-								<label class="form-check-label" for="cat4">
-									金融票證
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" value="其他" id="cat5">
-								<label class="form-check-label" for="cat5">
-									其他
-								</label>
-							</div>
-						</div>
-					</div>
-				</li>
+                <ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
+                    <!-- 物品分類 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+                            - 物品分類
+                        </button>
+                    </li>
+                    <!-- 物品分類內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="一般物品" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+                                        一般物品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="電子產品" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+                                        電子產品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="證件" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+                                        證件
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="金融票證" id="cat4">
+                                    <label class="form-check-label" for="cat4">
+                                        金融票證
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="其他" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        其他
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
 
-				<!-- 領取狀態 -->
-				<li>
-					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
-						- 領取狀態
-					</button>
-				</li>
-				<!-- 領取狀態內容 -->
-				<li>
-					<div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
-						<div class="p-2">
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" value="待領取" id="status1">
-								<label class="form-check-label" for="status1">
-									待領取
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" value="已領取" id="status1">
-								<label class="form-check-label" for="status1">
-									已領取
-								</label>
-							</div>
-						</div>
-					</div>
-				</li>
+                    <!-- 領取狀態 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
+                            - 領取狀態
+                        </button>
+                    </li>
+                    <!-- 領取狀態內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="待領取" id="status1">
+                                    <label class="form-check-label" for="status1">
+                                        待領取
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="已領取" id="status1">
+                                    <label class="form-check-label" for="status1">
+                                        已領取
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
 
-				<!-- 拾獲日期 -->
-				<li>
-					<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
-						- 拾獲日期
-					</button>
-				</li>
-				<!-- 拾獲日期內容 -->
-				<li>
-					<div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
-						<div class="p-2">
-							<div class="mb-2">
-								<label for="dateFrom" class="form-label">起始日期</label>
-								<input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
-							</div>
-							<div>
-								<label for="dateTo" class="form-label">結束日期</label>
-								<input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
-							</div>
-						</div>
-					</div>
-				</li>
-		
-				<li><hr class="dropdown-divider"></li>
+                    <!-- 拾獲日期 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
+                            - 拾獲日期
+                        </button>
+                    </li>
+                    <!-- 拾獲日期內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+                            <div class="p-2">
+                                <div class="mb-2">
+                                    <label for="dateFrom" class="form-label">起始日期</label>
+                                    <input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div>
+                                    <label for="dateTo" class="form-label">結束日期</label>
+                                    <input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+                    </li>
 
-				<!-- 完成+清除 -->
-				<li class="d-flex gap-1">
-					<button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
-						完成
-					</button>
-					<button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
-						清除
-					</button>
-				</li>
-			</ul>
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- 完成+清除 -->
+                    <li class="d-flex gap-1">
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+                            完成
+                        </button>
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+                            清除
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="width:150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option selected value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
 		</div>
+        
+		
 	</div>
 
-	<div class="mt-1 text-end me-2" style="display:none" id="selectedFiltersDiv">
+	<div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
 		<span id="selectedFiltersText" class="text-secondary"></span>
 	</div>
 
@@ -365,20 +202,7 @@
 
 		<!-- 分頁 -->
         <div id="pagination">
-			<nav aria-label="Page navigation">
-				<ul class="pagination justify-content-center">
-					@for (int i = 1; i <= ViewBag.TotalPages; i++)
-					{
-						<li class="page-item @(i == ViewBag.Page ? "active" : "") @(ViewBag.TotalPages == 1 ? "disabled" : "")">
-							<a class="page-link" href="javascript:void(0);" onclick="loadPage(@i)" data-page="@i">@i</a>
-						</li>
-					}
-				</ul>
-			</nav>
-
-			<div class="text-center mb-2">
-				<span>共 @ViewBag.Total 筆資料，頁數 <span id="paginationInfo">@ViewBag.Page</span> / @ViewBag.TotalPages</span>
-			</div>
+			@await Html.PartialAsync("_Pagination", Model)
 		</div>
         
 
@@ -387,7 +211,7 @@
 			<div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
 				<h3 class="offcanvas-title fw-bolder">詳細內容</h3>
 				<div class="d-flex justify-content-end align-items-center gap-2">
-					<a id="offcanvasEditBtn" class="btn btn-primary br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+					<a id="offcanvasEditBtn" class="btn btn-edit br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
 
 					<button type="button" class="btn btn-outline-delect br20px" id="offcanvasDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>刪除</button>
 					<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
@@ -428,9 +252,6 @@
 			</div>
 		</div>
 
-        
-
-
 		<!-- 全選垃圾桶及文字 -->
 		<div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center selectColor">
 			<span id="selectNum" style="display:none" class="fw-bold fs18px me-2">已選取0項</span>
@@ -463,373 +284,5 @@
 </main>
 
 @section Scripts {
-	<script>
-		var pageNumber = 3;
-		function loadPage(page) {
-			$.get('/LostInfo/GetLostInfos', { page: page, pageSize: pageNumber }, function(result) {
-			$('#tableBody').html(result);
-
-			$('#paginationInfo').text(`${page}`);
-				// 更新分頁 active 樣式
-				$('#pagination li').removeClass('active');
-				$(`.pagination .page-link[data-page='${page}']`).closest("li").addClass('active');
-			});
-		}
-
-		$(function (){
-
-			// checkbox 勾選
-			$(document).on('click', '.checkbox', function () {
-				let checked = $(this).prop('checked');
-
-				let count = $('.checkbox:checked').length;
-
-				if (count > 0) {
-					$('#delectAll, #selectNum').show();
-					$('#selectNum').text(`已選取${count}項`);
-				} else {
-					$('#delectAll, #selectNum').hide();
-				}
-
-				if (checked) {
-					$(this).closest('tr').addClass('active');
-				} else {
-					$(this).closest('tr').removeClass('active');
-				}
-
-				$('#checkAll').prop('checked', $('.checkbox').length === $('.checkbox:checked').length);
-			});
-
-			// 全選
-			$('#checkAll').click(function () {
-
-				if ($(this).prop('checked')){
-					$('.checkbox').prop('checked', true);
-					$('tbody tr').addClass('active');
-					$('#delectAll, #selectNum').show();
-
-					// 計算勾選數量
-					let count = $('.checkbox:checked').length;
-
-					if (count > 0)
-					{
-						$('#selectNum').text(`已選取${count}項`);
-					}
-				}
-				else{
-					$('.checkbox').prop('checked', false);
-					$('tbody tr').removeClass('active');
-					$('#delectAll, #selectNum').hide();
-				}
-			})
-
-			// 批次刪除
-			$('#delectAllYes').click(function(){
-				// 收集所有勾選的 checkbox 的 value (假設 value 存 id)
-				let ids = $('.checkbox:checked').map(function () {
-					return $(this).val();
-				}).get();
-
-				if (ids.length === 0) return; // 沒有選擇不動作
-
-				// ✅ 取得 CSRF token
-				var token = $('input[name="__RequestVerificationToken"]').val();
-
-				$.ajax({
-					url: '/LostInfo/DeleteMultiple', // 後端批次刪除 Action
-					type: 'POST',
-					data: {
-						__RequestVerificationToken: token, // CSRF 驗證
-						ids: ids // 傳 id 陣列
-					},
-					traditional: true, // 陣列傳送格式
-					success: function(){
-						let page = parseInt($('#paginationInfo').text()) || 1; // 取得目前頁碼
-						refreshLostInfoTable(page);
-						$('.checkbox:checked').closest('tr').remove();
-						$('#delectAll, #selectNum').hide();
-						$('#checkAll').prop('checked', false);
-					},
-					error: function () {
-						alert("刪除失敗！");
-					}
-				});
-			})
-
-			var baseAddress = "https://localhost:7111";
-
-			// 點搜尋按鈕
-			$('#btnSearch').on("click", ()=> {
-			// 讀取目前進階條件
-				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
-				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
-				let dateFrom = $("#dateFrom").val();
-				let dateTo = $("#dateTo").val();
-
-				let filters = { categories, statuses, dateFrom, dateTo };
-
-				searchData(filters);
-				updateSelectedFilters()
-			});
-
-			// 也可以輸入框 keyup 即時觸發
-			$('#searchInput').on("keyup", ()=> {
-				//讀取目前進階條件
-				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
-				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
-				let dateFrom = $("#dateFrom").val();
-				let dateTo = $("#dateTo").val();
-
-				let filters = { categories, statuses, dateFrom, dateTo };
-
-				searchData(filters);
-				updateSelectedFilters()
-			});
-
-			$('#filterFinsh').click(function(){
-				updateFilterCount();
-				updateSelectedFilters()
-				//讀取目前進階條件
-				let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
-				let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
-				let dateFrom = $("#dateFrom").val();
-				let dateTo = $("#dateTo").val();
-
-				let filters = { categories, statuses, dateFrom, dateTo };
-
-				searchData(filters);
-
-				// 找到最接近的 dropdown-toggle
-				var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
-
-				// 取得 bootstrap dropdown instance
-				var dropdown = bootstrap.Dropdown.getInstance(toggleBtn);
-
-				// 沒有的話就新建
-				if (!dropdown) dropdown = new bootstrap.Dropdown(toggleBtn);
-
-				// 呼叫官方的 hide 方法來關閉
-				dropdown.hide();
-			});
-
-
-			// 清除按鈕
-			document.querySelector(".btn-outline-search").addEventListener("click", function () {
-				document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
-				document.getElementById("dateFrom").value = "";
-				document.getElementById("dateTo").value = "";
-				document.getElementById("searchInput").value = "";
-				updateSelectedFilters();
-				updateFilterCount()
-				searchData();
-			});
-
-			// 日期區間邏輯
-			const dateFrom = document.getElementById("dateFrom");
-			const dateTo   = document.getElementById("dateTo");
-
-			dateFrom.addEventListener("change", () => {
-				if(dateFrom.value){
-					dateTo.min = dateFrom.value; // 動態限制
-					if(dateTo.value && dateTo.value < dateFrom.value){
-						dateTo.value = ""; // 自動清空不合法日期
-					}
-				} else {
-					dateTo.min = ""; // 移除限制
-				}
-			});
-
-			// 搜尋功能
-			async function searchData(filters = {}) {
-				try {
-					var keyword = $('#searchInput').val();
-					filters.keyword = keyword; // 把 keyword 加入 filters
-
-					let response = await fetch(`${baseAddress}/LostInfo/SearchSelect`, {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify(filters)
-					});
-
-					if (response.ok) {
-						let data = await response.json();
-						$("#tableBody").html(data.tableHtml);           // 更新表格
-						$("#pagination").html(data.paginationHtml);     // 更新分頁
-					}
-				} catch(err) {
-					alert("搜尋失敗: " + err.message);
-				}
-			}
-
-			// 更新篩選顯示文字
-			function updateSelectedFilters() {
-				let selected = [];
-
-				// 物品分類
-				let categories = $("#collapseCategory input:checked").map(function(){ return $(this).next("label").text(); }).get();
-				if(categories.length) selected.push("<strong>分類：</strong>" + categories.join(", "));
-
-				// 領取狀態
-				let statuses = $("#collapseStatus input:checked").map(function(){ return $(this).next("label").text(); }).get();
-				if(statuses.length) selected.push("<strong>狀態：</strong>" + statuses.join(", "));
-
-				// 日期區間
-				let from = $("#dateFrom").val();
-				let to   = $("#dateTo").val();
-				if(from || to) selected.push("<strong>日期：</strong>" + (from?from:"不限") + " ~ " + (to?to:"不限"));
-
-				// 顯示或隱藏 div
-				if(selected.length){
-					$("#selectedFiltersDiv").show();
-					$("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
-				} else {
-					$("#selectedFiltersDiv").hide();
-					$("#selectedFiltersText").html("");
-				}
-			}
-
-			function updateFilterCount() {
-				let count = 0;
-
-				// 物品分類
-				if($("#collapseCategory input:checked").length > 0) count++;
-
-				// 領取狀態
-				if($("#collapseStatus input:checked").length > 0) count++;
-
-				// 拾獲日期 (任意一個日期不空算1)
-				if($("#dateFrom").val() || $("#dateTo").val()) count++;
-
-				// 更新右上角 tooltip
-				if(count > 0){
-					$("#filterCount").show();
-					$("#filterCount").text(`${count}`);
-				} else {
-					$("#filterCount").hide();
-				}
-			}
-
-			// 分頁按鈕
-			$(".pagination").on("click", ".page-link", function (e) {
-				e.preventDefault();
-				let page = $(this).data("page");
-
-				loadPage(page)
-			});
-
-
-			// Offcanvas 詳細資料
-			$(document).on('click', '.btn-detail', function() {
-				var btn = $(this);
-
-				$('#offcanvasName').text(btn.data('name'));
-				$('#offcanvasDesc').text(btn.data('desc'));
-				$('#offcanvasfounddate').text(btn.data('founddate'));
-				$('#offcanvasCreatedDate').text(btn.data('createddate'));
-				$('#offcanvasStatus').text(btn.data('status'));
-				$('#offcanvasImage').attr("src", btn.data('image'));
-
-					// 顯示擁有者資訊 (只在狀態為已領取時)
-				if (btn.data('status') === "已領取") {
-					$('#ownerNameWrapper').show();
-					$('#ownerPhoneWrapper').show();
-					$('#offcanvasOwnerName').text(btn.data('ownername'));
-					$('#offcanvasOwnerPhone').text(btn.data('ownerphone'));
-				} else {
-					$('#ownerNameWrapper').hide();
-					$('#ownerPhoneWrapper').hide();
-				}
-
-				// 🔑 取得這筆資料的 ID
-				var id = btn.data('id');
-
-				// 1️⃣ 設定「編輯」按鈕連結
-				$('#offcanvasEditBtn').attr("href", "/LostInfo/Edit/" + id);
-
-				// 2️⃣ 設定「刪除」按鈕 data-id
-				$('#offcanvasDeleteBtn').attr("data-id", id);
-
-				// 3️⃣ 刪除 Modal 開啟時，動態修改表單 action
-				$('#deleteModal').on('show.bs.modal', function () {
-					$('#deleteOne').attr("action", "/LostInfo/Delete/" + id);
-				});
-
-				// 打開 Offcanvas
-				var offcanvasEl = document.getElementById('offcanvasDetail');
-				var offcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
-				offcanvas.show();
-			});
-
-			//單一刪除分頁更新
-			$(document).on('click', '#deleteOnebtn', async function(e){
-			e.preventDefault();
-
-				// 從 form 的 action 拿 id
-				let form = $(this).closest('form');
-				let action = form.attr('action'); // /LostInfo/Delete/123
-				let id = action.split('/').pop(); // 拿最後一段
-
-				if(!id) return;
-
-				let token = $('input[name="__RequestVerificationToken"]').val();
-				let page = parseInt($('#paginationInfo').text()) || 1;
-
-				try {
-					await $.ajax({
-					url: '/LostInfo/Delete',  // 改成 Delete
-					type: 'POST',
-					data: { id: id, __RequestVerificationToken: token }
-				});
-
-					// 刪除後刷新列表
-					refreshLostInfoTable(page);
-
-					// 關閉 Offcanvas
-					var offcanvasEl = document.getElementById('offcanvasDetail');
-					var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
-					if(offcanvas) offcanvas.hide();
-
-					// 關閉 Modal
-					$('#deleteModal').modal('hide');
-
-				} catch (err) {
-					alert("刪除失敗：" + (err.responseText || err.statusText));
-				}
-			});
-
-		});
-
-
-			// 統一刷新列表
-			async function refreshLostInfoTable(page = 1, filters = {}) {
-				try {
-					// 加入 pageNumber
-					filters.page = page;
-					filters.pageSize = pageNumber;
-
-					// 取得 CSRF Token
-					filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
-
-					let response = await $.ajax({
-						url: '/LostInfo/SearchSelect', // 或 DeleteConfirmed 也可以共用
-						type: 'POST',
-						data: JSON.stringify(filters),
-						contentType: "application/json"
-					});
-
-					// 更新 tableBody
-					$("#tableBody").html(response.tableHtml);
-
-					// 更新 pagination
-					$("#pagination").html(response.paginationHtml);
-
-					// 更新分頁顯示
-					$('#paginationInfo').text(page);
-
-				} catch (err) {
-					alert("更新列表失敗：" + err.responseText || err.statusText);
-				}
-			}
-
-	</script>
+    <script src="~/js/lostinfoindex.min.js"></script>
 }

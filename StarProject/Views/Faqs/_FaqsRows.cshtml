@@ -1,0 +1,68 @@
+﻿@model IEnumerable<StarProject.Models.Faq>
+
+@for (int i = 0; i < Model.Count(); i++)
+{
+    var item = Model.ElementAt(i);
+    var collapseId = $"collapse{i}"; // 唯一 id
+
+    <div class="accordion-item">
+        <div class="accordion-header d-flex align-items-center" id="heading@i">
+            <!-- Checkbox -->
+            <input type="checkbox"
+                   class="form-check-input checkbox fs-6 m-0 mx-3"
+                   value="@item.No" />
+            <button class="accordion-button collapsed ps-2"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#@collapseId"
+                    aria-expanded="false"
+                    aria-controls="@collapseId">
+                <div class="d-flex justify-content-between align-items-center w-100">
+
+                    <div>
+                        <strong class="me-3">Q@(i + 1).</strong>@Html.DisplayFor(m => item.Question)
+                    </div>
+
+                    <span class="badge rounded-pill @GetCategoryClass(item.CategoryNoNavigation?.No ?? 0) me-3 custom-badge">
+                        @(item.CategoryNoNavigation?.Name ?? "未分類")
+                    </span>
+                </div>
+
+            </button>
+
+        </div>
+
+        <div id="@collapseId" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                @Html.Raw(item.Answer)
+                <div class="text-secondary text-end">
+                    @Html.DisplayNameFor(model => model.UpdateDate)：@Html.DisplayFor(modelItem => item.UpdateDate)
+                    <a class="br20px ms-2 btn btn-faqs btn-sm btn-detail" href="/Faqs/Edit/@item.No">
+                        <i class="fa-solid fa-pen-to-square"></i>編輯
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@functions {
+    public string GetCategoryClass(int categoryNo)
+    {
+        return categoryNo switch
+        {
+            1 => "bg-account text-body-secondary",
+            2 => "bg-product text-body-secondary",
+            3 => "bg-order text-body-secondary",
+            4 => "bg-money text-body-secondary",
+            5 => "bg-delivery text-body-secondary",
+            6 => "bg-service text-body-secondary",
+            7 => "bg-event text-body-secondary",
+            8 => "bg-other text-body-secondary",
+            _ => "bg-secondary text-body-secondary"
+        };
+    }
+}
+
+
+

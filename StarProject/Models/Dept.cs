@@ -14,4 +14,6 @@ public partial class Dept
     public string? DeptDescription { get; set; }
 
     public bool IsActive { get; set; }
+
+    public virtual ICollection<Emp> Emps { get; set; } = new List<Emp>();
 }

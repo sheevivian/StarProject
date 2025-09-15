@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,11 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="jit_init\**" />
-    <Content Remove="jit_init\**" />
-    <EmbeddedResource Remove="jit_init\**" />
-    <None Remove="jit_init\**" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <Content Remove="bundleconfig.json" />
@@ -25,12 +21,18 @@
   <ItemGroup>
     <PackageReference Include="bootstrap-select" Version="1.13.18" />
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
+
+    <PackageReference Include="MailKit" Version="4.13.0" />
+
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.19" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+    <PackageReference Include="NETCore.MailKit" Version="2.1.0" />
+    <PackageReference Include="NPOI" Version="2.7.4" />
+
   </ItemGroup>
 
 </Project>

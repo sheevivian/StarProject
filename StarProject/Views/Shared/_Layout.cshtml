@@ -332,7 +332,7 @@
                             <a class="nav-link d-flex align-items-center profile" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="fw900 dn1100px">您好！</span>
-                                <span class="username fw900 dn1100px">崔始源</span>
+                                <span class="username fw900 dn1100px">@User.FindFirst("FullName")?.Value</span>
                                 <img class="img-profile rounded-circle" src="~/img/astronaut.gif" />
                             </a>
                             <ul class="dropdown-menu mt-1 dropdownlist dropdown-menu-1000px-end">

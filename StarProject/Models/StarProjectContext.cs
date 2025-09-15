@@ -437,13 +437,13 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<NewsImage>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("NewsImage");
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("NewsImage");
 
             entity.Property(e => e.NewsNo).HasColumnName("News_No");
 
-            entity.HasOne(d => d.NewsNoNavigation).WithMany()
+            entity.HasOne(d => d.NewsNoNavigation).WithMany(p => p.NewsImages)
                 .HasForeignKey(d => d.NewsNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_NewsImage_News");

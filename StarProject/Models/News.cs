@@ -16,4 +16,6 @@ public partial class News
     public DateTime CreatedDate { get; set; }
 
     public DateTime PublishDate { get; set; }
+
+    public virtual ICollection<NewsImage> NewsImages { get; set; } = new List<NewsImage>();
 }

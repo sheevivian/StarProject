@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Build.Framework;
 using StarProject.MetaData;
 using System.ComponentModel.DataAnnotations;
@@ -21,5 +22,9 @@ namespace StarProject.ViewModel
 
         // 上傳的新圖片 (接收 <input type="file" multiple /> )
         public List<IFormFile> ImageFiles { get; set; } = new();
-    }
+
+		[ValidateNever]
+		// 新增 OrderNo 清單（對應每張 ImageFiles 的順序）
+		public List<int> ImageOrderNos { get; set; } = new();
+	}
 }

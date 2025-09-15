@@ -35,11 +35,15 @@ public partial class Emp
 
     public DateTime? LastLogin { get; set; }
 
+    public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
+
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
     public virtual ICollection<CustomerService> CustomerServices { get; set; } = new List<CustomerService>();
 
     public virtual Dept DeptNoNavigation { get; set; } = null!;
+
+    public virtual ICollection<LeaveApplication> LeaveApplications { get; set; } = new List<LeaveApplication>();
 
     public virtual ICollection<OrderC> OrderCs { get; set; } = new List<OrderC>();
 

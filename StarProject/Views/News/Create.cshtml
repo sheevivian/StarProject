@@ -5,6 +5,7 @@
 }
 
 <head>
+    <link href="~/css/textediting.css" rel="stylesheet" />
     <style>
         .btn-topbar {
             --bs-btn-bg: rgb(250, 208, 72);
@@ -30,6 +31,10 @@
             --bs-gradient: none;
         }
 
+        .ck-editor__editable {
+            min-height: 430px; /* 編輯區最小高度 */
+        }
+
         #carouselExampleIndicators .carousel-inner {
             height: 500px; /* 你想要的高度 */
         }
@@ -39,7 +44,13 @@
             width: auto; /* 保持比例 */
             object-fit: cover; /* 填滿容器裁切 */
         }
+
+        .card-header{
+            background-color:#2B4C8C;
+            color:#FFFFFF
+        }
     </style>
+    
 </head>
 
 <h1 class="fw-bold">官網公告新增</h1>
@@ -51,9 +62,9 @@
         <div class="row g-3 align-items-stretch">
             <!-- 左側：基本資訊 + 圖片 -->
             <div class="col-lg-6 d-flex flex-column gap-3">
-                <div class="card">
+                <div class="card  h-100">
                     <div class="card-header fw-bold fs-4"><strong>公告資訊</strong></div>
-                    <div class="card-body h-100">
+                    <div class="card-body">
                         <div class="form-group mb-2">
                             <label asp-for="Title" class="control-label fw-bold fs-5"></label><span asp-validation-for="Title" class="text-danger ms-3"></span>
                             <input asp-for="Title" class="form-control" />
@@ -61,7 +72,7 @@
 
                         <div class="form-group mb-2">
                             <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
-                            <select id="categorySelect" class="form-select">
+                            <select asp-for="Category" class="form-select">
                                 <option value="">請選擇</option>
                                 <option value="最新消息">最新消息</option>
                                 <option value="館區動態">館區動態</option>
@@ -93,7 +104,7 @@
                     <div class="card-body d-flex flex-column">
                         <!-- 多圖上傳 -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold">上傳圖片</label>
+                            <label class="form-label fw-bold fs-5">上傳圖片</label>
                             <input asp-for="ImageFiles" type="file" class="form-control" multiple id="imageFilesInput" />
                         </div>
 
@@ -150,15 +161,17 @@
         const imageFilesInput = document.getElementById('imageFilesInput');
         const carouselInner = $('#carouselInner');
         const carouselIndicators = $('#carouselIndicators');
-        const imagePreviewList = $('#imagePreviewList'); // 縮圖清單
-        let fileList = [];
+        const imagePreviewList = $('#imagePreviewList');
+        let fileList = []; // 存檔案 + previewUrl
 
-                imageFilesInput.addEventListener('change', () => {
-            fileList = Array.from(imageFilesInput.files).map(file => {
-                return {
+        // 選檔
+        imageFilesInput.addEventListener('change', () => {
+            const files = Array.from(imageFilesInput.files);
+            files.forEach(file => {
+                fileList.push({
                     file: file,
-                    previewUrl: URL.createObjectURL(file) // 一開始就生成一次
-                };
+                    previewUrl: URL.createObjectURL(file)
+                });
             });
             updatePreview();
         });
@@ -185,12 +198,10 @@
                     </li>
                 `);
 
+                // 刪除縮圖
                 li.find('.remove-btn').click(() => {
                     fileList.splice(index, 1);
-
-                    // 清空 input
-                    imageFilesInput.value = '';
-
+                    updateFileInput();
                     updatePreview();
                 });
 
@@ -212,7 +223,44 @@
             });
 
             updateOrderInput();
-        };
+        }
+
+        // 更新 hidden input
+        function updateOrderInput(){
+            $("input[name='ImageOrderNos']").remove();
+            fileList.forEach((obj, i) => {
+                $('<input>',{
+                    type:'hidden',
+                    name:'ImageOrderNos',
+                    value: i + 1
+                }).appendTo('form');
+            });
+        }
+
+        // 將 fileList 同步回 input
+        function updateFileInput(){
+            const dataTransfer = new DataTransfer();
+            fileList.forEach(obj => {
+                dataTransfer.items.add(obj.file);
+            });
+            imageFilesInput.files = dataTransfer.files;
+        }
+
+        // 拖曳排序
+        imagePreviewList.sortable({
+            update: function(){
+                const newOrder = [];
+                imagePreviewList.children('li').each((i, li) => {
+                    const idx = $(li).data('index');
+                    newOrder.push(fileList[idx]);
+                });
+                fileList = newOrder;
+                updateFileInput();
+                updatePreview();
+            }
+        });
+
+
 
 
     </script>

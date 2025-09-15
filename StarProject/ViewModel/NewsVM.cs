@@ -10,7 +10,11 @@ namespace StarProject.ViewModel
 	[ModelMetadataType(typeof(NewsMetadata))]
 	public class NewsVM
 	{
-		public int No { get; set; }
+        public NewsVM()
+        {
+            PublishDate = DateTime.Now; // 預設今天
+        }
+        public int No { get; set; }
         public string Category { get; set; } = null!;
         public string Title { get; set; } = null!;
         public string Content { get; set; } = null!;

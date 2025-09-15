@@ -126,8 +126,6 @@ namespace StarProject.Controllers
 					try
 					{
 						System.Diagnostics.Debug.WriteLine($"準備發送Email到: {emp.Email}");
-						// 將以下原本的錯誤行：
-						// object emailResult = await _emailService.SendWelcomeEmailAsync(emp.Email, emp.Name, emp.EmpCode, defaultPassword);
 
 						// 改為使用 IEmailService 介面已存在的 SendAsync 方法，並自行組合郵件內容：
 						await _emailService.SendAsync(
@@ -141,8 +139,6 @@ namespace StarProject.Controllers
 								isHtml: true
 							);
 
-						// 將這一行移除，因為 IEmailService 並沒有 SendWelcomeEmailAsync 方法：
-						// object emailResult = await _emailService.SendWelcomeEmailAsync(emp.Email, emp.Name, emp.EmpCode, defaultPassword);
 						TempData["EmailSent"] = true;
 						System.Diagnostics.Debug.WriteLine("Email發送成功");
 					}
@@ -190,7 +186,6 @@ namespace StarProject.Controllers
 			return empCode;
 		}
 		[Permission("emp")]
-		// GET: Emps/Edit/5
 		public async Task<IActionResult> Edit(string id)
 		{
 			if (id == null)
@@ -200,40 +195,93 @@ namespace StarProject.Controllers
 			if (emp == null)
 				return NotFound();
 
+			// 建立 ViewModel 並映射資料
+			var viewModel = new EditEmpViewModel
+			{
+				No = emp.No,
+				Name = emp.Name,
+				RoleNo = emp.RoleNo,
+				DeptNo = emp.DeptNo,
+				HireDate = emp.HireDate,
+				Status = emp.Status,
+				Email = emp.Email,
+				Phone = emp.Phone,
+				IdNumber = emp.IdNumber,
+				BirthDate = emp.BirthDate
+			};
+
 			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", emp.DeptNo);
 			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", emp.RoleNo);
-			return View(emp);
+			return View(viewModel);
 		}
-		
+
 		// POST: Emps/Edit/5
 		[HttpPost]
 		[Permission("emp")]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(string id, [Bind("No,Name,RoleNo,DeptNo,HireDate,PasswordHash,PasswordSalt,EmpCode,Status,ForceChangePassword,Email,Phone,IdNumber,BirthDate")] Emp emp)
+		public async Task<IActionResult> Edit(string id, EditEmpViewModel viewModel)
 		{
-			if (id != emp.No)
+			if (id != viewModel.No)
 				return NotFound();
 
-			if (ModelState.IsValid)
+			System.Diagnostics.Debug.WriteLine($"收到編輯資料: Name={viewModel.Name}, DeptNo={viewModel.DeptNo}, RoleNo={viewModel.RoleNo}");
+			System.Diagnostics.Debug.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+
+			if (!ModelState.IsValid)
 			{
-				try
+				System.Diagnostics.Debug.WriteLine("ModelState驗證失敗:");
+				foreach (var error in ModelState)
 				{
-					_context.Update(emp);
-					await _context.SaveChangesAsync();
+					System.Diagnostics.Debug.WriteLine($"欄位: {error.Key}, 錯誤: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
 				}
-				catch (DbUpdateConcurrencyException)
-				{
-					if (!EmpExists(emp.No))
-						return NotFound();
-					else
-						throw;
-				}
-				return RedirectToAction(nameof(Index));
+
+				// 重新載入下拉選單資料
+				ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", viewModel.DeptNo);
+				ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+				return View(viewModel);
 			}
 
-			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", emp.DeptNo);
-			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", emp.RoleNo);
-			return View(emp);
+			try
+			{
+				// 從資料庫取得原始員工資料
+				var existingEmp = await _context.Emps.FindAsync(id);
+				if (existingEmp == null)
+					return NotFound();
+
+				// 只更新允許修改的欄位
+				existingEmp.Name = viewModel.Name;
+				existingEmp.RoleNo = viewModel.RoleNo;
+				existingEmp.DeptNo = viewModel.DeptNo;
+				existingEmp.HireDate = viewModel.HireDate;
+				existingEmp.Status = viewModel.Status;
+				existingEmp.Email = viewModel.Email;
+				existingEmp.Phone = viewModel.Phone;
+				existingEmp.IdNumber = viewModel.IdNumber;
+				existingEmp.BirthDate = viewModel.BirthDate;
+
+				// 保存變更
+				await _context.SaveChangesAsync();
+
+				System.Diagnostics.Debug.WriteLine("員工資料更新成功，準備跳轉到 Index");
+				return RedirectToAction(nameof(Index));
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!EmpExists(viewModel.No))
+					return NotFound();
+				else
+					throw;
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"更新員工錯誤: {ex.Message}");
+				ModelState.AddModelError("", $"更新員工時發生錯誤：{ex.Message}");
+			}
+
+			// 如果到這裡，表示有錯誤，重新顯示表單
+			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", viewModel.DeptNo);
+			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+			return View(viewModel);
 		}
 		[Permission("emp")]
 		// GET: Emps/Delete/5

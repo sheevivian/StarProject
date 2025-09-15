@@ -1,7 +1,7 @@
 ﻿@model StarProject.ViewModels.ChangePasswordViewModel
 
 @{
-    ViewData["Title"] = Model.IsForced ? "強制修改密碼" : "修改密碼";
+    ViewData["Title"] = Model.IsForced ? "修改密碼" : "修改密碼";
     Layout = "_Layout";
 }
 
@@ -15,7 +15,7 @@
         <div class="col-md-6">
             <div class="card shadow password-card">
                 @{
-                    var title = Model.IsForced ? "強制修改密碼" : "修改密碼";
+                    var title = Model.IsForced ? "修改密碼" : "修改密碼";
                     var iconClass = Model.IsForced ? "fas fa-shield-alt" : "fas fa-key";
                 }
 
@@ -30,7 +30,7 @@
                     {
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <strong>安全提醒：</strong>為了您的帳戶安全，請立即修改預設密碼。
+                            <strong>安全提醒：</strong>第一次登入，請立即修改預設密碼。
                         </div>
                     }
 

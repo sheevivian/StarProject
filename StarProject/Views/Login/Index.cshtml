@@ -1,7 +1,11 @@
-﻿@using StarProject.DTOs
-@model LoginDTO
+﻿@model StarProject.DTOs.LoginDTO
+
 @{
-    Layout = null;
+	Layout = null;
+}
+}
+@{
+    ViewData["Title"] = "登入";
 }
 
 <!DOCTYPE html>
@@ -30,8 +34,10 @@
             min-height: 100vh;
             /* 深藍漸變背景，模擬夜空 */
             background: linear-gradient(135deg, #0c0c2e 0%, #1a1a3a 30%, #2d1b69 60%, #000 100%);
-            overflow: hidden;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* === 星空背景動畫 === */
@@ -41,7 +47,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* 不影響滑鼠點擊 */
+            pointer-events: none;
+            z-index: 1;
         }
 
         .star {
@@ -50,7 +57,6 @@
             height: 2px;
             background: white;
             border-radius: 50%;
-            /* 閃爍動畫：3秒循環，透明度和大小變化 */
             animation: twinkle 3s infinite alternate;
         }
 
@@ -103,13 +109,7 @@
         }
 
         /* === 主登入表單容器 === */
-        form {
-            /* 置中定位 */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            /* 尺寸設定 */
+        .login-container {
             width: 420px;
             padding: 50px 40px;
             /* 毛玻璃效果 */
@@ -119,12 +119,11 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            position: relative;
-            z-index: 10; /* 確保在星空之上 */
+            z-index: 10;
         }
 
             /* === 表單內所有元素的基礎樣式 === */
-            form * {
+            .login-container * {
                 font-family: 'Inter', sans-serif;
                 color: #ffffff;
                 outline: none;
@@ -154,7 +153,7 @@
         }
 
         /* === 標題樣式 === */
-        form h3 {
+        .login-container h3 {
             font-size: 28px;
             font-weight: 700;
             text-align: center;
@@ -166,7 +165,7 @@
             color: rgba(255, 255, 255, 0.7);
             font-weight: 400;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         /* === 標籤樣式 === */
@@ -280,18 +279,20 @@
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.2);
             color: #fca5a5;
+            display: none;
         }
 
         /* === 手機端響應式設計 === */
         @@media (max-width: 480px) {
-            form
+            .login-container
 
         {
             width: 90%;
             padding: 40px 30px;
+            margin: 20px;
         }
 
-        form h3 {
+        .login-container h3 {
             font-size: 24px;
         }
 
@@ -302,6 +303,26 @@
         }
 
         }
+
+        @@media (max-height: 700px) {
+            .login-container
+
+        {
+            padding: 30px 40px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .system-subtitle {
+            margin-bottom: 20px;
+        }
+
+        }
     </style>
 </head>
 <body>
@@ -309,7 +330,7 @@
     <div class="stars" id="stars"></div>
 
     <!-- 登入表單 -->
-    <form asp-action="Index">
+    <div class="login-container">
         <!-- Logo和標題區域 -->
         <div class="logo-section">
             <div class="logo-icon">
@@ -320,28 +341,35 @@
         <h3>天文館後台系統</h3>
         <p class="system-subtitle">探索宇宙，管理星空</p>
 
-        <!-- 帳號輸入區域 -->
-        <label asp-for="Account">管理員帳號</label>
-        <div class="input-wrapper">
-            <input asp-for="Account" placeholder="請輸入管理員帳號" />
-            <i class="fas fa-user input-icon"></i>
-        </div>
+        <form method="post">
+            <!-- 帳號輸入區域 -->
+            <label asp-for="Account">管理員帳號</label>
+            <div class="input-wrapper">
+                <input asp-for="Account" placeholder="請輸入管理員帳號" required />
+                <span asp-validation-for="Account" class="text-danger"></span>
+                <i class="fas fa-user input-icon"></i>
+            </div>
 
-        <!-- 密碼輸入區域 -->
-        <label asp-for="Password">密碼</label>
-        <div class="input-wrapper">
-            <input asp-for="Password" type="password" placeholder="請輸入密碼" />
-            <i class="fas fa-lock input-icon"></i>
-        </div>
+            <!-- 密碼輸入區域 -->
+            <label asp-for="Password">密碼</label>
+            <div class="input-wrapper">
+                <input asp-for="Password" type="password" placeholder="請輸入密碼" required />
+                <span asp-validation-for="Password" class="text-danger"></span>
+                <i class="fas fa-lock input-icon"></i>
+            </div>
 
-        <!-- 登入按鈕 -->
-        <button type="submit">登入系統</button>
+            <!-- 登入按鈕 -->
+            <button type="submit">登入系統</button>
 
-        <!-- 錯誤訊息顯示區域 -->
-        <div class="message">
-            @(ViewBag?.Message ?? "")
-        </div>
-    </form>
+            <!-- 錯誤訊息顯示區域 -->
+            @if (!string.IsNullOrEmpty(ViewBag.Message as string))
+            {
+                <div class="message" style="display: block;">
+                    @ViewBag.Message
+                </div>
+            }
+        </form>
+    </div>
 
     <script>
         // === JavaScript 功能區域 ===
@@ -374,17 +402,41 @@
             }
         }
 
-        // 頁面載入完成後執行
+         // 頁面載入完成後執行
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化星空
             createStars();
 
-            // 如果有錯誤訊息，顯示訊息區域
-            const messageDiv = document.querySelector('.message');
-            const message = messageDiv.textContent.trim();
-            if (message === '') {
-                messageDiv.style.display = 'none';
-            }
+            // 檢查是否有後端錯誤訊息需要顯示
+            const messageDiv = document.getElementById('message');
+            // 這裡可以通過後端 ViewBag 或其他方式傳遞錯誤訊息
+
+            // 表單提交前的客戶端驗證
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const account = document.getElementById('Account').value.trim();
+                const password = document.getElementById('Password').value.trim();
+
+                if (!account || !password) {
+                    e.preventDefault(); // 只在驗證失敗時阻止提交
+                    messageDiv.textContent = '請輸入帳號和密碼';
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+                    messageDiv.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                    messageDiv.style.color = '#fca5a5';
+                    return false;
+                }
+
+                // 如果驗證通過，顯示載入狀態並允許表單提交
+                messageDiv.textContent = '登入中...';
+                messageDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+                messageDiv.style.borderColor = 'rgba(34, 197, 94, 0.2)';
+                messageDiv.style.color = '#86efac';
+                messageDiv.style.display = 'block';
+
+                // 讓表單正常提交到後端
+                return true;
+            });
         });
     </script>
 </body>

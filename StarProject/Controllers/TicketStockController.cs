@@ -20,33 +20,29 @@ namespace StarProject.Controllers
         }
 
         // GET: TicketStock
-  //      public async Task<IActionResult> Index()
-  //      {
-		//	// Step 1: 先在 DB 層做 GroupBy，算好 Sum / Max
-		//	var stockSummaryQuery = _context.TicketStock
-		//		.GroupBy(ss => ss.ProductNo)
-		//		.Select(g => new
-		//		{
-		//			ProductNo = g.Key,
-		//			SumQuantity = g.Sum(x => x.TransQuantity),
-		//			UpdateDate = g.Max(x => x.Date)
-		//		});
+        public async Task<IActionResult> Index()
+        {
+			var query =
+				from s in _context.TicketStocks
+				join t in _context.TicketTransStocks
+					on new { s.Ticket_No, Date = s.Date.Date }
+					equals new { t.Ticket_No, Date = t.Date.Date } into gj
+				from t in gj.DefaultIfEmpty() // left join
+				group t by new { s.Ticket_No, s.Date, s.Stock } into g
+				select new
+				{
+					TicketNo = g.Key.Ticket_No,
+					Date = g.Key.Date,
+					// 異動數量要判斷正負
+					TotalStock = g.Key.Stock + g.Sum(x =>
+						x == null ? 0 :
+						(x.Type == "Sale" ? -x.TransQuantity : x.TransQuantity))
+				};
 
-		//	// Step 2: 再用上面的結果去 Join Products
-		//	var query = from s in stockSummaryQuery
-		//				join p in _context.Products.Include(p => p.ProCategoryNoNavigation)
-		//					on s.ProductNo equals p.No
-		//				select new ProductStockSumViewModel
-		//				{
-		//					ProductNo = s.ProductNo,
-		//					ProductName = p.Name,
-		//					ProCategoryName = p.ProCategoryNoNavigation.Name,
-		//					SumQuantity = s.SumQuantity,
-		//					UpdateDate = s.UpdateDate,
-		//				};
+			var result = await query.ToListAsync();
 
-  //          return View();
-		//}
+			return View();
+        }
 
         // GET: TicketStock/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -56,7 +52,7 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-            var ticketStock = await _context.TicketStock
+            var ticketStock = await _context.TicketStocks
                 .Include(t => t.TicketNoNavigation)
                 .FirstOrDefaultAsync(m => m.No == id);
             if (ticketStock == null)
@@ -94,7 +90,7 @@ namespace StarProject.Controllers
 
         private bool TicketStockExists(int id)
         {
-            return _context.TicketStock.Any(e => e.No == id);
+            return _context.TicketStocks.Any(e => e.No == id);
         }
     }
 }

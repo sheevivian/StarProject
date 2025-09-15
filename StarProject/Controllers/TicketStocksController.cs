@@ -9,23 +9,23 @@ using StarProject.Models;
 
 namespace StarProject.Controllers
 {
-    public class TicketsController : Controller
+    public class TicketStocksController : Controller
     {
         private readonly StarProjectContext _context;
 
-        public TicketsController(StarProjectContext context)
+        public TicketStocksController(StarProjectContext context)
         {
             _context = context;
         }
 
-        // GET: Tickets
+        // GET: TicketStocks
         public async Task<IActionResult> Index()
         {
-            var starProjectContext = _context.Tickets.Include(t => t.TicCategoryNoNavigation);
+            var starProjectContext = _context.TicketStock.Include(t => t.TicketNoNavigation);
             return View(await starProjectContext.ToListAsync());
         }
 
-        // GET: Tickets/Details/5
+        // GET: TicketStocks/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,42 +33,42 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-            var ticket = await _context.Tickets
-                .Include(t => t.TicCategoryNoNavigation)
+            var ticketStock = await _context.TicketStock
+                .Include(t => t.TicketNoNavigation)
                 .FirstOrDefaultAsync(m => m.No == id);
-            if (ticket == null)
+            if (ticketStock == null)
             {
                 return NotFound();
             }
 
-            return View(ticket);
+            return View(ticketStock);
         }
 
-        // GET: Tickets/Create
+        // GET: TicketStocks/Create
         public IActionResult Create()
         {
-            ViewData["TicCategoryNo"] = new SelectList(_context.TicCategories, "No", "No");
+            ViewData["TicketNo"] = new SelectList(_context.Tickets, "No", "No");
             return View();
         }
 
-        // POST: Tickets/Create
+        // POST: TicketStocks/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("No,Name,Image,TicCategoryNo,Type,Price,Status,ReleaseDate,Desc")] Ticket ticket)
+        public async Task<IActionResult> Create([Bind("TicketNo,Date,Stock,No")] TicketStock ticketStock)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(ticket);
+                _context.Add(ticketStock);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["TicCategoryNo"] = new SelectList(_context.TicCategories, "No", "No", ticket.TicCategoryNo);
-            return View(ticket);
+            ViewData["TicketNo"] = new SelectList(_context.Tickets, "No", "No", ticketStock.TicketNo);
+            return View(ticketStock);
         }
 
-        // GET: Tickets/Edit/5
+        // GET: TicketStocks/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -76,23 +76,23 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-            var ticket = await _context.Tickets.FindAsync(id);
-            if (ticket == null)
+            var ticketStock = await _context.TicketStock.FindAsync(id);
+            if (ticketStock == null)
             {
                 return NotFound();
             }
-            ViewData["TicCategoryNo"] = new SelectList(_context.TicCategories, "No", "No", ticket.TicCategoryNo);
-            return View(ticket);
+            ViewData["TicketNo"] = new SelectList(_context.Tickets, "No", "No", ticketStock.TicketNo);
+            return View(ticketStock);
         }
 
-        // POST: Tickets/Edit/5
+        // POST: TicketStocks/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("No,Name,Image,TicCategoryNo,Type,Price,Status,ReleaseDate,Desc")] Ticket ticket)
+        public async Task<IActionResult> Edit(int id, [Bind("TicketNo,Date,Stock,No")] TicketStock ticketStock)
         {
-            if (id != ticket.No)
+            if (id != ticketStock.No)
             {
                 return NotFound();
             }
@@ -101,12 +101,12 @@ namespace StarProject.Controllers
             {
                 try
                 {
-                    _context.Update(ticket);
+                    _context.Update(ticketStock);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TicketExists(ticket.No))
+                    if (!TicketStockExists(ticketStock.No))
                     {
                         return NotFound();
                     }
@@ -117,11 +117,11 @@ namespace StarProject.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["TicCategoryNo"] = new SelectList(_context.TicCategories, "No", "No", ticket.TicCategoryNo);
-            return View(ticket);
+            ViewData["TicketNo"] = new SelectList(_context.Tickets, "No", "No", ticketStock.TicketNo);
+            return View(ticketStock);
         }
 
-        // GET: Tickets/Delete/5
+        // GET: TicketStocks/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -129,35 +129,35 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-            var ticket = await _context.Tickets
-                .Include(t => t.TicCategoryNoNavigation)
+            var ticketStock = await _context.TicketStock
+                .Include(t => t.TicketNoNavigation)
                 .FirstOrDefaultAsync(m => m.No == id);
-            if (ticket == null)
+            if (ticketStock == null)
             {
                 return NotFound();
             }
 
-            return View(ticket);
+            return View(ticketStock);
         }
 
-        // POST: Tickets/Delete/5
+        // POST: TicketStocks/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ticket = await _context.Tickets.FindAsync(id);
-            if (ticket != null)
+            var ticketStock = await _context.TicketStock.FindAsync(id);
+            if (ticketStock != null)
             {
-                _context.Tickets.Remove(ticket);
+                _context.TicketStock.Remove(ticketStock);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TicketExists(int id)
+        private bool TicketStockExists(int id)
         {
-            return _context.Tickets.Any(e => e.No == id);
+            return _context.TicketStock.Any(e => e.No == id);
         }
     }
 }

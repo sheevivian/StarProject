@@ -1,0 +1,485 @@
+﻿@using StarProject.ViewModels
+@model IEnumerable<TicketNameViewModel>
+
+@{
+    ViewData["Title"] = "票券列表";
+}
+
+<head>
+    <style>
+        /* 圖片區塊固定高度 */
+        .card-img-container {
+            width: 100%;
+            height: 250px; /* 可依需求調整 */
+            overflow: hidden;
+        }
+
+            .card-img-container img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover; /* 填滿裁切 */
+            }
+
+        /* 限制文字顯示兩行，多的用 ... */
+        .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 顯示 2 行 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .fs12px {
+            font-size: 12px;
+        }
+
+        .big-checkbox {
+            transform: scale(1.5); /* 放大 1.5 倍 */
+            cursor: pointer;
+        }
+
+        /* 1️⃣ 圖片容器必須隱藏溢出，避免放大影響卡片大小 */
+        .card-img-container {
+            overflow: hidden;
+            position: relative;
+        }
+
+            /* 2️⃣ 圖片平滑過渡 */
+            .card-img-container img {
+                transition: transform 0.3s ease; /* 動畫平滑 */
+            }
+
+        /* 3️⃣ 滑鼠移入放大 */
+        .cardDetail:hover img {
+            transform: scale(1.15); /* 放大 15% */
+            filter: brightness(1.1); /* 略亮 */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); /* 陰影 */
+        }
+
+        /* checkbox 層級最高，永遠在最上面 */
+        .cardDetail .checkbox {
+            z-index: 10;
+        }
+    </style>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+
+<main class="flex-fill position-relative">
+    <!-- 標題+新增 -->
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">票券列表</h1>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
+    </div>
+
+    <!-- CSRF Token -->
+    <form id="deleteForm">
+        @Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+    </form>
+
+    <!-- 搜尋框+每頁筆數 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input">
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
+
+                <ul class="dropdown-menu p-2" style="width:180px">
+                    <!-- 商品分類 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+                            - 商品分類
+                        </button>
+                    </li>
+                    <!-- 商品分類內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROCAR" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+                                        卡片書籤
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROCLO" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+                                        服包飾品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROGAM" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+                                        益智桌遊
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROGLO" id="cat4">
+                                    <label class="form-check-label" for="cat4">
+                                        地球儀
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROGRO" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        生活雜貨
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROJOU" id="cat6">
+                                    <label class="form-check-label" for="cat6">
+                                        書籍刊物
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROKIT" id="cat7">
+                                    <label class="form-check-label" for="cat7">
+                                        餐廚用品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROPAS" id="cat8">
+                                    <label class="form-check-label" for="cat8">
+                                        交通卡
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROSTA" id="cat9">
+                                    <label class="form-check-label" for="cat9">
+                                        設計文具
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PROTEL" id="cat10">
+                                    <label class="form-check-label" for="cat10">
+                                        望遠鏡
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 商品狀態 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
+                            - 商品狀態
+                        </button>
+                    </li>
+                    <!-- 商品狀態內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="上架" id="status1">
+                                    <label class="form-check-label" for="status1">
+                                        上架
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="預購" id="status2">
+                                    <label class="form-check-label" for="status2">
+                                        預購
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="絕版" id="status3">
+                                    <label class="form-check-label" for="status3">
+                                        絕版
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 上架日期 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate" aria-expanded="false">
+                            - 上架日期
+                        </button>
+                    </li>
+                    <!-- 上架日期內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+                            <div class="p-2">
+                                <div class="mb-2">
+                                    <label for="dateFrom" class="form-label">起始日期</label>
+                                    <input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div>
+                                    <label for="dateTo" class="form-label">結束日期</label>
+                                    <input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- 完成+清除 -->
+                    <li class="d-flex gap-1">
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+                            完成
+                        </button>
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+                            清除
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 每頁顯示資料筆數 -->
+            <div style="width: 150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option selected value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
+        <span id="selectedFiltersText" class="text-secondary"></span>
+    </div>
+
+
+
+<div class="bg-white">
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-5 g-3 mb-3" id="starmaprow">
+        @await Html.PartialAsync("_TicketRows", Model)
+    </div>
+</div>
+
+    <!-- 分頁 -->
+    <div id="pagination">
+        @await Html.PartialAsync("_TicketPagination", Model)
+    </div>
+</main>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+<script>
+        let pageNumber = parseInt($('#pageSizeSelect').val()) || 10; // 預設每頁數量
+
+        $(function () {
+            var baseAddress = "https://localhost:7111";
+
+            // 點搜尋按鈕
+            $('#btnSearch').on("click", () => {
+                console.log($('#searchInput').val());
+                refreshTicketTable(1);
+                updateSelectedFilters()
+            });
+
+            // 也可以輸入框 keyup 即時觸發
+            $('#searchInput').on("keyup", () => {
+                console.log($('#searchInput').val());
+                refreshTicketTable(1);
+                updateSelectedFilters()
+            });
+
+            // 進階篩選>完成
+            $('#filterFinsh').click(function () {
+                updateFilterCount();
+                updateSelectedFilters()
+                //讀取目前進階條件
+                let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+                let statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
+                let dateFrom = $("#dateFrom").val();
+                let dateTo = $("#dateTo").val();
+
+                let filters = { categories, statuses };
+
+                refreshTicketTable(1);
+
+                // 找到最接近的 dropdown-toggle
+                var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
+
+                // 取得 bootstrap dropdown instance
+                var dropdown = bootstrap.Dropdown.getInstance(toggleBtn);
+
+                // 沒有的話就新建
+                if (!dropdown) dropdown = new bootstrap.Dropdown(toggleBtn);
+
+                // 呼叫官方的 hide 方法來關閉
+                dropdown.hide();
+            });
+
+            // 搜尋框+進階篩選>清除
+            document.querySelector(".btn-outline-search").addEventListener("click", function () {
+                document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+                document.getElementById("searchInput").value = "";
+                document.getElementById("dateFrom").value = "";
+                document.getElementById("dateTo").value = "";
+                updateSelectedFilters();
+                updateFilterCount()
+                refreshTicketTable(1);
+            });
+
+            // 日期區間邏輯
+            const dateFrom = document.getElementById("dateFrom");
+            const dateTo = document.getElementById("dateTo");
+
+            dateFrom.addEventListener("change", () => {
+                if (dateFrom.value) {
+                    dateTo.min = dateFrom.value; // 動態限制
+                    if (dateTo.value && dateTo.value < dateFrom.value) {
+                        dateTo.value = ""; // 自動清空不合法日期
+                    }
+                } else {
+                    dateTo.min = ""; // 移除限制
+                }
+            });
+
+            // 【功能】更新篩選的顯示文字
+            function updateSelectedFilters() {
+                let selected = [];
+
+                // 商品分類
+                let categories = $("#collapseCategory input:checked").map(function () { return $(this).next("label").text(); }).get();
+                if (categories.length) selected.push("<strong>分類：</strong>" + categories.join(", "));
+
+                // 商品狀態
+                let statuses = $("#collapseStatus input:checked").map(function () { return $(this).next("label").text(); }).get();
+                if (statuses.length) selected.push("<strong>狀態：</strong>" + statuses.join(", "));
+
+                // 日期區間
+                let from = $("#dateFrom").val();
+                let to = $("#dateTo").val();
+                if (from || to) selected.push("<strong>上架日期：</strong>" + (from ? from : "不限") + " ~ " + (to ? to : "不限"));
+
+                // 顯示或隱藏 div
+                if (selected.length) {
+                    $("#selectedFiltersDiv").show();
+                    $("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
+                } else {
+                    $("#selectedFiltersDiv").hide();
+                    $("#selectedFiltersText").html("");
+                }
+            }
+
+            // 【功能】更新篩選的數量
+            function updateFilterCount() {
+                let count = 0;
+
+                // 商品分類
+                if ($("#collapseCategory input:checked").length > 0) count++;
+
+                // 商品狀態
+                if ($("#collapseStatus input:checked").length > 0) count++;
+
+                // 上架日期 (任意一個日期不空算1)
+                if ($("#dateFrom").val() || $("#dateTo").val()) count++;
+
+                // 更新右上角 tooltip
+                if (count > 0) {
+                    $("#filterCount").show();
+                    $("#filterCount").text(`${count}`);
+                } else {
+                    $("#filterCount").hide();
+                }
+            }
+
+            // 分頁按鈕
+            $(".pagination").on("click", ".pagination .page-link", function (e) {
+                e.preventDefault();
+                let page = $(this).data("page");
+                refreshTicketTable(page);
+            });
+
+            // Offcanvas 詳細資料
+            $(document).on('click', '.btn-detail', function () {
+                var btn = $(this);
+                $('#offcanvasImage').attr("src", btn.data('image'));
+                $('#offcanvasName').text(btn.data('name'));
+                $('#offcanvasStatus').text(btn.data('status'));
+                $('#offcanvasReleaseDate').text(btn.data('releasedate'));
+                $('#offcanvasUpdateDate').text(btn.data('updatedate'));
+
+                // 取得這筆資料的 ID
+                var id = btn.data('id');
+
+                // 設定「編輯」按鈕連結
+                $('#offcanvasEditBtn').attr("href", "/Product/Edit/" + id);
+
+                // 圖片值null，圖片區不顯示
+                if (!btn.data('image')) {
+                    $('#imgWrapper').hide();
+                }
+                else {
+                    $('#imgWrapper').show().find('#offcanvasImage').attr("src", image);
+                }
+
+                // 打開 Offcanvas
+                var offcanvasEl = document.getElementById('offcanvasDetail');
+                var offcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+                offcanvas.show();
+            });
+
+            // 每頁筆數
+            $('#pageSizeSelect').on('change', function () {
+                pageNumber = parseInt($(this).val()); // 更新 pageNumber
+                // console.log("pageNumber 更新為:", pageNumber);
+
+                refreshTicketTable(1);
+            });
+        });
+
+        // 統一刷新列表
+        async function refreshTicketTable(page = 1, filters = {}) {
+            try {
+
+                filters.Page = page;
+                filters.PageSize = pageNumber;
+                filters.keyword = $('#searchInput').val();
+                filters.Categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+                filters.Statuses = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
+                filters.DateFrom = $("#dateFrom").val();
+                filters.DateTo = $("#dateTo").val();
+
+                // 取得 CSRF Token
+                filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
+
+                let response = await $.ajax({
+                    url: '/Product/SearchSelect',
+                    type: 'POST',
+                    data: JSON.stringify(filters),
+                    contentType: "application/json"
+                });
+
+                // 如果本頁沒有資料且頁數大於 1，自動回前一頁
+                if (response.tableHtml.trim() === "" && page > 1) {
+                    return await refreshTicketTable(page - 1, filters);
+                }
+
+                // 更新 tableBody
+                $("#tableBody").html(response.tableHtml);
+
+                // 更新 pagination
+                $("#pagination").html(response.paginationHtml);
+
+                // 更新分頁顯示
+                $('#paginationInfo').text(page);
+
+                $('#selectNum').hide();
+
+            }
+            catch (err) {
+                alert("更新列表失敗：" + err.responseText || err.statusText);
+            }
+        }
+</script>
+

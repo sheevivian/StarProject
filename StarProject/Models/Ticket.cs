@@ -9,7 +9,7 @@ public partial class Ticket
 
     public string Name { get; set; } = null!;
 
-    public string? Image { get; set; }
+    public string Image { get; set; }
 
     public string TicCategoryNo { get; set; } = null!;
 
@@ -21,9 +21,13 @@ public partial class Ticket
 
     public DateTime? ReleaseDate { get; set; }
 
-    public string? Desc { get; set; }
+	public DateTime? UpdateDate { get; set; }
+
+	public string? Desc { get; set; }
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
     public virtual TicCategory TicCategoryNoNavigation { get; set; } = null!;
+
+    public virtual ICollection<TicketStock> TicketStocks { get; set; } = new List<TicketStock>();
 }

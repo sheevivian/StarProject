@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StarProject.Data;
 using StarProject.Models;
+using StarProject.Services;
 
 namespace StarProject
 {
@@ -11,24 +12,32 @@ namespace StarProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            // ApplicationDbContext (Identity 用)
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()
+                ));
+
+            // StarProjectContext (業務資料庫)
+            builder.Services.AddDbContext<StarProjectContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("StarProject"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()
+                ));
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-			builder.Services.AddDbContext<StarProjectContext>(options =>
-			{
-				options.UseSqlServer(builder.Configuration.GetConnectionString("StarProject"));
-			});
-
-			builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            // Identity
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<IPromotionService, PromotionService>();
+
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -36,15 +45,12 @@ namespace StarProject
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
             app.UseAuthorization();
 
             app.MapControllerRoute(

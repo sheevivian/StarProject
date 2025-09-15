@@ -1,0 +1,86 @@
+﻿@model IEnumerable<StarProject.Models.Promotion>
+@{
+    ViewData["Title"] = "優惠券管理";
+}
+
+<div class="card shadow-sm mb-4" style="background: linear-gradient(135deg, #FFB84C, #FF9500);">
+    <div class="card-body d-flex justify-content-between align-items-center text-white">
+        <h4 class="mb-0 fw-bold">
+            <i class="fi fi-ss-money-wings me-2"></i>優惠券管理
+        </h4>
+        <a asp-action="Create" class="btn btn-light rounded-pill">
+            <i class="fa-solid fa-plus me-2"></i>新增優惠券
+        </a>
+    </div>
+</div>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-warning">@ViewBag.ErrorMessage</div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>優惠名稱</th>
+                        <th>優惠代碼</th>
+                        <th>類別</th>
+                        <th>期間</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td><code>@item.CouponCode</code></td>
+                                <td>@item.Category</td>
+                                <td>
+                                    @item.StartDate.ToString("MM/dd") ~
+                                    @item.EndDate.ToString("MM/dd")
+                                </td>
+                               <td>
+                                    @switch (item.Status)
+                                    {
+                                        case "Active":
+                                            <span class="badge bg-primary">啟用</span>
+                                            break;
+                                        case "Inactive":
+                                            <span class="badge bg-danger">未啟用</span> <!-- 紅色 -->
+                                            break;
+                                        case "Expired":
+                                            <span class="badge bg-secondary">已過期</span> <!-- 灰色 -->
+                                            break;
+                                        default:
+                                            <span class="badge bg-warning">@item.Status</span>
+                                            break;
+                                    }
+                                </td>
+
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@item.No"
+                                       class="btn btn-sm btn-outline-primary">編輯</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                尚無資料
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -444,31 +444,19 @@ namespace StarProject.Controllers
 
 		// =================== 報名管理 ==================
 		[HttpGet]
-		public async Task<IActionResult> Participants(int? selectedEventId, string searchUserNo)
+		[HttpGet]
+		public IActionResult Participants(int? selectedEventId, string searchUserNo)
 		{
-			var allEvents = await _context.Events
-										  .OrderBy(e => e.CreatedTime)
-										  .ToListAsync();
-			ViewBag.AllEvents = allEvents;
-
-			var participantQuery = _context.Participants.AsQueryable();
-
-			if (selectedEventId != null && selectedEventId != 0)
-				participantQuery = participantQuery.Where(p => p.EventNo == selectedEventId);
-
-			if (!string.IsNullOrEmpty(searchUserNo))
-				participantQuery = participantQuery.Where(p => p.UsersNo.Contains(searchUserNo));
-
-			var participants = await participantQuery
-									.Include(p => p.EventNoNavigation)
-									.Include(p => p.PaymentNoNavigation)
-									.Include(p => p.UsersNoNavigation)
-									.ToListAsync();
-
-			ViewBag.SelectedEventId = selectedEventId ?? 0;
-			ViewBag.SearchUserNo = searchUserNo;
-
-			return View("~/Views/Participants/Index.cshtml", participants);
+			// 直接交回 ParticipantsController.Index，由它統一組 ParticipantsIndexVm
+			return RedirectToAction(
+				actionName: "Index",
+				controllerName: "Participants",
+				routeValues: new
+				{
+					selectedEventId = selectedEventId ?? 0,
+					searchEventKeyword = "",                 // 若未使用可留空字串
+					searchUserKeyword = searchUserNo ?? ""   // 對應 ParticipantsController.Index 的參數名稱
+				});
 		}
 
 		// =================== 私有工具 ==================

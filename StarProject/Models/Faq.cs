@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 
 namespace StarProject.Models;
@@ -15,7 +16,8 @@ public partial class Faq
 
     public DateTime UpdateDate { get; set; }
 
-    public virtual Faqcategory CategoryNoNavigation { get; set; } = null!;
+	[ValidateNever]
+	public virtual Faqcategory CategoryNoNavigation { get; set; } = null!;
 
     public virtual ICollection<Faqkeyword> Faqkeywords { get; set; } = new List<Faqkeyword>();
 }

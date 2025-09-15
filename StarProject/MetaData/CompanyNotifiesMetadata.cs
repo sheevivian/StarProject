@@ -17,6 +17,7 @@ namespace StarProject.MetaData
 		public string Category { get; set; } = null!;
 
 		[Display(Name = "發布日期")]
+		[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
 		public DateTime PublishDate { get; set; }
 	}
 }

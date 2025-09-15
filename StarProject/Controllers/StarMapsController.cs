@@ -40,7 +40,6 @@ namespace StarProject.Controllers
             ViewBag.PageSize = pageSize;
 
             return View(items);
-            return View(await _context.StarMaps.ToListAsync());
         }
 
         // GET: StarMaps/Create

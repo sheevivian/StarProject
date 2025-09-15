@@ -1,7 +1,7 @@
-﻿@model StarProject.Models.CompanyNotify
+﻿@model StarProject.Models.Faq
 
 @{
-    ViewData["Title"] = "內部公告編輯";
+    ViewData["Title"] = "常見問題編輯";
 }
 
 <head>
@@ -36,7 +36,7 @@
     <link href="~/css/textediting.css" rel="stylesheet" />
 </head>
 
-<h1 class="fw-bold">內部公告編輯</h1>
+<h1 class="fw-bold">常見問題編輯</h1>
 <hr />
 
 <div class="row" style="width:100%">
@@ -45,34 +45,20 @@
         <input type="hidden" asp-for="No" />
         <div class="form-group mb-2">
             <div class="d-flex">
-                <label asp-for="Title" class="control-label fw-bold fs-5"></label>
-                <span asp-validation-for="Title" class="text-danger ms-3"></span>
+                <label asp-for="Question" class="control-label fw-bold fs-5"></label><span asp-validation-for="Question" class="text-danger ms-3"></span>
                 <span class="text-end text-secondary flex-grow-1 fs-5"><span id="wordCount">0</span> / 50</span>
             </div>
-            <input asp-for="Title" class="form-control flex-grow-1" id="inputTitle" maxlength="50" />
+            <input asp-for="Question" class="form-control flex-grow-1" id="inputQuestion" maxlength="50" />
         </div>
+
         <div class="form-group mb-2">
-            <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
-            <select id="categorySelect" class="form-select">
-                <option value="">請選擇</option>
-                <option value="行政公告">行政公告</option>
-                <option value="人事公告">人事公告</option>
-                <option value="活動公告">活動公告</option>
-                <option value="制度公告">制度公告</option>
-                <option value="資訊系統公告">資訊系統公告</option>
-                <option value="其他">其他</option>
-            </select>
-
-            <!-- 當選擇「其他」時顯示 -->
-            <input type="text" id="otherCategoryInput" class="form-control mt-2 d-none" placeholder="請輸入自訂分類" />
-
-            <!-- 真正要綁定到 Model.Category 的隱藏欄位 -->
-            <input type="hidden" asp-for="Category" id="categoryHidden" />
+            <label asp-for="CategoryNo" class="control-label fw-bold fs-5"></label><span asp-validation-for="CategoryNo" class="text-danger ms-3"></span>
+            <select asp-for="CategoryNo" class="form-select" asp-items="ViewBag.CategoryNo"></select>
         </div>
 
-        <div class="form-group mb-3">
-            <label asp-for="Content" class="control-label fw-bold fs-5"></label><span class="text-muted ms-2">(選填)</span><span asp-validation-for="Content" class="text-danger ms-3"></span>
-            <textarea asp-for="Content" id="editor" class="form-control"></textarea>
+        <div class="form-group mb-2">
+            <label asp-for="Answer" class="control-label fw-bold fs-5"></label><span asp-validation-for="Answer" class="text-danger ms-3"></span>
+            <textarea asp-for="Answer" id="editor" class="form-control"></textarea>
         </div>
 
         <div class="form-group d-flex gap-2 mt-2 text-distance justify-content-center">
@@ -91,46 +77,10 @@
 
     <script>
         $(function(){
-            let count = $("#inputTitle").val().length;
+            let count = $("#inputQuestion").val().length;
             $("#wordCount").text(count);
 
-            document.addEventListener("DOMContentLoaded", function() {
-                const select = document.getElementById("categorySelect");
-                const otherInput = document.getElementById("otherCategoryInput");
-                const hiddenInput = document.getElementById("categoryHidden");
-
-                // ===== 初始化：把 hidden 的值帶入 select / 文字框 =====
-                const predefinedOptions = ["行政公告","人事公告","活動公告","制度公告","資訊系統公告"];
-                if(predefinedOptions.includes(hiddenInput.value)) {
-                    select.value = hiddenInput.value;
-                    otherInput.classList.add("d-none");
-                } else if(hiddenInput.value) {
-                    select.value = "其他";
-                    otherInput.classList.remove("d-none");
-                    otherInput.value = hiddenInput.value;
-                } else {
-                    select.value = "";
-                    otherInput.classList.add("d-none");
-                }
-
-                // ===== 選單變更事件 =====
-                select.addEventListener("change", function () {
-                    if (this.value === "其他") {
-                        otherInput.classList.remove("d-none");
-                        hiddenInput.value = ""; // 等使用者輸入
-                    } else {
-                        otherInput.classList.add("d-none");
-                        hiddenInput.value = this.value;
-                    }
-                });
-
-                // ===== 文字框輸入事件 =====
-                otherInput.addEventListener("input", function () {
-                    hiddenInput.value = this.value;
-                });
-            });
-
-            $("#inputTitle").on("keyup", function(){
+            $("#inputQuestion").on("keyup", function(){
                 let count =$(this).val().length;
                 if (count == 0){
                     $("#wordCount").text("0");
@@ -139,6 +89,7 @@
                 }
             });
         });
+
     </script>
 
     <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>

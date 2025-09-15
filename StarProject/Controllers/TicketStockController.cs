@@ -22,27 +22,45 @@ namespace StarProject.Controllers
         // GET: TicketStock
         public async Task<IActionResult> Index()
         {
-			var query =
-				from s in _context.TicketStocks
-				join t in _context.TicketTransStocks
-					on new { s.Ticket_No, Date = s.Date.Date }
-					equals new { t.Ticket_No, Date = t.Date.Date } into gj
-				from t in gj.DefaultIfEmpty() // left join
-				group t by new { s.Ticket_No, s.Date, s.Stock } into g
-				select new
+			// 1️⃣ 把每日庫存投影成同樣結構
+			var dailyStocks = _context.TicketStocks
+				.Select(s => new
 				{
-					TicketNo = g.Key.Ticket_No,
-					Date = g.Key.Date,
-					// 異動數量要判斷正負
-					TotalStock = g.Key.Stock + g.Sum(x =>
-						x == null ? 0 :
-						(x.Type == "Sale" ? -x.TransQuantity : x.TransQuantity))
-				};
+					TicketNo = s.TicketNo,
+					Date = s.Date.Date,
+					Stock = (int?)s.Stock,      // 用 int? 讓 null 可能存在
+					TransQuantity = (int?)null  // 異動先為 null
+				});
+
+            // 2️⃣ 把異動表投影成同樣結構（Stock=null）
+            var transStocks = _context.TicketTransStocks
+                .Select(t => new
+                {
+                    TicketNo = t.TicketNo,
+                    Date = t.Date.Date,
+                    Stock = (int?)null,
+                    // 判斷加減數：如果 TransQuantity 自己已正負，就不用再判斷
+                    TransQuantity = (int?)t.TransQuantity
+                });
+
+			// 3️⃣ 合併兩個查詢
+			var combined = dailyStocks.Concat(transStocks);
+
+			// 4️⃣ GroupBy 票券+日期，計算合計
+			var query = from c in combined
+						group c by new { c.TicketNo, c.Date } into g
+						select new TicketStockSumViewModel
+						{
+							TicketNo = g.Key.TicketNo,
+							Date = g.Key.Date,
+							TotalStock = g.Sum(x => x.Stock ?? 0)
+									   + g.Sum(x => x.TransQuantity ?? 0)
+						};
 
 			var result = await query.ToListAsync();
 
-			return View();
-        }
+			return View(result);
+		}
 
         // GET: TicketStock/Details/5
         public async Task<IActionResult> Details(int? id)

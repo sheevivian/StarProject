@@ -19,9 +19,9 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<Collection> Collections { get; set; }
 
-	public virtual DbSet<CompanyNotify> CompanyNotifies { get; set; }
+    public virtual DbSet<CompanyNotify> CompanyNotifies { get; set; }
 
-	public virtual DbSet<CustomerService> CustomerServices { get; set; }
+    public virtual DbSet<CustomerService> CustomerServices { get; set; }
 
     public virtual DbSet<Dept> Depts { get; set; }
 
@@ -201,6 +201,22 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_Collection_Users");
         });
 
+        modelBuilder.Entity<CompanyNotify>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("CompanyNotify");
+
+            entity.Property(e => e.Category)
+                .HasMaxLength(10)
+                .IsFixedLength();
+            entity.Property(e => e.Content).HasMaxLength(50);
+            entity.Property(e => e.PublishDate)
+                .HasMaxLength(10)
+                .IsFixedLength();
+            entity.Property(e => e.Title).HasMaxLength(50);
+        });
+
         modelBuilder.Entity<CustomerService>(entity =>
         {
             entity.HasKey(e => e.No);
@@ -251,12 +267,18 @@ public partial class StarProjectContext : DbContext
             entity.HasIndex(e => e.EmpCode, "UQ_Emps_EmpCode").IsUnique();
 
             entity.Property(e => e.No).HasMaxLength(50);
+            entity.Property(e => e.BirthDate).HasColumnType("datetime");
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
+            entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
+            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
+            entity.Property(e => e.IdNumber).HasMaxLength(50);
+            entity.Property(e => e.LastLogin).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.PasswordHash).HasMaxLength(50);
             entity.Property(e => e.PasswordSalt).HasMaxLength(50);
+            entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.RoleNo).HasColumnName("Role_No");
 
             entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
@@ -627,7 +649,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A805A98C87");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A894F4EA10");
 
             entity.ToTable("ProCategory");
 
@@ -737,7 +759,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A829C1A848");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8E817D2EB");
 
             entity.ToTable("ProductStock");
 
@@ -851,7 +873,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8512CE165");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8E5BD171D");
 
             entity.ToTable("TicCategory");
 

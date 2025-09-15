@@ -7,5 +7,7 @@
 		public string? TicImage { get; set; }
 
 		public string? TicCategory { get; set; }
+
+		public string? TicStatus { get; set; }
 	}
 }

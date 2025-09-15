@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.Formula.Functions;
@@ -8,6 +10,7 @@ using NPOI.XSSF.UserModel;
 using SixLabors.ImageSharp;
 using StarProject.Helpers;
 using StarProject.Models;
+using StarProject.ViewModel;
 using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -18,7 +21,7 @@ namespace StarProject.Controllers
 {
     public class TicketController : Controller
     {
-		private const int pageNumber = 20;
+		private const int pageNumber = 10;
 		private readonly StarProjectContext _context;
 
         public TicketController(StarProjectContext context)
@@ -38,6 +41,7 @@ namespace StarProject.Controllers
 					TicName = g.Key,
 					TicImage = g.Max(x => x.Image),
 					TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
+					TicStatus = g.Max(x => x.Status),
 				});
 
 			// Step 3: 分頁 (這時 query 仍是 IQueryable<ProductStockSumViewModel>)
@@ -52,8 +56,96 @@ namespace StarProject.Controllers
 			return View(items);
 		}
 
-        // GET: Ticket/Details/5
-        public async Task<IActionResult> Details(int? id)
+		// 票券查詢
+		// POST: Ticket/SearchSelect 
+		[HttpPost]
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
+		{
+			// 從 filters 取得 pageSize，如果沒有就給預設值
+			int page = filters.Page > 0 ? filters.Page : 1;
+			int pageSize = filters.PageSize >= 0 ? filters.PageSize : 10;
+
+			var query = _context.Tickets
+						.Include(t => t.TicCategoryNoNavigation)
+						.GroupBy(t => t.Name)
+						.Select(g => new TicketNameViewModel
+							{
+								TicName = g.Key,
+								TicImage = g.Max(x => x.Image),
+								TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
+								TicStatus = g.Max(x => x.Status),
+							});
+
+			// keyword
+			if (!string.IsNullOrEmpty(filters.keyword))
+			{
+				query = query.Where(x => x.TicName.Contains(filters.keyword)
+									|| x.TicCategory.Contains(filters.keyword));
+			}
+
+			// 分類
+			if (filters.Categories != null && filters.Categories.Any())
+				query = query.Where(x => filters.Categories.Contains(x.TicCategory));
+
+			// 狀態
+			if (filters.Statuses != null && filters.Statuses.Any())
+				query = query.Where(x => filters.Statuses.Contains(x.TicStatus));
+
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			var tableHtml = await RenderPartialViewToString("_TicketRows", items);
+			var paginationHtml = await RenderPartialViewToString("_TicketPagination", items);
+
+			return Json(new { tableHtml, paginationHtml });
+		}
+
+
+
+		// 票券列表-更新頁碼+搜尋
+		// GET: Product/RenderPartialViewToString
+		[HttpGet]
+		public async Task<string> RenderPartialViewToString(string viewName, object model)
+		{
+			if (string.IsNullOrEmpty(viewName))
+				viewName = ControllerContext.ActionDescriptor.ActionName;
+
+			ViewData.Model = model;
+
+			using (var sw = new StringWriter())
+			{
+				var viewEngine = HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+				var viewResult = viewEngine.FindView(ControllerContext, viewName, false);
+
+				if (viewResult.Success == false)
+					throw new ArgumentNullException($"View {viewName} not found.");
+
+				var viewContext = new ViewContext(
+					ControllerContext,
+					viewResult.View,
+					ViewData,
+					TempData,
+					sw,
+					new HtmlHelperOptions()
+				);
+
+				await viewResult.View.RenderAsync(viewContext);
+				return sw.GetStringBuilder().ToString();
+			}
+		}
+
+
+
+
+
+		// GET: Ticket/Details/5
+		public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {

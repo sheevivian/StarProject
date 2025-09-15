@@ -4,188 +4,332 @@
 }
 
 <style>
-    /* 預覽：完整顯示、不裁切 */
-    .img-box {
-        max-width: 650px;
-        max-height: 650px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 1px solid #ddd;
-        overflow: hidden;
+    /* 與 create 對齊：卡片標題深藍底白字 */
+    .card-header {
+        background-color: #2B4C8C !important;
+        color: #fff !important;
     }
 
-        .img-box img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            display: block;
+        .card-header * {
+            color: inherit;
         }
 </style>
 
-<h1>活動編輯</h1>
+<h1 class="fw-bold">活動編輯</h1>
 <hr />
-
 <div class="row">
-    <div class="d-flex w-100">
-
+    <div class="d-flex">
         <form asp-action="Edit"
               asp-controller="Events"
               asp-route-id="@Model.No"
               method="post"
               enctype="multipart/form-data"
-              class="col-md-5">
+              class="w-100">
             @Html.AntiForgeryToken()
-
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="No" />
 
-            <div class="mb-3">
-                <label asp-for="No" class="form-label fw-bold">活動編號</label>
-                <input asp-for="No" class="form-control" readonly />
-                <span asp-validation-for="No" class="text-danger"></span>
-            </div>
+            <div class="row g-4">
+                <!-- 左欄：基本資料 + 費用/說明 -->
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header"><strong>基本資料</strong></div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label class="control-label fw-bold fs-6">活動編號</label>
+                                <input type="text" class="form-control" value="@Model.No" disabled
+                                       style="background-color:#e9ecef;cursor:not-allowed;" />
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="Title" class="form-label fw-bold">活動名稱</label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
+                            <div class="mb-2">
+                                <label asp-for="Title" class="control-label fw-bold fs-6">活動名稱</label>
+                                <input asp-for="Title" class="form-control" />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="Category" class="form-label fw-bold">活動種類</label>
-                <select asp-for="Category" class="form-select">
-                    <option value="星學課程">星學課程</option>
-                    <option value="星知講座">星知講座</option>
-                    <option value="星境營隊">星境營隊</option>
-                    <option value="星耀計畫">星耀計畫</option>
-                    <option value="星樂工作坊">星樂工作坊</option>
-                    <option value="星動旅程">星動旅程</option>
-                    <option value="星趣親子時光">星趣親子時光</option>
-                </select>
-                <span asp-validation-for="Category" class="text-danger"></span>
-            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Category" class="control-label fw-bold fs-6">活動種類</label>
+                                    <select asp-for="Category" class="form-select">
+                                        <option value="星學課程">星學課程</option>
+                                        <option value="星知講座">星知講座</option>
+                                        <option value="星境營隊">星境營隊</option>
+                                        <option value="星耀計畫">星耀計畫</option>
+                                        <option value="星樂工作坊">星樂工作坊</option>
+                                        <option value="星動旅程">星動旅程</option>
+                                        <option value="星趣親子時光">星趣親子時光</option>
+                                    </select>
+                                    <span asp-validation-for="Category" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Location" class="control-label fw-bold fs-6">活動地點</label>
+                                    <select asp-for="Location" class="form-select">
+                                        <option value="第一演講室">第一演講室</option>
+                                        <option value="第二演講室">第二演講室</option>
+                                        <option value="屋頂天文台">屋頂天文台</option>
+                                        <option value="戶外廣場">戶外廣場</option>
+                                        <option value="多功能教室">多功能教室</option>
+                                        <option value="實驗教室">實驗教室</option>
+                                        <option value="觀測室">觀測室</option>
+                                        <option value="天文館">天文館</option>
+                                        <option value="天文館大廳報到">天文館大廳報到</option>
+                                    </select>
+                                    <span asp-validation-for="Location" class="text-danger"></span>
+                                </div>
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="Location" class="form-label fw-bold">活動地點</label>
-                <select asp-for="Location" class="form-select">
-                    <option value="第一演講室">第一演講室</option>
-                    <option value="第二演講室">第二演講室</option>
-                    <option value="屋頂天文台">屋頂天文台</option>
-                    <option value="戶外廣場">戶外廣場</option>
-                    <option value="多功能教室">多功能教室</option>
-                    <option value="實驗教室">實驗教室</option>
-                    <option value="觀測室">觀測室</option>
-                    <option value="天文館">天文館</option>
-                    <option value="天文館大廳報到">天文館大廳報到</option>
-                </select>
-                <span asp-validation-for="Location" class="text-danger"></span>
-            </div>
+                            <div class="row g-3 mt-0">
+                                <div class="col-md-6">
+                                    <label asp-for="MaxParticipants" class="control-label fw-bold fs-6">人數上限</label>
+                                    <select asp-for="MaxParticipants" class="form-select">
+                                        <option value="30">30</option>
+                                        <option value="38">38</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                        <option value="200">200</option>
+                                    </select>
+                                    <span asp-validation-for="MaxParticipants" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Status" class="control-label fw-bold fs-6">活動狀態</label>
+                                    <select asp-for="Status" class="form-select">
+                                        <option value="報名中">報名中</option>
+                                        <option value="已額滿">已額滿</option>
+                                        <option value="已結束">已結束</option>
+                                        <option value="已取消">已取消</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="mb-3">
-                <label asp-for="MaxParticipants" class="form-label fw-bold">人數上限</label>
-                <select asp-for="MaxParticipants" class="form-select">
-                    <option value="30">30</option>
-                    <option value="38">38</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option value="200">200</option>
-                </select>
-                <span asp-validation-for="MaxParticipants" class="text-danger"></span>
-            </div>
+                    <div class="card mt-3">
+                        <div class="card-header"><strong>費用與說明</strong></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Fee" class="control-label fw-bold fs-6">活動費用</label>
+                                    <input asp-for="Fee" class="form-control" />
+                                    <span asp-validation-for="Fee" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Deposit" class="control-label fw-bold fs-6">預定訂金</label>
+                                    <input asp-for="Deposit" class="form-control" />
+                                    <span asp-validation-for="Deposit" class="text-danger"></span>
+                                </div>
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="Status" class="form-label fw-bold">活動狀態</label>
-                <select asp-for="Status" class="form-select" id="status">
-                    <option value="已結束">已結束</option>
-                    <option value="報名中">報名中</option>
-                    <option value="已額滿">已額滿</option>
-                    <option value="已取消">已取消</option>
-                </select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-
-            <div class="row g-3">
-                <!-- g-3 讓時間欄位也有一致間距 -->
-                <div class="col-12">
-                    <label asp-for="StartDate" class="form-label fw-bold">開始時間</label>
-                    <input asp-for="StartDate" type="datetime-local" class="form-control"
-                           value="@(Model.StartDate.ToString("yyyy-MM-ddTHH:mm"))" />
-                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                            <div class="mt-3">
+                                <label asp-for="Desc" class="control-label fw-bold fs-6">活動說明</label>
+                                <textarea asp-for="Desc" class="form-control" rows="6" style="resize:none;"
+                                          placeholder="請輸入活動說明..."></textarea>
+                                <span asp-validation-for="Desc" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-12">
-                    <label asp-for="EndDate" class="form-label fw-bold">結束時間</label>
-                    <input asp-for="EndDate" type="datetime-local" class="form-control"
-                           value="@(Model.EndDate.HasValue? Model.EndDate.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
-                    <span asp-validation-for="EndDate" class="text-danger"></span>
-                </div>
-            </div>
 
-            <div class="mb-3">
-                <label asp-for="CreatedTime" class="form-label fw-bold">建立時間</label>
-                <input asp-for="CreatedTime" class="form-control" readonly />
-            </div>
+                <!-- 右欄：時間與發佈 -->
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header"><strong>時間與發佈</strong></div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label asp-for="StartDate" class="control-label fw-bold fs-6">開始時間</label>
+                                <input asp-for="StartDate" class="form-control" type="datetime-local"
+                                       asp-format="{0:yyyy-MM-ddTHH:mm}" step="60" />
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="UpdatedTime" class="form-label fw-bold">最後更新時間</label>
-                <input asp-for="UpdatedTime" class="form-control" readonly />
-            </div>
+                            <div class="mb-2">
+                                <label asp-for="EndDate" class="control-label fw-bold fs-6">結束時間</label>
+                                <input asp-for="EndDate" class="form-control" type="datetime-local"
+                                       asp-format="{0:yyyy-MM-ddTHH:mm}" step="60" />
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="Fee" class="form-label fw-bold">活動費用</label>
-                <input asp-for="Fee" class="form-control" />
-                <span asp-validation-for="Fee" class="text-danger"></span>
-            </div>
+                            <div class="mb-2">
+                                <label class="control-label fw-bold fs-6">發佈方式</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="PublishMode" id="pmNow" value="now" checked>
+                                        <label class="form-check-label" for="pmNow">立即發佈</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="PublishMode" id="pmSchedule" value="schedule">
+                                        <label class="form-check-label" for="pmSchedule">排程時間</label>
+                                    </div>
+                                </div>
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="Deposit" class="form-label fw-bold">預定訂金</label>
-                <input asp-for="Deposit" class="form-control" />
-                <span asp-validation-for="Deposit" class="text-danger"></span>
-            </div>
+                            <div class="mb-2">
+                                <label class="control-label fw-bold fs-6">開始發佈時間</label>
+                                <input type="datetime-local" class="form-control" name="ReleaseDate" id="ReleaseDate"
+                                       value="@(ViewBag.ScheduleReleaseDate ?? "")" disabled />
+                            </div>
+                            <div class="mb-2">
+                                <label class="control-label fw-bold fs-6">下架時間（可空白）</label>
+                                <input type="datetime-local" class="form-control" name="ExpirationDate" id="ExpirationDate"
+                                       value="@(ViewBag.ScheduleExpirationDate ?? "")" disabled />
+                                <small class="text-muted">＊不設定代表不下架</small>
+                            </div>
 
-            <div class="mb-3">
-                <label asp-for="Desc" class="form-label fw-bold">活動說明</label>
-                <textarea asp-for="Desc" class="form-control" rows="10" placeholder="請輸入活動說明..." style="resize:none;"></textarea>
-                <span asp-validation-for="Desc" class="text-danger"></span>
-            </div>
+                            <div class="mt-2 small text-muted">
+                                建立：@Model.CreatedTime.ToString("yyyy-MM-dd HH:mm")　|　最後更新：@Model.UpdatedTime.ToString("yyyy-MM-dd HH:mm")
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="mb-3">
-                <label asp-for="ImageFile" class="form-label fw-bold">圖片上傳</label>
-                <input asp-for="ImageFile" class="form-control" type="file" accept="image/*" onchange="previewImage(event)" />
-                <span asp-validation-for="ImageFile" class="text-danger"></span>
-            </div>
+                    <!-- 右欄：圖片上傳 -->
+                    <div class="card mt-3">
+                        <div class="card-header"><strong>變更圖片</strong></div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <input asp-for="ImageFile" id="ImageFile" class="form-control" type="file" accept="image/*">
+                                <button type="button" class="btn btn-outline-secondary" id="btnPreviewImage">預覽</button>
+                            </div>
+                            <span asp-validation-for="ImageFile" class="text-danger"></span>
+                            <small class="text-muted d-block mt-1">* 建議圖片檔案大小較小為佳</small>
+                        </div>
+                    </div>
 
-            <div class="mt-3">
-                <button type="submit" class="btn btn-primary">儲存</button>
-                <a asp-action="List" class="btn btn-secondary ms-2">返回列表</a>
-            </div>
+                    <!-- 行動版顯示送出鍵 -->
+                    <div class="mt-3 d-lg-none">
+                        <input type="submit" value="儲存" class="btn btn-primary" />
+                        <a asp-action="List" class="btn btn-secondary ms-2">返回列表</a>
+                    </div>
+
+                    <!-- PC版顯示送出鍵 -->
+                    <div class="card-footer text-end d-none d-lg-block mt-3 py-3">
+                        <input type="submit" value="儲存" class="btn btn-primary" />
+                        <a asp-action="List" class="btn btn-secondary ms-2">返回列表</a>
+                    </div>
+
+                    <!-- 圖片預覽小視窗（Bootstrap 5 Modal） -->
+                    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">圖片預覽</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <img id="previewImg" alt="圖片預覽" class="img-fluid rounded border">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-danger" id="btnClearImage">移除檔案</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">使用此圖片</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /右欄 -->
+            </div><!-- /row -->
         </form>
-
-        <div class="flex-fill d-flex justify-content-center">
-            <div class="img-box mb-3">
-                <img id="originalImg" src="@Model.Image" alt="活動圖片" style="display:block;" />
-                <img id="preview" src="#" alt="圖片預覽" style="display:none" />
-            </div>
-        </div>
-
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
-        function previewImage(event){
-          const file = event.target.files?.[0];
-          if(!file) return;
-          const originalImg = document.getElementById('originalImg');
-          const preview = document.getElementById('preview');
-          originalImg.style.display = 'none';
-          preview.src = URL.createObjectURL(file);
-          preview.style.display = 'block';
+        // 把 Date 轉成本地 "yyyy-MM-ddTHH:mm"
+        function toLocalDateTimeInputValue(date) {
+            const pad = n => n.toString().padStart(2, '0');
+            const y = date.getFullYear();
+            const m = pad(date.getMonth() + 1);
+            const d = pad(date.getDate());
+            const hh = pad(date.getHours());
+            const mm = pad(date.getMinutes());
+            return `${y}-${m}-${d}T${hh}:${mm}`;
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // ====== 排程欄位啟用/停用（與 create 相同） ======
+            const pmNow = document.getElementById('pmNow');
+            const pmSchedule = document.getElementById('pmSchedule');
+            const release = document.getElementById('ReleaseDate');
+            const expire = document.getElementById('ExpirationDate');
+
+            function toggleScheduleInputs() {
+                const schedule = pmSchedule && pmSchedule.checked;
+                if (release) release.disabled = !schedule;
+                if (expire)  expire.disabled  = !schedule;
+
+                // 剛切到排程且尚未填值 → 自動放現在
+                if (schedule && release && !release.value) {
+                    release.value = toLocalDateTimeInputValue(new Date());
+                    syncExpireMin();
+                }
+            }
+            function syncExpireMin() {
+                if (!expire || !release) return;
+                expire.min = release.value || '';
+                if (expire.value && release.value && expire.value < release.value) {
+                    expire.value = '';
+                }
+            }
+            // 若初始就有排程時間 → 自動勾選「排程」
+            if (release && release.value) {
+                if (pmSchedule) pmSchedule.checked = true;
+                if (pmNow) pmNow.checked = false;
+            }
+            pmNow?.addEventListener('change', toggleScheduleInputs);
+            pmSchedule?.addEventListener('change', toggleScheduleInputs);
+            release?.addEventListener('change', syncExpireMin);
+            release?.addEventListener('input',  syncExpireMin);
+            toggleScheduleInputs();
+            syncExpireMin();
+
+            // ====== 圖片預覽小視窗（沿用 create；無檔案時顯示目前圖片） ======
+            const fileInput  = document.getElementById('ImageFile');
+            const previewBtn = document.getElementById('btnPreviewImage');
+            const previewImg = document.getElementById('previewImg');
+            const clearBtn   = document.getElementById('btnClearImage');
+            const modalEl    = document.getElementById('imagePreviewModal');
+            let previewURL = null;
+            const currentImageUrl = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Image ?? ""));
+
+            function showPreviewModal(file) {
+                if (!file) {
+                    // 沒選檔案就預覽目前圖片（若也沒有就提示）
+                    if (currentImageUrl) {
+                        previewImg.src = currentImageUrl;
+                    } else {
+                        alert('目前沒有可預覽的圖片，請先選擇圖片檔。');
+                        return;
+                    }
+                } else {
+                    if (!file.type.startsWith('image/')) { alert('請選擇圖片檔'); return; }
+                    if (previewURL) URL.revokeObjectURL(previewURL);
+                    previewURL = URL.createObjectURL(file);
+                    previewImg.src = previewURL;
+                }
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+
+            fileInput?.addEventListener('change', () => {
+                const file = fileInput.files?.[0];
+                if (file) showPreviewModal(file);
+            });
+            previewBtn?.addEventListener('click', () => {
+                const file = fileInput?.files?.[0];
+                showPreviewModal(file);
+            });
+            modalEl?.addEventListener('hidden.bs.modal', () => {
+                if (previewURL) {
+                    URL.revokeObjectURL(previewURL);
+                    previewURL = null;
+                }
+                previewImg.removeAttribute('src');
+            });
+            clearBtn?.addEventListener('click', () => {
+                if (fileInput) fileInput.value = '';
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.hide();
+            });
+        });
     </script>
 }

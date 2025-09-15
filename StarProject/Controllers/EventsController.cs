@@ -1,82 +1,58 @@
 ﻿using Microsoft.AspNetCore.Http; // IFormFile
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;  // 確認 namespace 名稱正確
+using StarProject.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace StarProject.Controllers
 {
 	public class EventsController : Controller
 	{
+		private const int DefaultPageSize = 10;
+
 		private readonly StarProjectContext _context;
-
-		// 只保留到「分鐘」的工具方法
-		private static DateTime TrimToMinute(DateTime dt)
-			=> new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
-
-		// 在 EventsController 類別裡新增
-		private async Task<string> UploadWithTimeoutOrFallbackAsync(IFormFile? file, string fallbackUrl, int timeoutSeconds = 15)
-		{
-			if (file == null || file.Length == 0) return fallbackUrl;
-
-			if (file.ContentType is not ("image/jpeg" or "image/png" or "image/webp"))
-				return fallbackUrl;
-
-			var uploadTask = ImgUploadHelper.UploadToImgBB(file);
-			var completed = await Task.WhenAny(uploadTask, Task.Delay(TimeSpan.FromSeconds(timeoutSeconds)));
-			if (completed != uploadTask) return fallbackUrl;
-			var url = await uploadTask;
-			return string.IsNullOrWhiteSpace(url) ? fallbackUrl : url;
-		}
-
 		public EventsController(StarProjectContext context)
 		{
 			_context = context;
 		}
 
-		// =================== 活動總覽 (Index) ==================
-		// =================== 活動總覽 (Index) ==================
+		// =================== 活動總覽 (Dashboard) ==================
+		[HttpGet]
 		public async Task<IActionResult> Index()
 		{
 			var now = DateTime.Now;
 			var firstDay = new DateTime(now.Year, now.Month, 1);
 			var nextMonthFirst = firstDay.AddMonths(1);
 
-			// 事件清單（保持你原本的排序與 AsNoTracking）
 			var allEvents = await _context.Events
 				.AsNoTracking()
 				.OrderByDescending(e => e.CreatedTime)
 				.ToListAsync();
 
-			// 統計卡片（保留你原本的四個統計）
+			// 統計
 			ViewBag.TotalEvents = allEvents.Count;
 			ViewBag.TotalParticipants = await _context.Participants.CountAsync();
 			ViewBag.TotalEndedEvents = allEvents.Count(e => e.Status == "已結束");
 			ViewBag.TotalOpenEvents = allEvents.Count(e => e.Status == "報名中");
 			ViewBag.TotalCancelledEvents = allEvents.Count(e => e.Status == "已取消");
 
-			// 本月活動（給表格用）：提供 No/Title/StartDate/Status/MaxParticipants
+			// 本月活動（給白底表格）
 			ViewBag.ThisMonthEvents = allEvents
 				.Where(e => e.StartDate >= firstDay && e.StartDate < nextMonthFirst)
 				.OrderBy(e => e.StartDate)
-				.Select(e => new
-				{
-					e.No,
-					e.Title,
-					e.StartDate,      // 非 nullable DateTime
-					e.Status,
-					e.MaxParticipants // 可能是 int 或 int?，View 端已做防呆
-				})
+				.Select(e => new { e.No, e.Title, e.StartDate, e.Status, e.MaxParticipants })
 				.ToList();
 
-			// 7 天內即將到來（右上提醒）：只丟用得到的欄位
+			// 7 天內即將到來（上方提醒）
 			ViewBag.UpcomingEvents = allEvents
 				.Where(e => e.StartDate > now && e.StartDate <= now.AddDays(7))
 				.OrderBy(e => e.StartDate)
@@ -84,7 +60,7 @@ namespace StarProject.Controllers
 				.Select(e => new { e.No, e.Title, e.StartDate })
 				.ToList();
 
-			// 各活動「報名成功/Success」人數（供表格的進度條顯示）
+			// 報名成功人數（進度條用）
 			ViewBag.RegsByEvent = await _context.Participants
 				.AsNoTracking()
 				.Where(p => p.Status == "報名成功" || p.Status == "Success")
@@ -92,62 +68,50 @@ namespace StarProject.Controllers
 				.Select(g => new { EventNo = g.Key, Count = g.Count() })
 				.ToDictionaryAsync(x => x.EventNo, x => x.Count);
 
-			// 保留你原先的回傳（index.cshtml 不吃 model 也沒關係）
 			return View(allEvents);
 		}
 
-
-		// =================== 活動列表 (List) ==================
-		public async Task<IActionResult> List(string category, string status, int page = 1)
+		// =================== 活動清單 (List + 分頁) ==================
+		[HttpGet]
+		public async Task<IActionResult> List(int page = 1, int pageSize = DefaultPageSize)
 		{
-			int pageSize = 10;
+			var query = _context.Events
+								.OrderByDescending(x => x.StartDate)
+								.ThenByDescending(x => x.CreatedTime);
 
-			IQueryable<Models.Event> events = _context.Events.AsQueryable();
+			var (events, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
 
-			if (!string.IsNullOrEmpty(category))
-				events = events.Where(e => e.Category == category);
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
 
-			if (!string.IsNullOrEmpty(status))
-				events = events.Where(e => e.Status == status);
-
-			var categories = await _context.Events
-				.Select(e => e.Category)
-				.Distinct()
-				.OrderBy(c => c)
-				.ToListAsync();
-
-			ViewBag.StatusList = await _context.Events
-				.Select(e => e.Status)
-				.Distinct()
-				.OrderBy(s => s)
-				.ToListAsync();
-
-			ViewBag.CurrentCategory = category;
-			ViewBag.CurrentStatus = status;
-			ViewBag.Categories = categories;
-			ViewBag.CategoriesSelect = new SelectList(categories, category);
-
-			var eventList = await events
-				.OrderByDescending(e => e.StartDate)
-				.ToListAsync();
-
-			return View(eventList);
+			return View(events);
 		}
 
-		// =================== 活動詳情 (Details) ==================
+		// AJAX 分頁：只回傳 rows（_EventRows）
+		[HttpGet]
+		public async Task<IActionResult> GetEvents(int page = 1, int pageSize = DefaultPageSize)
+		{
+			var query = _context.Events
+								.OrderByDescending(x => x.StartDate)
+								.ThenByDescending(x => x.CreatedTime);
+
+			var (events, _, _) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+			return PartialView("_EventRows", events);
+		}
+
+		// =================== 詳情 ==================
+		[HttpGet]
 		public async Task<IActionResult> Details(int? id)
 		{
-			if (id == null)
-				return NotFound();
-
+			if (id == null) return NotFound();
 			var ev = await _context.Events.FirstOrDefaultAsync(e => e.No == id);
-			if (ev == null)
-				return NotFound();
-
+			if (ev == null) return NotFound();
 			return View(ev);
 		}
 
-		// =================== 新增活動 (Create) ==================
+		// =================== 新增 ==================
 		[HttpGet]
 		public IActionResult Create()
 		{
@@ -158,17 +122,18 @@ namespace StarProject.Controllers
 				Image = "/img/logo.png"
 			};
 
-			// 排程：初次建立預設空白（對應 View 的 value 綁定）
 			ViewBag.ScheduleReleaseDate = "";
 			ViewBag.ScheduleExpirationDate = "";
-
 			return View(vm);
 		}
 
-		// POST: Events/Create
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Create(EventInfoVM vm, string PublishMode, DateTime? ReleaseDate, DateTime? ExpirationDate)
+		public async Task<IActionResult> Create(
+			EventInfoVM vm,
+			string PublishMode,
+			DateTime? ReleaseDate,
+			DateTime? ExpirationDate)
 		{
 			if (!ModelState.IsValid) return View(vm);
 
@@ -182,7 +147,6 @@ namespace StarProject.Controllers
 						throw new InvalidOperationException("圖片上傳失敗（回傳空 URL）。");
 				}
 
-				// ▼ 時間截到「分鐘」
 				var start = TrimToMinute(vm.StartDate);
 				var end = vm.EndDate.HasValue ? TrimToMinute(vm.EndDate.Value) : (DateTime?)null;
 
@@ -204,9 +168,9 @@ namespace StarProject.Controllers
 				};
 
 				_context.Events.Add(entity);
-				await _context.SaveChangesAsync(); // 取得 entity.No
+				await _context.SaveChangesAsync();
 
-				// ===== 排程：Upsert Schedule（時間也截到分鐘） =====
+				// 排程
 				var nowMin = TrimToMinute(DateTime.Now);
 				var schedule = await _context.Schedules.FirstOrDefaultAsync(s => s.EventNo == entity.No)
 							   ?? new Schedule { EventNo = entity.No };
@@ -214,7 +178,7 @@ namespace StarProject.Controllers
 				if (string.Equals(PublishMode, "now", StringComparison.OrdinalIgnoreCase))
 				{
 					schedule.ReleaseDate = nowMin;
-					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue; // 不下架用 MinValue
+					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
 					schedule.Executed = true;
 				}
 				else
@@ -229,9 +193,8 @@ namespace StarProject.Controllers
 					_context.Schedules.Add(schedule);
 
 				await _context.SaveChangesAsync();
-				// ================================
 
-				return RedirectToAction(nameof(Index));
+				return RedirectToAction(nameof(List));
 			}
 			catch (DbUpdateException dbx)
 			{
@@ -242,45 +205,39 @@ namespace StarProject.Controllers
 				ModelState.AddModelError("", "上傳圖片或儲存失敗：" + ex.Message);
 			}
 
-			// 失敗回填（維持原有排程輸入）
 			ViewBag.ScheduleReleaseDate = ReleaseDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 			ViewBag.ScheduleExpirationDate = ExpirationDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 			return View(vm);
 		}
 
-		// =================== 編輯活動 (Edit) ==================
+		// =================== 編輯 ==================
 		[HttpGet]
 		public async Task<IActionResult> Edit(int? id)
 		{
-			if (id == null)
-			{
-				return NotFound();
-			}
-			var EventInfo = await _context.Events.FindAsync(id);
-			if (EventInfo == null)
-				return NotFound();
+			if (id == null) return NotFound();
 
-			// 將 Models.Event 轉成 ViewModel
+			var entity = await _context.Events.FindAsync(id);
+			if (entity == null) return NotFound();
+
 			var evm = new EventInfoVM
 			{
-				No = EventInfo.No,
-				Title = EventInfo.Title,
-				Category = EventInfo.Category,
-				Location = EventInfo.Location,
-				Desc = EventInfo.Desc,
-				StartDate = EventInfo.StartDate,
-				EndDate = EventInfo.EndDate,
-				CreatedTime = EventInfo.CreatedTime,
-				UpdatedTime = EventInfo.UpdatedTime,
-				MaxParticipants = EventInfo.MaxParticipants,
-				Status = EventInfo.Status,
-				Fee = EventInfo.Fee,
-				Deposit = EventInfo.Deposit,
-				Image = EventInfo.Image,
+				No = entity.No,
+				Title = entity.Title,
+				Category = entity.Category,
+				Location = entity.Location,
+				Desc = entity.Desc,
+				StartDate = entity.StartDate,
+				EndDate = entity.EndDate,
+				CreatedTime = entity.CreatedTime,
+				UpdatedTime = entity.UpdatedTime,
+				MaxParticipants = entity.MaxParticipants,
+				Status = entity.Status,
+				Fee = entity.Fee,
+				Deposit = entity.Deposit,
+				Image = entity.Image,
 			};
 
-			// 排程：載入現有 Schedule 值供畫面顯示
-			var s = await _context.Schedules.AsNoTracking().FirstOrDefaultAsync(x => x.EventNo == EventInfo.No);
+			var s = await _context.Schedules.AsNoTracking().FirstOrDefaultAsync(x => x.EventNo == entity.No);
 			ViewBag.ScheduleReleaseDate = s?.ReleaseDate.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 			ViewBag.ScheduleExpirationDate = (s != null && s.ExpirationDate > DateTime.MinValue)
 				? s.ExpirationDate.ToString("yyyy-MM-ddTHH\\:mm")
@@ -306,7 +263,6 @@ namespace StarProject.Controllers
 
 			if (!ModelState.IsValid)
 			{
-				// 回填排程欄位
 				ViewBag.ScheduleReleaseDate = ReleaseDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 				ViewBag.ScheduleExpirationDate = ExpirationDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 				return View(evm);
@@ -317,7 +273,7 @@ namespace StarProject.Controllers
 				var entity = await _context.Events.FindAsync(id);
 				if (entity == null) return NotFound();
 
-				// 1) 圖片處理
+				// 圖片
 				string imageUrl = original.Image ?? "/img/logo.png";
 				if (evm.ImageFile != null && evm.ImageFile.Length > 0)
 				{
@@ -325,7 +281,6 @@ namespace StarProject.Controllers
 					if (string.IsNullOrWhiteSpace(uploadedUrl))
 					{
 						ModelState.AddModelError("ImageFile", "圖片上傳失敗，請改用較小的圖片或稍後再試。");
-						// 回填排程欄位
 						ViewBag.ScheduleReleaseDate = ReleaseDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 						ViewBag.ScheduleExpirationDate = ExpirationDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 						return View(evm);
@@ -333,7 +288,7 @@ namespace StarProject.Controllers
 					imageUrl = uploadedUrl;
 				}
 
-				// 2) 更新活動欄位（時間截到分鐘）
+				// 欄位
 				entity.Title = evm.Title;
 				entity.Category = evm.Category;
 				entity.Location = evm.Location;
@@ -350,7 +305,7 @@ namespace StarProject.Controllers
 
 				await _context.SaveChangesAsync();
 
-				// ===== 排程：Upsert Schedule（時間也截到分鐘） =====
+				// 排程
 				var nowMin = TrimToMinute(DateTime.Now);
 				var s = await _context.Schedules.FirstOrDefaultAsync(x => x.EventNo == id)
 						?? new Schedule { EventNo = id };
@@ -373,7 +328,6 @@ namespace StarProject.Controllers
 					_context.Schedules.Add(s);
 
 				await _context.SaveChangesAsync();
-				// ================================
 
 				return RedirectToAction(nameof(List));
 			}
@@ -386,29 +340,19 @@ namespace StarProject.Controllers
 				ModelState.AddModelError("", "更新失敗：" + ex.Message);
 			}
 
-			// 回填排程欄位（失敗時）
 			ViewBag.ScheduleReleaseDate = ReleaseDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 			ViewBag.ScheduleExpirationDate = ExpirationDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 			return View(evm);
 		}
 
-		private bool EventExists(int id)
-		{
-			return _context.Events.Any(e => e.No == id);
-		}
-
-		// =================== 刪除活動 (Delete) ==================
+		// =================== 刪除 ==================
 		[HttpGet]
 		public async Task<IActionResult> Delete(int? id)
 		{
-			if (id == null)
-				return NotFound();
-
-			var EventInfo = await _context.Events.FirstOrDefaultAsync(e => e.No == id);
-			if (EventInfo == null)
-				return NotFound();
-
-			return View(EventInfo);
+			if (id == null) return NotFound();
+			var ev = await _context.Events.FirstOrDefaultAsync(e => e.No == id);
+			if (ev == null) return NotFound();
+			return View(ev);
 		}
 
 		[HttpPost, ActionName("Delete")]
@@ -421,11 +365,85 @@ namespace StarProject.Controllers
 				_context.Events.Remove(ev);
 				await _context.SaveChangesAsync();
 			}
-
 			return RedirectToAction(nameof(List));
 		}
 
-		// =================== 報名管理 (Participants) ==================
+		// 多筆刪除（清單右上角垃圾桶）
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteMultiple([FromForm] int[] ids)
+		{
+			if (ids == null || ids.Length == 0) return Ok();
+			var events = await _context.Events.Where(e => ids.Contains(e.No)).ToListAsync();
+			if (events.Any())
+			{
+				_context.Events.RemoveRange(events);
+				await _context.SaveChangesAsync();
+			}
+			return Ok();
+		}
+
+		// =================== 進階搜尋（清單頁） ==================
+		// 使用你的 SearchFilterVM（含 keyword/Categories/Statuses/(Locations)/DateFrom/DateTo/Page/PageSize）
+		[HttpPost]
+		[IgnoreAntiforgeryToken] // 若要驗證 CSRF：改成 [ValidateAntiForgeryToken] 並在前端加 RequestVerificationToken header
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
+		{
+			filters ??= new SearchFilterVM();
+
+			int page = filters.Page > 0 ? filters.Page : 1;
+			int pageSize = filters.PageSize > 0 ? filters.PageSize : DefaultPageSize;
+
+			var q = _context.Events.AsQueryable();
+
+			// 排序（與 List 一致）
+			q = q.OrderByDescending(e => e.StartDate)
+				 .ThenByDescending(e => e.CreatedTime);
+
+			// 關鍵字
+			if (!string.IsNullOrWhiteSpace(filters.keyword))
+			{
+				var kw = filters.keyword.Trim();
+				q = q.Where(e =>
+					e.Title.Contains(kw) ||
+					e.Category.Contains(kw) ||
+					e.Location.Contains(kw) ||
+					(e.Desc != null && e.Desc.Contains(kw)));
+			}
+
+			// 類別
+			if (filters.Categories != null && filters.Categories.Any())
+				q = q.Where(e => filters.Categories.Contains(e.Category));
+
+			// 狀態
+			if (filters.Statuses != null && filters.Statuses.Any())
+				q = q.Where(e => filters.Statuses.Contains(e.Status));
+
+
+			// 日期區間（StartDate）
+			if (!string.IsNullOrWhiteSpace(filters.DateFrom) && DateTime.TryParse(filters.DateFrom, out var from))
+				q = q.Where(e => e.StartDate >= from.Date);
+			if (!string.IsNullOrWhiteSpace(filters.DateTo) && DateTime.TryParse(filters.DateTo, out var to))
+				q = q.Where(e => e.StartDate <= to.Date.AddDays(1).AddTicks(-1));
+
+			// ✅ 呼叫分頁工具（與隊友一致）
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(q, page, pageSize);
+
+			// 分頁資訊給 Partial 用
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			// 轉成 rows 與 pagination 的 HTML
+			var tableHtml = await RenderPartialViewToString("_EventRows", items);
+			var paginationHtml = await RenderPartialViewToString("_EventPagination", null);
+
+			return Json(new { tableHtml, paginationHtml });
+		}
+
+		// =================== 報名管理 ==================
+		[HttpGet]
 		public async Task<IActionResult> Participants(int? selectedEventId, string searchUserNo)
 		{
 			var allEvents = await _context.Events
@@ -436,14 +454,10 @@ namespace StarProject.Controllers
 			var participantQuery = _context.Participants.AsQueryable();
 
 			if (selectedEventId != null && selectedEventId != 0)
-			{
 				participantQuery = participantQuery.Where(p => p.EventNo == selectedEventId);
-			}
 
 			if (!string.IsNullOrEmpty(searchUserNo))
-			{
 				participantQuery = participantQuery.Where(p => p.UsersNo.Contains(searchUserNo));
-			}
 
 			var participants = await participantQuery
 									.Include(p => p.EventNoNavigation)
@@ -457,67 +471,36 @@ namespace StarProject.Controllers
 			return View("~/Views/Participants/Index.cshtml", participants);
 		}
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> SearchSelect([FromBody] EventSearchFilter filter)
+		// =================== 私有工具 ==================
+		private static DateTime TrimToMinute(DateTime dt)
+			=> new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
+
+		// 供 AJAX 回傳 Partial HTML 用（和隊友相同做法）
+		public async Task<string> RenderPartialViewToString(string viewName, object model)
 		{
-			filter ??= new EventSearchFilter();
+			if (string.IsNullOrEmpty(viewName))
+				viewName = ControllerContext.ActionDescriptor.ActionName;
 
-			var q = _context.Events.AsQueryable();
+			ViewData.Model = model;
 
-			if (!string.IsNullOrWhiteSpace(filter.Keyword))
-			{
-				var kw = filter.Keyword.Trim();
-				q = q.Where(e =>
-					e.Title.Contains(kw) ||
-					e.Category.Contains(kw) ||
-					e.Location.Contains(kw) ||
-					(e.Desc != null && e.Desc.Contains(kw)));
-			}
+			using var sw = new StringWriter();
+			var viewEngine = HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+			var viewResult = viewEngine.FindView(ControllerContext, viewName, false);
 
-			if (filter.Categories?.Any() == true)
-				q = q.Where(e => filter.Categories.Contains(e.Category));
+			if (!viewResult.Success)
+				throw new ArgumentNullException($"View {viewName} not found.");
 
-			if (filter.Statuses?.Any() == true)
-				q = q.Where(e => filter.Statuses.Contains(e.Status));
+			var viewContext = new ViewContext(
+				ControllerContext,
+				viewResult.View,
+				ViewData,
+				TempData,
+				sw,
+				new HtmlHelperOptions()
+			);
 
-			if (filter.Locations?.Any() == true)
-				q = q.Where(e => filter.Locations.Contains(e.Location));
-
-			if (DateTime.TryParse(filter.DateFrom, out var from))
-				q = q.Where(e => e.StartDate >= from);
-			if (DateTime.TryParse(filter.DateTo, out var to))
-			{
-				to = to.Date.AddDays(1).AddTicks(-1);
-				q = q.Where(e => e.StartDate <= to);
-			}
-
-			var list = await q.OrderByDescending(e => e.StartDate).ToListAsync();
-			return PartialView("_EventRows", list);
-		}
-
-		public class EventSearchFilter
-		{
-			public string? Keyword { get; set; }
-			public List<string>? Categories { get; set; }
-			public List<string>? Statuses { get; set; }
-			public List<string>? Locations { get; set; }
-			public string? DateFrom { get; set; } // yyyy-MM-dd
-			public string? DateTo { get; set; }   // yyyy-MM-dd
-		}
-
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> DeleteMultiple([FromForm] int[] ids)
-		{
-			if (ids == null || ids.Length == 0) return Ok();
-			var events = await _context.Events.Where(e => ids.Contains(e.No)).ToListAsync();
-			if (events.Any())
-			{
-				_context.Events.RemoveRange(events);
-				await _context.SaveChangesAsync();
-			}
-			return Ok();
+			await viewResult.View.RenderAsync(viewContext);
+			return sw.GetStringBuilder().ToString();
 		}
 	}
 }

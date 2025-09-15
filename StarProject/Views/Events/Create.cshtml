@@ -4,6 +4,17 @@
     ViewData["Title"] = "新增活動";
 }
 
+<style>
+    .card-header {
+        background-color: #2B4C8C !important;
+        color: #fff !important;
+    }
+    .card-header * {
+            color: inherit;
+        }
+</style>
+
+
 <h1 class="fw-bold">快速新增活動</h1>
 <hr />
 <div class="row">
@@ -15,7 +26,7 @@
                 <!-- 左欄：基本資料 + 費用/說明 -->
                 <div class="col-lg-7">
                     <div class="card">
-                        <div class="card-header"><strong>基本資料</strong></div>
+                        <div class="card-header card-header"><strong>基本資料</strong></div>
                         <div class="card-body">
                             <div class="mb-2">
                                 <label class="control-label fw-bold fs-6">活動編號</label>
@@ -87,7 +98,7 @@
                     </div>
 
                     <div class="card mt-3">
-                        <div class="card-header"><strong>費用與說明</strong></div>
+                        <div class="card-header card-header"><strong>費用與說明</strong></div>
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -104,35 +115,30 @@
 
                             <div class="mt-3">
                                 <label asp-for="Desc" class="control-label fw-bold fs-6">活動說明</label>
-                                <textarea asp-for="Desc" class="form-control" rows="6" style="resize:none;" placeholder="請輸入活動說明..."></textarea>
+                                <textarea asp-for="Desc" class="form-control" rows="6" style="resize:none;"
+                                          placeholder="請輸入活動說明..."></textarea>
                                 <span asp-validation-for="Desc" class="text-danger"></span>
                             </div>
                         </div>
-                    </div>               
+                    </div>
                 </div>
 
                 <!-- 右欄：時間與發佈 -->
                 <div class="col-lg-5">
                     <div class="card">
-                        <div class="card-header"><strong>時間與發佈</strong></div>
+                        <div class="card-header card-header"><strong>時間與發佈</strong></div>
                         <div class="card-body">
                             <div class="mb-2">
                                 <label asp-for="StartDate" class="control-label fw-bold fs-6">開始時間</label>
-                                <input asp-for="StartDate"
-                                       class="form-control"
-                                       type="datetime-local"
-                                       asp-format="{0:yyyy-MM-ddTHH:mm}"
-                                       step="60" />
+                                <input asp-for="StartDate" class="form-control" type="datetime-local"
+                                       asp-format="{0:yyyy-MM-ddTHH:mm}" step="60" />
                                 <span asp-validation-for="StartDate" class="text-danger"></span>
                             </div>
 
                             <div class="mb-2">
                                 <label asp-for="EndDate" class="control-label fw-bold fs-6">結束時間</label>
-                                <input asp-for="EndDate"
-                                       class="form-control"
-                                       type="datetime-local"
-                                       asp-format="{0:yyyy-MM-ddTHH:mm}"
-                                       step="60" />
+                                <input asp-for="EndDate" class="form-control" type="datetime-local"
+                                       asp-format="{0:yyyy-MM-ddTHH:mm}" step="60" />
                                 <span asp-validation-for="EndDate" class="text-danger"></span>
                             </div>
 
@@ -141,11 +147,13 @@
                                 <label class="control-label fw-bold fs-6">發佈方式</label>
                                 <div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="PublishMode" id="pmNow" value="now" checked>
+                                        <input class="form-check-input" type="radio" name="PublishMode" id="pmNow"
+                                               value="now" checked>
                                         <label class="form-check-label" for="pmNow">立即發佈</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="PublishMode" id="pmSchedule" value="schedule">
+                                        <input class="form-check-input" type="radio" name="PublishMode" id="pmSchedule"
+                                               value="schedule">
                                         <label class="form-check-label" for="pmSchedule">排程時間</label>
                                     </div>
                                 </div>
@@ -158,26 +166,27 @@
                             </div>
                             <div class="mb-2">
                                 <label class="control-label fw-bold fs-6">下架時間（可空白）</label>
-                                <input type="datetime-local" class="form-control" name="ExpirationDate" id="ExpirationDate"
-                                       value="@(ViewBag.ScheduleExpirationDate ?? "")" disabled />
+                                <input type="datetime-local" class="form-control" name="ExpirationDate"
+                                       id="ExpirationDate" value="@(ViewBag.ScheduleExpirationDate ?? "")" disabled />
                                 <small class="text-muted">＊不設定代表不下架</small>
                             </div>
                         </div>
-                        
+
                     </div>
 
                     <!-- 右欄：圖片上傳 -->
-                <div class="card mt-3">
-                        <div class="card-header"><strong>圖片上傳</strong></div>
-                    <div class="card-body">
-                        <div class="input-group">
-                            <input asp-for="ImageFile" id="ImageFile" class="form-control" type="file" accept="image/*">
-                            <button type="button" class="btn btn-outline-secondary" id="btnPreviewImage">預覽</button>
+                    <div class="card mt-3">
+                        <div class="card-header card-header"><strong>圖片上傳</strong></div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <input asp-for="ImageFile" id="ImageFile" class="form-control" type="file"
+                                       accept="image/*">
+                                <button type="button" class="btn btn-outline-secondary" id="btnPreviewImage">預覽</button>
+                            </div>
+                            <span asp-validation-for="ImageFile" class="text-danger"></span>
+                            <small class="text-muted d-block mt-1">* 建議圖片檔案大小較小為佳</small>
                         </div>
-                        <span asp-validation-for="ImageFile" class="text-danger"></span>
-                        <small class="text-muted d-block mt-1">* 建議圖片檔案大小較小為佳</small>
                     </div>
-                </div>
                     <!-- 行動版顯示送出鍵 -->
                     <div class="mt-3 d-lg-none">
                         <input type="submit" value="儲存" class="btn btn-primary" />
@@ -186,8 +195,8 @@
 
                     <!-- PC版顯示送出鍵 -->
                     <div class="card-footer text-end d-none d-lg-block mt-3 py-3">
-                        <input type="submit" value="儲存" class="btn btn-primary" /> 
-                        <a asp-action="List" class="btn btn-secondary ms-2">返回列表</a> 
+                        <input type="submit" value="儲存" class="btn btn-primary" />
+                        <a asp-action="List" class="btn btn-secondary ms-2">返回列表</a>
                     </div>
 
                     <!-- 圖片預覽小視窗（Bootstrap 5 Modal） -->
@@ -196,13 +205,17 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title">圖片預覽</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="關閉"></button>
                                 </div>
                                 <div class="modal-body text-center">
                                     <img id="previewImg" alt="圖片預覽" class="img-fluid rounded border">
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-danger" id="btnClearImage">移除檔案</button>
+                                    <button type="button" class="btn btn-outline-danger"
+                                            id="btnClearImage">
+                                        移除檔案
+                                    </button>
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
                                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">使用此圖片</button>
                                 </div>
@@ -221,102 +234,99 @@
     <script>
         // 把 Date 轉成本地 "yyyy-MM-ddTHH:mm"
         function toLocalDateTimeInputValue(date) {
-          const pad = n => n.toString().padStart(2, '0');
-          const y = date.getFullYear();
-          const m = pad(date.getMonth() + 1);
-          const d = pad(date.getDate());
-          const hh = pad(date.getHours());
-          const mm = pad(date.getMinutes());
-          return `${y}-${m}-${d}T${hh}:${mm}`;
+            const pad = n => n.toString().padStart(2, '0');
+            const y = date.getFullYear();
+            const m = pad(date.getMonth() + 1);
+            const d = pad(date.getDate());
+            const hh = pad(date.getHours());
+            const mm = pad(date.getMinutes());
+            return `${y}-${m}-${d}T${hh}:${mm}`;
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-          // ====== 排程欄位啟用/停用 ======
-          const pmNow = document.getElementById('pmNow');
-          const pmSchedule = document.getElementById('pmSchedule');
-          const release = document.getElementById('ReleaseDate');
-          const expire  = document.getElementById('ExpirationDate');
+            // ====== 排程欄位啟用/停用 ======
+            const pmNow = document.getElementById('pmNow');
+            const pmSchedule = document.getElementById('pmSchedule');
+            const release = document.getElementById('ReleaseDate');
+            const expire = document.getElementById('ExpirationDate');
 
-          function toggleScheduleInputs() {
-            const schedule = pmSchedule && pmSchedule.checked;
-            if (release) release.disabled = !schedule;
-            if (expire)  expire.disabled  = !schedule;
+            function toggleScheduleInputs() {
+                const schedule = pmSchedule && pmSchedule.checked;
+                if (release) release.disabled = !schedule;
+                if (expire) expire.disabled = !schedule;
 
-            // 剛切到排程且尚未填值 → 自動放現在
-            if (schedule && release && !release.value) {
-              release.value = toLocalDateTimeInputValue(new Date());
-              syncExpireMin();
+                // 剛切到排程且尚未填值 → 自動放現在
+                if (schedule && release && !release.value) {
+                    release.value = toLocalDateTimeInputValue(new Date());
+                    syncExpireMin();
+                }
             }
-          }
-          function syncExpireMin() {
-            if (!expire || !release) return;
-            expire.min = release.value || '';
-            if (expire.value && release.value && expire.value < release.value) {
-              expire.value = '';
+            function syncExpireMin() {
+                if (!expire || !release) return;
+                expire.min = release.value || '';
+                if (expire.value && release.value && expire.value < release.value) {
+                    expire.value = '';
+                }
             }
-          }
-          if (release && release.value) { // 若初始就有值則切到「排程」
-            if (pmSchedule) pmSchedule.checked = true;
-            if (pmNow) pmNow.checked = false;
-          }
-          pmNow?.addEventListener('change', toggleScheduleInputs);
-          pmSchedule?.addEventListener('change', toggleScheduleInputs);
-          release?.addEventListener('change', syncExpireMin);
-          release?.addEventListener('input',  syncExpireMin);
-          toggleScheduleInputs();
-          syncExpireMin();
-
-          // ====== 圖片預覽小視窗 ======
-          const fileInput = document.getElementById('ImageFile');
-          const previewBtn = document.getElementById('btnPreviewImage');
-          const previewImg = document.getElementById('previewImg');
-          const clearBtn   = document.getElementById('btnClearImage');
-          const modalEl    = document.getElementById('imagePreviewModal');
-          let previewURL = null;
-
-          function showPreviewModal(file) {
-            if (!file) { alert('請先選擇圖片'); return; }
-            // 僅接受圖片
-            if (!file.type.startsWith('image/')) { alert('請選擇圖片檔'); return; }
-
-            if (previewURL) URL.revokeObjectURL(previewURL);
-            previewURL = URL.createObjectURL(file);
-            previewImg.src = previewURL;
-
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.show();
-          }
-
-          // 選檔後自動預覽
-          fileInput?.addEventListener('change', () => {
-            const file = fileInput.files?.[0];
-            if (file) showPreviewModal(file);
-          });
-
-          // 點「預覽」按鈕（可重看）
-          previewBtn?.addEventListener('click', () => {
-            const file = fileInput?.files?.[0];
-            showPreviewModal(file);
-          });
-
-          // 關閉時釋放 URL（避免記憶體增加）
-          modalEl?.addEventListener('hidden.bs.modal', () => {
-            if (previewURL) {
-              URL.revokeObjectURL(previewURL);
-              previewURL = null;
-              previewImg.removeAttribute('src');
+            if (release && release.value) { // 若初始就有值則切到「排程」
+                if (pmSchedule) pmSchedule.checked = true;
+                if (pmNow) pmNow.checked = false;
             }
-          });
+            pmNow?.addEventListener('change', toggleScheduleInputs);
+            pmSchedule?.addEventListener('change', toggleScheduleInputs);
+            release?.addEventListener('change', syncExpireMin);
+            release?.addEventListener('input', syncExpireMin);
+            toggleScheduleInputs();
+            syncExpireMin();
 
-          // 移除檔案
-          clearBtn?.addEventListener('click', () => {
-            if (fileInput) fileInput.value = '';
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.hide();
-          });
+            // ====== 圖片預覽小視窗 ======
+            const fileInput = document.getElementById('ImageFile');
+            const previewBtn = document.getElementById('btnPreviewImage');
+            const previewImg = document.getElementById('previewImg');
+            const clearBtn = document.getElementById('btnClearImage');
+            const modalEl = document.getElementById('imagePreviewModal');
+            let previewURL = null;
+
+            function showPreviewModal(file) {
+                if (!file) { alert('請先選擇圖片'); return; }
+                // 僅接受圖片
+                if (!file.type.startsWith('image/')) { alert('請選擇圖片檔'); return; }
+
+                if (previewURL) URL.revokeObjectURL(previewURL);
+                previewURL = URL.createObjectURL(file);
+                previewImg.src = previewURL;
+
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+
+            // 選檔後自動預覽
+            fileInput?.addEventListener('change', () => {
+                const file = fileInput.files?.[0];
+                if (file) showPreviewModal(file);
+            });
+
+            // 點「預覽」按鈕（可重看）
+            previewBtn?.addEventListener('click', () => {
+                const file = fileInput?.files?.[0];
+                showPreviewModal(file);
+            });
+
+            // 關閉時釋放 URL（避免記憶體增加）
+            modalEl?.addEventListener('hidden.bs.modal', () => {
+                if (previewURL) {
+                    URL.revokeObjectURL(previewURL);
+                    previewURL = null;
+                    previewImg.removeAttribute('src');
+                }
+            });
+
+            // 移除檔案
+            clearBtn?.addEventListener('click', () => {
+                if (fileInput) fileInput.value = '';
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.hide();
+            });
         });
     </script>
 }
-
-
-

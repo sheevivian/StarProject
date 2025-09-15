@@ -2,95 +2,51 @@
 
 @foreach (var item in Model)
 {
+    var img = string.IsNullOrWhiteSpace(item.Image) ? "/img/logo.png" : item.Image;
+
     <tr>
         <td style="width:50px">
-            <input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No">
+            <input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No" />
         </td>
 
         <td style="width:64px;">
             <div class="thumbnail-container">
-                <!-- 小縮圖 -->
-                <img src="@(string.IsNullOrWhiteSpace(item.Image) ? "/img/logo.png" : item.Image)"
+                <img src="@img"
                      alt="@item.Title"
                      class="thumb-img"
-                     loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-
-                <!-- 大圖預覽（hover 時顯示） -->
-                <img src="@(string.IsNullOrWhiteSpace(item.Image) ? "/img/logo.png" : item.Image)"
-                     alt="@item.Title"
-                     class="preview-img"
+                     loading="lazy"
+                     decoding="async"
                      referrerpolicy="no-referrer" />
             </div>
         </td>
 
-        <td>@Html.DisplayFor(_ => item.Title)</td>
-        <td>@Html.DisplayFor(_ => item.Category)</td>
-        <td>@Html.DisplayFor(_ => item.Status)</td>
+        <td>@item.Title</td>
+        <td>@item.Category</td>
+        <td>@item.Status</td>
         <td>@item.StartDate.ToString("yyyy-MM-dd HH:mm")</td>
-        <td>@Html.DisplayFor(_ => item.Location)</td>
-        <td>@Html.DisplayFor(_ => item.Fee)</td>
+        <td>@item.Location</td>
+        <td>@(item.Fee == null? "": (item.Fee == 0 ? "免付費" : item.Fee.ToString()))
+    </td>
 
-        <td style="width:116px;text-align:center;">
-            <button class="btn btn-color btn-sm" type="button"
-                    data-bs-toggle="offcanvas"
-                    data-bs-target="#details-@item.No"
-                    aria-controls="details-@item.No">
+        <td style="width:116px; text-align:center;">
+            <button type="button"
+                    class="btn btn-color btn-sm btn-detail"
+                    data-id="@item.No"
+                    data-title="@item.Title"
+                    data-category="@item.Category"
+                    data-status="@item.Status"
+                    data-start="@($"{item.StartDate:yyyy-MM-dd HH:mm}")"
+                    data-end="@(item.EndDate.HasValue ? $"{item.EndDate:yyyy-MM-dd HH:mm}" : "")"
+                    data-created="@($"{item.CreatedTime:yyyy-MM-dd HH:mm}")"
+                    data-updated="@($"{item.UpdatedTime:yyyy-MM-dd HH:mm}")"
+                    data-location="@item.Location"
+                    data-fee="@item.Fee"
+                    data-deposit="@item.Deposit"
+                    data-max-participants="@item.MaxParticipants"
+                    data-desc="@item.Desc"
+                    data-image="@img">
                 詳細內容
             </button>
         </td>
-
-        <!-- 詳細內容 Offcanvas -->
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="details-@item.No">
-            <div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
-                <h3 class="offcanvas-title fw-bolder">詳細內容</h3>
-                <div class="d-flex justify-content-end align-items-center gap-2">
-                    <a asp-action="Edit" asp-route-id="@item.No" class="btn btn-primary br20px">
-                        <i class="fa-solid fa-pen-to-square"></i>編輯
-                    </a>
-                    <button type="button" class="btn btn-outline-delect br20px" data-bs-toggle="modal" data-bs-target="#deleteModal-@item.No">
-                        <i class="fa-solid fa-trash-can"></i>刪除
-                    </button>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-
-                <!-- 單筆刪除 Modal -->
-                <div class="modal fade" id="deleteModal-@item.No" tabindex="-1" aria-labelledby="deleteModalLabel-@item.No" aria-hidden="true" data-bs-backdrop="false">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="deleteModalLabel-@item.No">確認刪除</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">你確定要刪除這筆資料嗎？</div>
-                            <div class="modal-footer">
-                                <form asp-action="Delete" asp-route-id="@item.No" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-delect br20px">確定刪除</button>
-                                </form>
-                                <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="offcanvas-body">
-                <div class="img550px rounded mb-3"><img src="@item.Image" alt="活動圖片" class="rounded" /></div>
-                <p><strong>活動編號：</strong>@item.No</p>
-                <p><strong>活動名稱：</strong>@item.Title</p>
-                <p><strong>活動種類：</strong>@item.Category</p>
-                <p><strong>活動地點：</strong>@item.Location</p>
-                <p><strong>人數上限：</strong>@item.MaxParticipants</p>
-                <p><strong>目前狀態：</strong>@item.Status</p>
-                <hr />
-                <p><strong>開始時間：</strong>@item.StartDate.ToString("yyyy-MM-dd HH:mm")</p>
-                <p><strong>結束時間：</strong>@item.EndDate?.ToString("yyyy-MM-dd HH:mm")</p>
-                <p><strong>建立日期：</strong>@item.CreatedTime.ToString("yyyy-MM-dd HH:mm")</p>
-                <p><strong>最後更新日期：</strong>@item.UpdatedTime.ToString("yyyy-MM-dd HH:mm")</p>
-                <hr />
-                <p><strong>活動費用：</strong>@item.Fee</p>
-                <p><strong>預定訂金：</strong>@item.Deposit</p>
-                <p><strong>活動說明：</strong>@item.Desc</p>
-            </div>
-        </div>
     </tr>
 }

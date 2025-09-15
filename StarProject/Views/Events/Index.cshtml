@@ -14,10 +14,210 @@
     var upcoming = (IEnumerable<dynamic>)(ViewBag.UpcomingEvents ?? new List<dynamic>());
 }
 
-<!-- Font Awesome（若已在 _Layout 引入可移除） -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<style>
+    /* 星空（不影響 navbar / sidebar） */
+    .star-skin {
+        position: relative;
+        isolation: isolate;
+        background: transparent !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
 
-<!-- 保留你原本的主內容結構 -->
+        .star-skin::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse at bottom, #0b0c1c 0%, #1a1b2c 100%);
+        }
+
+        .star-skin > .starfield {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+            .star-skin > .starfield .star {
+                position: absolute;
+                background: #fff;
+                border-radius: 50%;
+                width: 2px;
+                height: 2px;
+                opacity: .8;
+            }
+
+        .star-skin > *:not(.starfield) {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 原本全域的深色表格樣式（保留） */
+        .star-skin .card, .star-skin .table {
+            background-color: rgba(0,0,0,.6);
+            color: #fff;
+        }
+
+        .star-skin .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(255,255,255,.05) !important;
+        }
+
+        /* --- 白底表格覆寫：只影響 .table-white，蓋掉上面的黑底 --- */
+        .star-skin .table-white {
+            background: #fff !important;
+            color: #212529 !important;
+        }
+
+        .table-white {
+            border-radius: .75rem;
+            overflow: hidden;
+        }
+
+        .table-white th, .table-white td {
+            color: #212529 !important;
+            border-color: rgba(0,0,0,.125);
+        }
+
+        .table-white.table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(0,0,0,.03) !important;
+        }
+
+        .table-white .progress {
+            background: rgba(0,0,0,.1);
+        }
+
+        /* 標題配色（比照 list.cshtml），且欄位名稱置中 */
+        .table-head-blue th {
+            font-size: 18px !important;
+            color: #fff !important;
+            background-color: #2B4C8C !important;
+            letter-spacing: .2rem;
+            text-align: center;
+            vertical-align: middle;
+            border-color: #2B4C8C !important;
+        }
+
+        .table-head-blue th:first-child {
+            width: 56px;
+        }
+
+        /* 統計卡片 + 圖示樣式 */
+        .stat-card {
+            border-radius: .75rem;
+        }
+
+        .stat-icon {
+            font-size: 1.75rem;
+            line-height: 1;
+            opacity: .92;
+            color: inherit;
+        }
+
+        /* 依狀態不同點綴色 */
+        .stat-open .stat-icon {
+            color: #4da3ff;
+        }
+        /* 開放/報名中 */
+        .stat-done .stat-icon {
+            color: #6c757d;
+        }
+        /* 已結束：中性灰 */
+        .stat-cancel .stat-icon {
+            color: #ff7b7b;
+        }
+        /* 已取消 */
+
+        .stat-card h4 {
+            font-weight: 600;
+        }
+
+        .stat-card h3 {
+            font-weight: 700;
+        }
+
+        /* 品牌色按鈕：#2B4C8C */
+        .btn-brand {
+            --bs-btn-color: #fff;
+            --bs-btn-bg: #2B4C8C;
+            --bs-btn-border-color: #2B4C8C;
+            --bs-btn-hover-color: #fff;
+            --bs-btn-hover-bg: #254276;
+            --bs-btn-hover-border-color: #244070;
+            --bs-btn-focus-shadow-rgb: 43,76,140;
+            --bs-btn-active-color: #fff;
+            --bs-btn-active-bg: #223c6a;
+            --bs-btn-active-border-color: #213965;
+            --bs-btn-disabled-color: #fff;
+            --bs-btn-disabled-bg: #2B4C8C;
+            --bs-btn-disabled-border-color: #2B4C8C;
+        }
+
+        /* 微微抖動（只抖一下） */
+        .stat-card .stat-icon {
+            display: inline-block;
+            will-change: transform, filter;
+            transition: transform .25s ease, filter .25s ease, text-shadow .25s ease;
+            backface-visibility: hidden;
+        }
+
+        .stat-card:hover .stat-icon {
+            animation: micro-wiggle .6s ease-in-out 1;
+        }
+
+        @@keyframes micro-wiggle {
+            0% {
+                transform: translate3d(0,0,0) rotate(0deg);
+            }
+
+            25% {
+                transform: translate3d(.6px,-.6px,0) rotate(-1.5deg);
+            }
+
+            50% {
+                transform: translate3d(-.6px,.6px,0) rotate(1.5deg);
+            }
+
+            75% {
+                transform: translate3d(.4px,-.4px,0) rotate(-1deg);
+            }
+
+            100% {
+                transform: translate3d(0,0,0) rotate(0deg);
+            }
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            .stat-card:hover .stat-icon {
+                animation: none;
+            }
+        }
+
+        /* 統一主內容寬度（上方三區塊與下方清單對齊） */
+        .content-narrow, .table-narrow {
+            max-width: 960px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @@media (min-width:1400px) {
+            .content-narrow, .table-narrow {
+                max-width: 1000px;
+            }
+        }
+
+        /* 進度條高度 */
+        .progress {
+            height: .5rem;
+        }
+
+        .progress-left {
+            margin-left: 6px;
+            margin-right: 12px;
+        }
+</style>
+
 <div class="main-content-star">
     <div class="container my-3 p-3">
 
@@ -110,7 +310,7 @@
                                 <div class="d-flex justify-content-between text-muted small">
                                     <span>@reg/@cap</span><span>@pct%</span>
                                 </div>
-                                <div class="progress" role="progressbar" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress progress-left" role="progressbar" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
                                     <div class="progress-bar @barCls" style="width:@pct%"></div>
                                 </div>
                             </td>
@@ -123,210 +323,6 @@
     </div>
 </div>
 
-<style>
-    /* 星空（不影響 navbar / sidebar） */
-    .star-skin {
-        position: relative;
-        isolation: isolate;
-        background: transparent !important;
-        min-height: 100vh;
-        min-height: 100dvh;
-    }
-
-        .star-skin::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            background: radial-gradient(ellipse at bottom, #0b0c1c 0%, #1a1b2c 100%);
-        }
-
-        .star-skin > .starfield {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-            .star-skin > .starfield .star {
-                position: absolute;
-                background: #fff;
-                border-radius: 50%;
-                width: 2px;
-                height: 2px;
-                opacity: .8;
-            }
-
-        .star-skin > *:not(.starfield) {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 原本全域的深色表格樣式（保留） */
-        .star-skin .card, .star-skin .table {
-            background-color: rgba(0,0,0,.6);
-            color: #fff;
-        }
-
-        .star-skin .table-striped > tbody > tr:nth-of-type(odd) > * {
-            background-color: rgba(255,255,255,.05) !important;
-        }
-
-        /* --- 白底表格覆寫：只影響 .table-white，蓋掉上面的黑底 --- */
-        .star-skin .table-white {
-            background: #fff !important;
-            color: #212529 !important;
-        }
-
-    .table-white {
-        border-radius: .75rem;
-        overflow: hidden;
-    }
-
-        .table-white th, .table-white td {
-            color: #212529 !important;
-            border-color: rgba(0,0,0,.125);
-        }
-
-        .table-white.table-striped > tbody > tr:nth-of-type(odd) > * {
-            background-color: rgba(0,0,0,.03) !important;
-        }
-
-        .table-white .progress {
-            background: rgba(0,0,0,.1);
-        }
-
-    /* 表頭配色（比照 list.cshtml），且欄位名稱置中 */
-    .table-head-blue th {
-        font-size: 18px !important;
-        color: #fff !important;
-        background-color: #2B4C8C !important;
-        letter-spacing: .2rem;
-        text-align: center;
-        vertical-align: middle;
-        border-color: #2B4C8C !important;
-    }
-
-        .table-head-blue th:first-child {
-            width: 56px;
-        }
-
-    /* 統計卡片 + 圖示樣式 */
-    .stat-card {
-        border-radius: .75rem;
-    }
-
-    .stat-icon {
-        font-size: 1.75rem;
-        line-height: 1;
-        opacity: .92;
-        color: inherit;
-    }
-
-    /* 依狀態不同點綴色 */
-    .stat-open .stat-icon {
-        color: #4da3ff;
-    }
-    /* 開放/報名中 */
-    .stat-done .stat-icon {
-        color: #6c757d;
-    }
-    /* 已結束：中性灰 */
-    .stat-cancel .stat-icon {
-        color: #ff7b7b;
-    }
-    /* 已取消 */
-
-    .stat-card h4 {
-        font-weight: 600;
-    }
-
-    .stat-card h3 {
-        font-weight: 700;
-    }
-
-    /* 品牌色按鈕：#2B4C8C */
-    .btn-brand {
-        --bs-btn-color: #fff;
-        --bs-btn-bg: #2B4C8C;
-        --bs-btn-border-color: #2B4C8C;
-        --bs-btn-hover-color: #fff;
-        --bs-btn-hover-bg: #254276;
-        --bs-btn-hover-border-color: #244070;
-        --bs-btn-focus-shadow-rgb: 43,76,140;
-        --bs-btn-active-color: #fff;
-        --bs-btn-active-bg: #223c6a;
-        --bs-btn-active-border-color: #213965;
-        --bs-btn-disabled-color: #fff;
-        --bs-btn-disabled-bg: #2B4C8C;
-        --bs-btn-disabled-border-color: #2B4C8C;
-    }
-
-    /* 微微抖動（只抖一下） */
-    .stat-card .stat-icon {
-        display: inline-block;
-        will-change: transform, filter;
-        transition: transform .25s ease, filter .25s ease, text-shadow .25s ease;
-        backface-visibility: hidden;
-    }
-
-    .stat-card:hover .stat-icon {
-        animation: micro-wiggle .6s ease-in-out 1;
-    }
-    @@keyframes micro-wiggle {
-        0%
-
-    {
-        transform: translate3d(0,0,0) rotate(0deg);
-    }
-
-    25% {
-        transform: translate3d(.6px,-.6px,0) rotate(-1.5deg);
-    }
-
-    50% {
-        transform: translate3d(-.6px,.6px,0) rotate(1.5deg);
-    }
-
-    75% {
-        transform: translate3d(.4px,-.4px,0) rotate(-1deg);
-    }
-
-    100% {
-        transform: translate3d(0,0,0) rotate(0deg);
-    }
-
-    }
-    @@media (prefers-reduced-motion: reduce) {
-        .stat-card:hover .stat-icon
-
-    {
-        animation: none;
-    }
-
-    }
-
-    /* 統一主內容寬度（上方三區塊與下方清單對齊） */
-    .content-narrow, .table-narrow {
-        max-width: 960px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    @@media (min-width:1400px) {
-        .content-narrow, .table-narrow
-
-    {
-        max-width: 1000px;
-    }
-
-    }
-
-    /* 進度條高度 */
-    .progress {
-        height: .5rem;
-    }
-</style>
 
 <script>
     (function () {

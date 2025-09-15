@@ -1,0 +1,60 @@
+﻿@model IEnumerable<StarProject.Models.Participant>
+@{
+    // 提供 eventId 給表頭 or 其他 UI 使用
+    int eventId = ViewBag.EventId ?? 0;
+}
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th style="width:40px"><input type="checkbox" id="chkAll" /></th>
+            <th style="width:160px">報名日期</th>
+            <th style="width:160px">最後更新</th>
+            <th>會員姓名</th>
+            <th style="width:140px">狀態</th>
+            <th style="width:220px">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model == null || !Model.Any())
+        {
+            <tr><td colspan="6" class="text-center text-muted">尚無報名紀錄</td></tr>
+        }
+        else
+        {
+            foreach (var p in Model)
+            {
+                var zh = p.Status switch
+                {
+                    "Success" => "報名成功",
+                    "Pending" => "待處理",
+                    "Canceled" or "Cancelled" => "報名取消已退款",
+                    _ => p.Status
+                };
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selectedIds" value="@p.No" />
+                    </td>
+                    <td>@p.RegisteredDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@p.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@p.UsersNoNavigation?.Name</td>
+                    <td>@zh</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <form asp-controller="Participants" asp-action="ResendSignup" method="post" class="resend-form d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@p.No" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-envelope-arrow-up"></i> 重寄 Mail
+                                </button>
+                            </form>
+                            <a asp-controller="Participants" asp-action="Delete" asp-route-id="@p.No" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i> 刪除
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

@@ -9,7 +9,7 @@
 
 
   <ItemGroup>
-<<<<<<< HEAD
+
     <PackageReference Include="EPPlus" Version="8.1.1" />
     <Content Remove="bundleconfig.json" />
     <None Include="bundleconfig.json" />
@@ -19,16 +19,11 @@
     <PackageReference Include="bootstrap-select" Version="1.13.18" />
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
     <PackageReference Include="MailKit" Version="4.13.0" />
-=======
-    <Compile Remove="Views\Product - 複製\**" />
-    <Content Remove="Views\Product - 複製\**" />
-    <EmbeddedResource Remove="Views\Product - 複製\**" />
-    <None Remove="Views\Product - 複製\**" />
   </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="8.1.1" />
->>>>>>> MM0916
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.19" />

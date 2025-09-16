@@ -1,0 +1,96 @@
+﻿@model StarProject.Models.Product
+
+@{
+    ViewData["Title"] = "星航基地｜單筆上架";
+}
+
+
+<ul class="nav nav-tabs border-bottom-0">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#single">單筆建檔</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#multiple">批次上傳</a>
+    </li>
+</ul>
+<div class="tab-content border border-top bg-white rounded-end rounded-bottom">
+    <div class="tab-pane fade show active" id="single">
+        <div class="row">
+            <div class="col-10 col-lg-8 m-5">
+                <form asp-action="Create">
+                    <div class="form-group d-flex align-items-center mb-3 row">
+                        <div class="col-4 col-lg-2">
+                            <label asp-for="Name" class="control-label"></label>
+                        </div>
+                        <div class="col-8 col-lg-10">
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group d-flex align-items-center mb-3 row">
+                        <div class="col-4 col-lg-2">
+                            <label asp-for="ProCategoryNoNavigation.Name" class="control-label"></label>
+                        </div>
+                        <div class="col-8 col-lg-10">
+                            <select asp-for="ProCategoryNo" class="form-select" asp-items="ViewBag.ProCategoryName"></select>
+                        </div>
+                    </div>
+                    <div class="form-group d-flex align-items-center mb-3 row">
+                        <div class="col-4 col-lg-2">
+                            <label asp-for="Price" class="control-label"></label>
+                        </div>
+                        <div class="col-8 col-lg-10">
+                            <input asp-for="Price" class="form-control" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-groupd d-flex align-items-center mb-3 row">
+                        <div class="col-4 col-lg-2">
+                            <label asp-for="Status" class="control-label"></label>
+                        </div>
+                        <div class="col-8 col-lg-10">
+                            <select asp-for="Status" class="form-select" asp-items="ViewBag.StatusList"></select>
+                        </div>
+                    </div>
+                    <div class="form-group d-flex align-items-center mb-3 row">
+                        <div class="col-4 col-lg-2">
+                            <label asp-for="ReleaseDate" class="control-label"></label>
+                        </div>
+                        <div class="col-8 col-lg-10">
+                            <input asp-for="ReleaseDate" class="form-control" />
+                            <span asp-validation-for="ReleaseDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group d-flex justify-content-end">
+                        <input type="submit" value="新品建檔" class="btn btn-primary" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="multiple">
+        <div class="row">
+            <div class="col-10 col-lg-8 m-5">
+                <a asp-action="DownloadTemplate" asp-controller="Product" class="">
+                    下載excel範本
+                </a>
+                <form asp-controller="Product" asp-action="CreateMultiple" method="post" enctype="multipart/form-data">
+                    <div class="input-group mt-3">
+                        <input type="file" class="form-control" name="excelFile">
+                        <button type="submit" class="input-group-text" for="excelFile">上傳匯入</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'ChironGoRoundTC';
+    src: url('../fonts/ChironGoRoundTC-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@media print {
+    body {
+        margin: 0 !important;
+    }
+}
+
+/* 覆蓋 CKEditor 預設字型 */
+:root {
+    --ck-content-font-family: 'ChironGoRoundTC', sans-serif;
+    --ck-content-font-size: 16px; /* 可以依需求調整 */
+    --ck-content-font-color: #000; /* 保持黑色 */
+    --ck-content-line-height: 1.6; /* 行高舒適 */
+}
+
+.text-distance {
+    letter-spacing: 5px; /* 正值：字母間距變大，負值：變小 */
+    text-align: center; /* 文字置中 */
+}
+
+
+.ck {
+    font-family: var(--ck-content-font-family) !important;
+}
+
+.ck-editor__editable {
+    min-height: 350px; /* 編輯區最小高度 */
+}
+
+figcaption {
+    min-height: 0 !important;
+    height: auto !important;
+}

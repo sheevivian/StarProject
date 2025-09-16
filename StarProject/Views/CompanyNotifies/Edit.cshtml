@@ -1,0 +1,178 @@
+﻿@model StarProject.Models.CompanyNotify
+
+@{
+    ViewData["Title"] = "內部公告編輯";
+}
+
+<head>
+    <style>
+        .btn-edit {
+            --bs-btn-color: #fff;
+            --bs-btn-bg: #0d6efd;
+            --bs-btn-border-color: #0d6efd;
+            --bs-btn-hover-color: #fff;
+            --bs-btn-hover-bg: #527bcc;
+            --bs-btn-hover-border-color: #0d6efd;
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-color: #fff;
+            --bs-btn-active-bg: #527bcc;
+            --bs-btn-active-border-color: #0d6efd;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        }
+
+        .btn-outline-back {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+    </style>
+    <link href="~/css/textediting.css" rel="stylesheet" />
+</head>
+
+<h1 class="fw-bold">內部公告編輯</h1>
+<hr />
+
+<div class="row" style="width:100%">
+    <form asp-action="Edit">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="No" />
+        <div class="form-group mb-2">
+            <div class="d-flex">
+                <label asp-for="Title" class="control-label fw-bold fs-5"></label>
+                <span asp-validation-for="Title" class="text-danger ms-3"></span>
+                <span class="text-end text-secondary flex-grow-1 fs-5"><span id="wordCount">0</span> / 50</span>
+            </div>
+            <input asp-for="Title" class="form-control flex-grow-1" id="inputTitle" maxlength="50" />
+        </div>
+        <div class="form-group mb-2">
+            <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
+            <select id="categorySelect" class="form-select">
+                <option value="">請選擇</option>
+                <option value="行政公告">行政公告</option>
+                <option value="人事公告">人事公告</option>
+                <option value="活動公告">活動公告</option>
+                <option value="制度公告">制度公告</option>
+                <option value="資訊系統公告">資訊系統公告</option>
+                <option value="其他">其他</option>
+            </select>
+
+            <!-- 當選擇「其他」時顯示 -->
+            <input type="text" id="otherCategoryInput" class="form-control mt-2 d-none" placeholder="請輸入自訂分類" />
+
+            <!-- 真正要綁定到 Model.Category 的隱藏欄位 -->
+            <input type="hidden" asp-for="Category" id="categoryHidden" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Content" class="control-label fw-bold fs-5"></label><span class="text-muted ms-2">(選填)</span><span asp-validation-for="Content" class="text-danger ms-3"></span>
+            <textarea asp-for="Content" id="editor" class="form-control"></textarea>
+        </div>
+
+        <div class="form-group d-flex gap-2 mt-2 text-distance justify-content-center">
+            <button type="submit" class="btn btn-edit fw-bold fs-5 text-distance" style="width:303px">
+                <i class="fa-solid fa-pen-nib"></i>修改
+            </button>
+            <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(function(){
+            let count = $("#inputTitle").val().length;
+            $("#wordCount").text(count);
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const select = document.getElementById("categorySelect");
+                const otherInput = document.getElementById("otherCategoryInput");
+                const hiddenInput = document.getElementById("categoryHidden");
+
+                // ===== 初始化：把 hidden 的值帶入 select / 文字框 =====
+                const predefinedOptions = ["行政公告","人事公告","活動公告","制度公告","資訊系統公告"];
+                if(predefinedOptions.includes(hiddenInput.value)) {
+                    select.value = hiddenInput.value;
+                    otherInput.classList.add("d-none");
+                } else if(hiddenInput.value) {
+                    select.value = "其他";
+                    otherInput.classList.remove("d-none");
+                    otherInput.value = hiddenInput.value;
+                } else {
+                    select.value = "";
+                    otherInput.classList.add("d-none");
+                }
+
+                // ===== 選單變更事件 =====
+                select.addEventListener("change", function () {
+                    if (this.value === "其他") {
+                        otherInput.classList.remove("d-none");
+                        hiddenInput.value = ""; // 等使用者輸入
+                    } else {
+                        otherInput.classList.add("d-none");
+                        hiddenInput.value = this.value;
+                    }
+                });
+
+                // ===== 文字框輸入事件 =====
+                otherInput.addEventListener("input", function () {
+                    hiddenInput.value = this.value;
+                });
+            });
+
+            $("#inputTitle").on("keyup", function(){
+                let count =$(this).val().length;
+                if (count == 0){
+                    $("#wordCount").text("0");
+                }else{
+                    $("#wordCount").text(count);
+                }
+            });
+        });
+    </script>
+
+    <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const textarea = document.querySelector('#editor');
+
+            ClassicEditor
+                .create(textarea, {
+                    language: 'zh',
+                    toolbar: [
+                        'heading', '|',
+                        'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
+                        'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
+                        'undo', 'redo'
+                    ],
+                    ckfinder: {
+                        uploadUrl: '/CompanyNotifies/UploadImage'
+                    }
+                })
+                .then(editor => {
+                   // 將 CKEditor 的內容同步回原本的 textarea
+                    editor.model.document.on('change:data', () => {
+                        // 同步內容回 textarea
+                        editor.model.document.on('change:data', () => {
+                            textarea.value = editor.getData();
+                            console.log(textarea.value);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    </script>
+}

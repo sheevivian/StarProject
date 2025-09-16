@@ -1,0 +1,39 @@
+.notify-item {
+    height: 24px;
+    line-height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+/* ¦Û­qµu¶Z°Êµe */
+@keyframes fadeInDownShort {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutDownShort {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+.animate__fadeInDownShort {
+    animation-name: fadeInDownShort !important;
+}
+
+.animate__fadeOutDownShort {
+    animation-name: fadeOutDownShort !important;
+}

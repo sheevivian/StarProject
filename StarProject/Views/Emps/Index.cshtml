@@ -262,13 +262,13 @@
 
                 <!-- 內容 -->
                 <tbody id="tableBody">
-                    @await Html.PartialAsync("_EmpRows", Model)
+                    @await Html.PartialAsync("_EmpRowsPartial", Model)
                 </tbody>
             </table>
 
             <!-- 分頁 -->
             <div id="pagination">
-                @await Html.PartialAsync("_Pagination", Model)
+                @await Html.PartialAsync("_PaginationPartial", Model)
             </div>
 
             <!-- 詳細內容 -->

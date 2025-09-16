@@ -1,4 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@font-face {
+    font-family: 'ChironGoRoundTC';
+    src: url('../fonts/ChironGoRoundTC-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
 
 @media print {
     body {
@@ -6,18 +12,29 @@
     }
 }
 
+/* 覆蓋 CKEditor 預設字型 */
 :root {
-    --ck-content-font-family: 'Lato';
+    --ck-content-font-family: 'ChironGoRoundTC', sans-serif;
+    --ck-content-font-size: 16px; /* 可以依需求調整 */
+    --ck-content-font-color: #000; /* 保持黑色 */
+    --ck-content-line-height: 1.6; /* 行高舒適 */
 }
 
-.main-container {
-    font-family: var(--ck-content-font-family);
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
+.text-distance {
+    letter-spacing: 5px; /* 正值：字母間距變大，負值：變小 */
+    text-align: center; /* 文字置中 */
 }
 
-.editor-container_classic-editor .editor-container__editor {
-    min-width: 795px;
-    max-width: 795px;
+
+.ck {
+    font-family: var(--ck-content-font-family) !important;
+}
+
+.ck-editor__editable {
+    min-height: 350px; /* 編輯區最小高度 */
+}
+
+figcaption {
+    min-height: 0 !important;
+    height: auto !important;
 }

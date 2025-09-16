@@ -9,9 +9,9 @@ public partial class CompanyNotify
 
     public string Title { get; set; } = null!;
 
-    public string Content { get; set; } = null!;
+    public string? Content { get; set; }
 
     public string Category { get; set; } = null!;
 
-    public string PublishDate { get; set; } = null!;
+    public DateTime PublishDate { get; set; }
 }

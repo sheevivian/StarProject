@@ -23,5 +23,5 @@ public partial class Promotion
 
     public bool Reuse { get; set; }
 
-    public string? UsesTime { get; set; }
+    public int? UsesTime { get; set; }
 }

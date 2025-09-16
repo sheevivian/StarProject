@@ -1,0 +1,205 @@
+﻿@model StarProject.ViewModels.PromotionFormViewModel
+@{
+    ViewData["Title"] = "新增優惠券";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+            <i class="fi fi-ss-money-wings me-2"></i>新增優惠券
+        </h4>
+    </div>
+
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <!-- 基本資訊 -->
+            <fieldset class="border rounded p-3 mb-3">
+                <legend class="w-auto px-2 fs-6 fw-bold">基本資訊</legend>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Name" class="form-label">
+                            優惠名稱 <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CouponCode" class="form-label">
+                            優惠代碼 <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="CouponCode" class="form-control" style="text-transform: uppercase;" />
+                        <span asp-validation-for="CouponCode" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Category" class="form-label">
+                            適用類別 <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Category" asp-items="Model.CategoryOptions" class="form-select">
+                            <option value="">請選擇</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Status" class="form-label">
+                            狀態 <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Status" asp-items="Model.StatusOptions" class="form-select">
+                            <option value="">請選擇</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 期間設定 -->
+            <fieldset class="border rounded p-3 mb-3">
+                <legend class="w-auto px-2 fs-6 fw-bold">有效期間</legend>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="StartDate" class="form-label">
+                            開始時間 <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="StartDate" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="StartDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="EndDate" class="form-label">
+                            結束時間 <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="EndDate" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="EndDate" class="text-danger small"></span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 使用限制 -->
+            <fieldset class="border rounded p-3 mb-3">
+                <legend class="w-auto px-2 fs-6 fw-bold">使用限制</legend>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">優惠券總數量限制</label>
+                        <div class="input-group">
+                            <input asp-for="Limit" class="form-control" placeholder="不填則無限制" />
+                            <span class="input-group-text">張</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">每人使用次數限制</label>
+                        <div class="input-group">
+                            <input asp-for="UsesTime" class="form-control" placeholder="不填則無限制" />
+                            <span class="input-group-text">次</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label d-block"></label>
+                        <div class="form-check">
+                            <input asp-for="Reuse" class="form-check-input" />
+                            <label asp-for="Reuse" class="form-check-label">
+                                會員可重複使用
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 優惠規則 -->
+            <fieldset class="border rounded p-3 mb-3">
+                <legend class="w-auto px-2 fs-6 fw-bold">優惠規則</legend>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="RuleType" class="form-label">
+                            折扣類型 <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="RuleType" asp-items="Model.RuleTypeOptions" class="form-select"
+                                onchange="updateDiscountHint(this.value)">
+                            <option value="">請選擇</option>
+                        </select>
+                        <span asp-validation-for="RuleType" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DiscountValue" class="form-label">
+                            折扣數值 <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="DiscountValue" class="form-control" />
+                            <span class="input-group-text" id="discountUnit">元</span>
+                        </div>
+                        <small id="discountHint" class="text-muted"></small>
+                        <span asp-validation-for="DiscountValue" class="text-danger small d-block"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="ConditionAmount" class="form-label">消費門檻</label>
+                        <div class="input-group">
+                            <span class="input-group-text">滿</span>
+                            <input asp-for="ConditionAmount" class="form-control" placeholder="0" />
+                            <span class="input-group-text">元</span>
+                        </div>
+                        <small class="text-muted">設定最低消費金額，0 或不填表示無門檻</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Description" class="form-label">
+                            優惠說明 <span class="text-danger">*</span>
+                        </label>
+                        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 按鈕 -->
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fa-solid fa-xmark me-2"></i>取消
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-check me-2"></i>儲存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function updateDiscountHint(ruleType) {
+            const unit = document.getElementById('discountUnit');
+            const hint = document.getElementById('discountHint');
+
+            switch(ruleType) {
+                case 'FixedAmount':
+                    unit.textContent = '元';
+                    hint.textContent = '輸入固定折扣金額';
+                    break;
+                case 'Percentage':
+                    unit.textContent = '%';
+                    hint.textContent = '輸入折扣百分比 (例：輸入 10 代表打 9 折)';
+                    break;
+                case 'FreeShipping':
+                    unit.textContent = '';
+                    hint.textContent = '免運費優惠，無需輸入數值';
+                    break;
+                default:
+                    unit.textContent = '';
+                    hint.textContent = '';
+            }
+        }
+    </script>
+}

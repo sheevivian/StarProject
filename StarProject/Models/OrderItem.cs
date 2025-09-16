@@ -32,8 +32,4 @@ public partial class OrderItem
     public string? Type { get; set; }
 
     public string? DiscountType { get; set; }
-
-    public virtual Product? ProductNoNavigation { get; set; }
-
-    public virtual Ticket? TicketNoNavigation { get; set; }
 }

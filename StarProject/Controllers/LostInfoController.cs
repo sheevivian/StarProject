@@ -201,7 +201,7 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
+			var paginationHtml = await RenderPartialViewToString("_Pagination", null);
 
 			return View(lostInfo);
         }
@@ -286,26 +286,7 @@ namespace StarProject.Controllers
 			ViewBag.PageSize = pageSize;
 
 			var tableHtml = await RenderPartialViewToString("_LostInfoRows", items);
-			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
-
-			return Json(new { tableHtml, paginationHtml });
-		}
-
-		public async Task<IActionResult> GetLostInfos(int page, int pageSize)
-		{
-			// 先組 IQueryable (全部資料，還沒篩選)
-			var query = _context.LostInfos.OrderByDescending(x => x.CreatedDate);
-			// 呼叫分頁工具
-			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
-
-			// 把分頁資訊丟給 View
-			ViewBag.Total = total;
-			ViewBag.TotalPages = totalPages;
-			ViewBag.Page = page;
-			ViewBag.PageSize = pageSize;
-
-			var tableHtml = await RenderPartialViewToString("_LostInfoRows", items);
-			var paginationHtml = await RenderPartialViewToString("_LostInfoPagination", null);
+			var paginationHtml = await RenderPartialViewToString("_Pagination", null);
 
 			return Json(new { tableHtml, paginationHtml });
 		}

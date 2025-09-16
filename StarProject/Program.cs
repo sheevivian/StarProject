@@ -8,7 +8,9 @@ using NETCore.MailKit.Extensions;
 using NETCore.MailKit.Infrastructure.Internal;
 using StarProject.Data;
 using StarProject.Models;
+using StarProject.Services;
 using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
+
 
 namespace StarProject
 {
@@ -18,34 +20,43 @@ namespace StarProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            // ApplicationDbContext (Identity ç”¨)
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()
+                ));
+
+            // StarProjectContext (æ¥­å‹™è³‡æ–™åº«)
+            builder.Services.AddDbContext<StarProjectContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("StarProject"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()
+                ));
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-			builder.Services.AddDbContext<StarProjectContext>(options =>
-			{
-				options.UseSqlServer(builder.Configuration.GetConnectionString("StarProject"));
-			});
-
-			builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            // Identity
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<IPromotionService, PromotionService>();
+
 
 			builder.Services.AddMailKit(config =>
 			{
 				config.UseMailKit(builder.Configuration.GetSection("Email").Get<MailKitOptions>());
 			});
 
-			// Cookie ÅçÃÒ
+			// Cookie é©—è­‰
 			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 	        .AddCookie(options =>
 	        {
-		        options.LoginPath = "/Login"; // ¥¼µn¤J·|¾É¦V¦¹­¶
+		        options.LoginPath = "/Login"; // æœªç™»å…¥æœƒå°Žå‘æ­¤é 
 	        });
 
-			/// ¥þ°ì³£­n¸g¹LÅçÃÒ¤~¯à¶i¤J
+			/// å…¨åŸŸéƒ½è¦ç¶“éŽé©—è­‰æ‰èƒ½é€²å…¥
 			builder.Services.AddAuthorization(options =>
 			{
 				options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -55,29 +66,26 @@ namespace StarProject
 
 
 			var app = builder.Build();
-
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
+
             {
                 app.UseMigrationsEndPoint();
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
-            //µn¤JÅçÃÒªº¥\¯à
+            //ç™»å…¥é©—è­‰çš„åŠŸèƒ½
 			app.UseAuthentication();
 			app.UseAuthorization();
 
-			app.UseAuthentication(); // ¦pªG¦³ Identity µn¤J¥\¯à
+			app.UseAuthentication(); // å¦‚æžœæœ‰ Identity ç™»å…¥åŠŸèƒ½
 			app.UseAuthorization();
 
 			app.UseAuthorization();

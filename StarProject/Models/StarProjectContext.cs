@@ -47,6 +47,8 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<News> News { get; set; }
 
+    public virtual DbSet<NewsImage> NewsImages { get; set; }
+
     public virtual DbSet<OrderC> OrderCs { get; set; }
 
     public virtual DbSet<OrderDelivery> OrderDeliveries { get; set; }
@@ -203,18 +205,13 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<CompanyNotify>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("CompanyNotify");
+            entity.HasKey(e => e.No);
 
-            entity.Property(e => e.Category)
-                .HasMaxLength(10)
-                .IsFixedLength();
-            entity.Property(e => e.Content).HasMaxLength(50);
-            entity.Property(e => e.PublishDate)
-                .HasMaxLength(10)
-                .IsFixedLength();
-            entity.Property(e => e.Title).HasMaxLength(50);
+            entity.ToTable("CompanyNotify");
+
+            entity.Property(e => e.Category).HasMaxLength(30);
+            entity.Property(e => e.PublishDate).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(100);
         });
 
         modelBuilder.Entity<CustomerService>(entity =>
@@ -284,7 +281,7 @@ public partial class StarProjectContext : DbContext
             entity.HasOne(d => d.DeptNoNavigation).WithMany(p => p.Emps)
                 .HasForeignKey(d => d.DeptNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Emps_Emps");
+                .HasConstraintName("FK_Emps_Dept");
 
             entity.HasOne(d => d.RoleNoNavigation).WithMany(p => p.Emps)
                 .HasForeignKey(d => d.RoleNo)
@@ -441,6 +438,20 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Title).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<NewsImage>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("NewsImage");
+
+            entity.Property(e => e.NewsNo).HasColumnName("News_No");
+
+            entity.HasOne(d => d.NewsNoNavigation).WithMany(p => p.NewsImages)
+                .HasForeignKey(d => d.NewsNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_NewsImage_News");
+        });
+
         modelBuilder.Entity<OrderC>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK_OrderCS_1");
@@ -591,10 +602,9 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.PaymentNo).HasColumnName("Payment_No");
-            entity.Property(e => e.RegisterdDate).HasColumnType("datetime");
+            entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasColumnName("status");
@@ -610,7 +620,6 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.PaymentNoNavigation).WithMany(p => p.Participants)
                 .HasForeignKey(d => d.PaymentNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Participant_PaymentTransaction");
 
             entity.HasOne(d => d.UsersNoNavigation).WithMany(p => p.Participants)
@@ -788,9 +797,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(20);
-            entity.Property(e => e.UsesTime)
-                .HasMaxLength(10)
-                .IsFixedLength();
         });
 
         modelBuilder.Entity<PromotionRule>(entity =>
@@ -799,8 +805,10 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("PromotionRule");
 
-            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.ConditionType).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.MemberLevel).HasMaxLength(50);
             entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
             entity.Property(e => e.RuleType)
                 .HasMaxLength(50)

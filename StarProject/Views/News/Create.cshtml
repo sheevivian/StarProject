@@ -1,0 +1,310 @@
+﻿@model StarProject.ViewModel.NewsVM
+
+@{
+    ViewData["Title"] = "官網公告新增";
+}
+
+<head>
+    <link href="~/css/textediting.css" rel="stylesheet" />
+    <style>
+        .btn-topbar {
+            --bs-btn-bg: rgb(250, 208, 72);
+            --bs-btn-border-color: rgb(250, 208, 72);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #ffc720;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        }
+
+        .btn-outline-back {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+
+        .ck-editor__editable {
+            min-height: 430px; /* 編輯區最小高度 */
+        }
+
+        #carouselExampleIndicators .carousel-inner {
+            height: 500px; /* 你想要的高度 */
+        }
+
+        #carouselExampleIndicators .carousel-inner .carousel-item img {
+            height: 100%;
+            width: auto; /* 保持比例 */
+            object-fit: cover; /* 填滿容器裁切 */
+        }
+
+        .card-header{
+            background-color:#2B4C8C;
+            color:#FFFFFF
+        }
+
+        .sortable-placeholder {
+            background: #f0f0f0;
+            border: 2px dashed #bbb;
+            height: 100px; /* 依你 li 的高度調整 */
+            border-radius: 8px;
+        }
+    </style>
+    
+</head>
+
+<h1 class="fw-bold">官網公告新增</h1>
+<hr />
+
+<div class="row">
+    <form asp-action="Create" method="post" enctype="multipart/form-data" style="width:100%">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row g-3 align-items-stretch">
+            <!-- 左側：基本資訊 + 圖片 -->
+            <div class="col-lg-6 d-flex flex-column gap-3">
+                <div class="card  h-100">
+                    <div class="card-header fw-bold fs-4"><strong>公告資訊</strong></div>
+                    <div class="card-body">
+                        <div class="form-group mb-2">
+                            <label asp-for="Title" class="control-label fw-bold fs-5"></label><span asp-validation-for="Title" class="text-danger ms-3"></span>
+                            <input asp-for="Title" class="form-control" />
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
+                            <select asp-for="Category" class="form-select">
+                                <option value="">請選擇</option>
+                                <option value="最新消息">最新消息</option>
+                                <option value="館區動態">館區動態</option>
+                                <option value="活動資訊">活動資訊</option>
+                                <option value="最新天象">最新天象</option>
+                                <option value="觀測公告">觀測公告</option>
+                                <option value="系統公告">系統公告</option>
+                                <option value="其他消息">其他消息</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-2">
+                            <label asp-for="PublishDate" class="control-label fw-bold fs-5"></label><span asp-validation-for="PublishDate" class="text-danger ms-3"></span>
+                            <input asp-for="PublishDate" class="form-control" />
+                        </div>
+                        
+                        <div class="form-group mb-2">
+                            <label asp-for="Content" class="control-label fw-bold fs-5"></label><span asp-validation-for="Content" class="text-danger ms-3"></span>
+                            <textarea asp-for="Content" id="editor" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：圖片區 -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header fw-bold fs-4"><strong>公告圖片</strong></div>
+                    <div class="card-body d-flex flex-column">
+                        <!-- 多圖上傳 -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold fs-5">上傳圖片</label>
+                            <input asp-for="ImageFiles" type="file" class="form-control" multiple id="imageFilesInput" />
+                        </div>
+
+                        <!-- Carousel 預覽 + 拖曳排序 -->
+                        <div class="mb-3">
+                            <div id="carouselExampleIndicators" class="carousel slide">
+                                <div class="carousel-indicators" id="carouselIndicators">
+                                    <!-- 動態生成 indicator -->
+                                </div>
+                                <div class="carousel-inner" id="carouselInner">
+                                    <!-- 動態生成 carousel-item -->
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">上一張</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">下一張</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 縮圖拖曳區 -->
+                        <div class="mb-2">
+                            <ul id="imagePreviewList" class="list-unstyled d-flex gap-2">
+                                <!-- 動態生成縮圖 -->
+                            </ul>
+                            <small id="dragTip" class="text-muted" style="display:none;">可拖曳排序圖片</small>
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
+            <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
+                <i class="fa-solid fa-plus"></i>新增
+            </button>
+            <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
+        </div>
+    </form>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script>
+        const imageFilesInput = document.getElementById('imageFilesInput');
+        const carouselInner = $('#carouselInner');
+        const carouselIndicators = $('#carouselIndicators');
+        const imagePreviewList = $('#imagePreviewList');
+        let fileList = []; // 存檔案 + previewUrl
+
+        // 選檔
+        imageFilesInput.addEventListener('change', () => {
+            const files = Array.from(imageFilesInput.files);
+            files.forEach(file => {
+                fileList.push({
+                    file: file,
+                    previewUrl: URL.createObjectURL(file)
+                });
+            });
+            updatePreview();
+        });
+
+        function updatePreview() {
+            carouselInner.empty();
+            carouselIndicators.empty();
+            imagePreviewList.empty();
+
+            if(fileList.length > 0){
+                $('#dragTip').show();
+            } else {
+                $('#dragTip').hide();
+            }
+
+            fileList.forEach((obj, index) => {
+                const url = obj.previewUrl;
+
+                // 縮圖
+                const li = $(`
+                    <li class="position-relative d-inline-block me-2" style="width:100px;height:80px;" data-index="${index}">
+                        <img src="${url}" class="img-thumbnail w-100 h-100" style="object-fit:cover;">
+                        <button type="button" class="btn-close btn-close-white position-absolute remove-btn" style="top:2px;right:2px;"></button>
+                    </li>
+                `);
+
+                // 刪除縮圖
+                li.find('.remove-btn').click(() => {
+                    fileList.splice(index, 1);
+                    updateFileInput();
+                    updatePreview();
+                });
+
+                imagePreviewList.append(li);
+
+                // Carousel indicators
+                const indicator = $(`<button type="button" data-bs-target="#carouselExampleIndicators"
+                    data-bs-slide-to="${index}" aria-label="Slide ${index+1}"></button>`);
+                if(index === 0) indicator.addClass('active').attr('aria-current','true');
+                carouselIndicators.append(indicator);
+
+                // Carousel item
+                const item = $(`
+                    <div class="carousel-item ${index===0?'active':''}">
+                        <img src="${url}" class="d-block w-100 h-100" style="object-fit:cover;">
+                    </div>
+                `);
+                carouselInner.append(item);
+            });
+
+            updateOrderInput();
+        }
+
+        // 更新 hidden input
+        function updateOrderInput(){
+            $("input[name='ImageOrderNos']").remove();
+            fileList.forEach((obj, i) => {
+                $('<input>',{
+                    type:'hidden',
+                    name:'ImageOrderNos',
+                    value: i + 1
+                }).appendTo('form');
+            });
+        }
+
+        // 將 fileList 同步回 input
+        function updateFileInput(){
+            const dataTransfer = new DataTransfer();
+            fileList.forEach(obj => {
+                dataTransfer.items.add(obj.file);
+            });
+            imageFilesInput.files = dataTransfer.files;
+        }
+
+        // 拖曳排序
+        imagePreviewList.sortable({
+            placeholder: "sortable-placeholder", // 拖曳時顯示的佔位樣式
+            opacity: 0.8,                        // 拖曳中的透明度
+            cursor: "move",                      // 游標樣式
+            tolerance: "pointer",                // 判斷位置更直覺
+            update: function(){
+                const newOrder = [];
+                imagePreviewList.children('li').each((i, li) => {
+                    const idx = $(li).data('index');
+                    newOrder.push(fileList[idx]);
+                });
+                fileList = newOrder;
+                updateFileInput();
+                updatePreview();
+            }
+        });
+
+    </script>
+
+    <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const textarea = document.querySelector('#editor');
+
+            ClassicEditor
+                .create(textarea, {
+                    language: 'zh',
+                    toolbar: [
+                        'heading', '|',
+                        'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
+                        'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
+                        'undo', 'redo'
+                    ],
+                    ckfinder: {
+                        uploadUrl: '/CompanyNotifies/UploadImage'
+                    }
+                })
+                .then(editor => {
+                   // 將 CKEditor 的內容同步回原本的 textarea
+                    editor.model.document.on('change:data', () => {
+                        // 同步內容回 textarea
+                        editor.model.document.on('change:data', () => {
+                            textarea.value = editor.getData();
+                            console.log(textarea.value);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    </script>
+}

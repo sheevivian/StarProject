@@ -78,11 +78,11 @@ img {
     border-radius: 15px;
 }
 
-    .btn-color:hover {
-        /* border: 1px solid black; */
-        background-color: #bbe3f3;
-        /* color:#FFFFFF */
-    }
+.btn-color:hover {
+    /* border: 1px solid black; */
+    background-color: #bbe3f3;
+    /* color:#FFFFFF */
+}
 
 .selectColor {
     color: #EFF7FE;

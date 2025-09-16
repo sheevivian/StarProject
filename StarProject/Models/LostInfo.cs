@@ -24,4 +24,6 @@ public partial class LostInfo
     public string? OwnerName { get; set; }
 
     public string? OwnerPhone { get; set; }
+
+    public string Category { get; set; } = null!;
 }

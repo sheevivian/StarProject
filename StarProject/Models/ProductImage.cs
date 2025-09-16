@@ -13,5 +13,7 @@ public partial class ProductImage
 
     public int No { get; set; }
 
+    public int No { get; set; }
+
     public virtual Product ProductNoNavigation { get; set; } = null!;
 }

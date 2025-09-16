@@ -266,6 +266,7 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
+            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
             entity.Property(e => e.IdNumber).HasMaxLength(50);
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
@@ -645,9 +646,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-
             entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8070DBC6B");
-
 
             entity.ToTable("ProCategory");
 
@@ -709,6 +708,7 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("ProductImage");
 
+            entity.Property(e => e.No).ValueGeneratedOnAdd();
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
 
             entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductImages)
@@ -786,19 +786,22 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(20);
-            entity.Property(e => e.UsesTime)
-                .HasMaxLength(10)
-                .IsFixedLength();
+            entity.Property(e => e.Limit).HasColumnName("Limit").HasColumnType("int");
+            entity.Property(e => e.Reuse).HasColumnName("Reuse").HasColumnType("bit");
+            entity.Property(e => e.UsesTime).HasColumnName("UsesTime").HasColumnType("int");
+
         });
 
         modelBuilder.Entity<PromotionRule>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("PromotionRule");
+            // 將 PromotionNo 設為主鍵（即使資料庫中沒有真正的主鍵約束）
+            entity.HasKey(e => e.PromotionNo);
 
-            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.ToTable("PromotionRule");
+            entity.Property(e => e.ConditionType).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.MemberLevel).HasMaxLength(50);
             entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
             entity.Property(e => e.RuleType)
                 .HasMaxLength(50)

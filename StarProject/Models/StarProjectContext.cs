@@ -414,7 +414,6 @@ public partial class StarProjectContext : DbContext
         {
             entity.HasKey(e => e.No);
 
-            entity.Property(e => e.No).ValueGeneratedNever();
             entity.Property(e => e.EmpNo)
                 .HasMaxLength(50)
                 .HasColumnName("Emp_No");

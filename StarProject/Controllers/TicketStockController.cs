@@ -8,6 +8,7 @@ using StarProject.Models;
 using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -129,6 +130,12 @@ namespace StarProject.Controllers
             return View(ticketStock);
         }
 
+		[HttpGet]
+		public IActionResult Create()
+		{
+			return View();
+		}
+
 		// 票券庫存建立-多筆(GET)
 		// GET: TicketStock/DownloadTemplate
 		[HttpGet]
@@ -173,22 +180,33 @@ namespace StarProject.Controllers
 				{
 					var currentRow = sheet.GetRow(row);
 					if (currentRow == null) continue;
+
+					string? ticketNoStr = currentRow.GetCell(0)?.ToString();
+					int.TryParse(ticketNoStr, out int ticketNo);
+
+					string? dateStr = currentRow.GetCell(1)?.ToString();
+					DateTime date;
+
+					DateTime.TryParseExact(dateStr, "yyyyMMdd",
+						CultureInfo.InvariantCulture,
+						DateTimeStyles.None,
+						out date);
+
+					string? stockStr = currentRow.GetCell(2)?.ToString();
+					int.TryParse(stockStr, out int stock);
+
 					var ticketstock = new TicketStock
 					{
-						//No = lastNo,
-						//Name = currentRow.GetCell(0)?.ToString(),
-						//ProCategoryNo = currentRow.GetCell(1)?.ToString(),
-						//Price = decimal.TryParse(currentRow.GetCell(2)?.ToString(), out var price) ? price : 0,
-						//Status = currentRow.GetCell(3)?.ToString(),
-						//ReleaseDate = DateTime.TryParse(currentRow.GetCell(4)?.ToString(), out var dt) ? dt : DateTime.Now,
-						//UpdateDate = DateTime.Now
+						TicketNo = ticketNo,
+						Date = date,
+						Stock = stock,
 					};
-					products.Add(product);
+					ticketstocks.Add(ticketstock);
 				}
-				_context.Products.AddRange(products);
+				_context.TicketStocks.AddRange(ticketstocks);
 				await _context.SaveChangesAsync();
 			}
-			TempData["Success"] = $"成功匯入 {products.Count} 筆資料";
+			TempData["Success"] = $"成功匯入 {ticketstocks.Count} 筆資料";
 			return RedirectToAction("Index");
 		}
 

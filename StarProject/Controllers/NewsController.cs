@@ -158,6 +158,9 @@ namespace StarProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, NewsVM model)
         {
+			var original = await _context.News.AsNoTracking().FirstOrDefaultAsync(x => x.No == id);
+			if (original == null) return NotFound();
+
 			if (id != model.No)
 			{
 				return NotFound();
@@ -181,7 +184,7 @@ namespace StarProject.Controllers
 					news.Content = model.Content;
 					news.Category = model.Category;
 					news.PublishDate = model.PublishDate;
-					news.CreatedDate = model.CreatedDate;
+					news.CreatedDate = original.CreatedDate;
 
                     // 2️⃣ 刪除舊圖 (優先)
                     if (model.DeleteImageIds != null && model.DeleteImageIds.Any())

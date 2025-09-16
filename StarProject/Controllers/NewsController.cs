@@ -183,62 +183,62 @@ namespace StarProject.Controllers
 					news.PublishDate = model.PublishDate;
 					news.CreatedDate = model.CreatedDate;
 
-					// 2️⃣ 更新圖片 (新增 + 更新順序)
-					if (model.ImageFiles != null && model.ImageFiles.Count > 0)
-					{
-						int maxOrder = news.NewsImages.Any()
-							   ? news.NewsImages.Max(x => x.OrderNo)
-							   : 0;
+                    // 2️⃣ 刪除舊圖 (優先)
+                    if (model.DeleteImageIds != null && model.DeleteImageIds.Any())
+                    {
+                        var toDelete = news.NewsImages
+                            .Where(img => model.DeleteImageIds.Contains(img.No))
+                            .ToList();
+                        _context.NewsImages.RemoveRange(toDelete);
+                    }
 
-						for (int i = 0; i < model.ImageFiles.Count; i++)
-						{
-							var file = model.ImageFiles[i];
-							if (file.Length > 0)
-							{
-								try
-								{
-									string imageUrl = await ImgUploadHelper.UploadToImgBB(file);
+                    // 3️⃣ 更新舊圖順序
+                    if (model.ImageOrderMap != null && model.ImageOrderMap.Count > 0)
+                    {
+                        foreach (var kv in model.ImageOrderMap) // key=ImageId, value=OrderNo
+                        {
+                            var img = news.NewsImages.FirstOrDefault(x => x.No == kv.Key);
+                            if (img != null)
+                            {
+                                img.OrderNo = kv.Value;
+                            }
+                        }
+                    }
 
-									var newsImage = new NewsImage
-									{
-										NewsNo = news.No,
-										Image = imageUrl,
-										OrderNo = ++maxOrder
-									};
-									_context.NewsImages.Add(newsImage);
-								}
-								catch (Exception ex)
-								{
-									ModelState.AddModelError("", $"圖片 {file.FileName} 上傳失敗: {ex.Message}");
-								}
-							}
-						}
-					}
+                    // 4️⃣ 上傳新圖
+                    if (model.ImageFiles != null && model.ImageFiles.Count > 0)
+                    {
+                        // 取得目前最大 OrderNo
+                        int maxOrder = news.NewsImages.Any() ? news.NewsImages.Max(x => x.OrderNo) : 0;
 
-					// 3️⃣ 更新舊圖片順序
-					if (model.ImageOrderMap != null && model.ImageOrderMap.Count > 0)
-					{
-						foreach (var kv in model.ImageOrderMap) // key=ImageId, value=OrderNo
-						{
-							var img = news.NewsImages.FirstOrDefault(x => x.No == kv.Key);
-							if (img != null)
-							{
-								img.OrderNo = kv.Value;
-							}
-						}
-					}
+                        for (int i = 0; i < model.ImageFiles.Count; i++)
+                        {
+                            var file = model.ImageFiles[i];
+                            if (file.Length > 0)
+                            {
+                                try
+                                {
+                                    string imageUrl = await ImgUploadHelper.UploadToImgBB(file);
 
-					// 4️⃣ 刪除圖片
-					if (model.DeleteImageIds != null && model.DeleteImageIds.Any())
-					{
-						var toDelete = news.NewsImages
-										   .Where(img => model.DeleteImageIds.Contains(img.No))
-										   .ToList();
-						_context.NewsImages.RemoveRange(toDelete);
-					}
+                                    var newsImage = new NewsImage
+                                    {
+                                        NewsNo = news.No,
+                                        Image = imageUrl,
+                                        OrderNo = ++maxOrder
+                                    };
+                                    _context.NewsImages.Add(newsImage);
+                                }
+                                catch (Exception ex)
+                                {
+                                    ModelState.AddModelError("", $"圖片 {file.FileName} 上傳失敗: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
 
-					await _context.SaveChangesAsync();
-				}
+                    // 5️⃣ 存檔
+                    await _context.SaveChangesAsync();
+                }
 				catch (DbUpdateConcurrencyException)
 				{
 					if (!NewsExists(model.No))

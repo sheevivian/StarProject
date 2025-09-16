@@ -1,5 +1,6 @@
-﻿@using StarProject.DTOs.UsersDTOs
+@using StarProject.DTOs.UsersDTOs
 @model List<UsersDTO>
+
 @{
     ViewData["Title"] = "Index";
 }
@@ -15,6 +16,7 @@
             <th>@Html.DisplayNameFor(model => model[0].Email)</th>
             <th>@Html.DisplayNameFor(model => model[0].Address)</th>
             <th>@Html.DisplayNameFor(model => model[0].StatusText)</th>
+
             <th></th>
         </tr>
     </thead>

@@ -5,11 +5,13 @@ using StarProject.Attributes;
 using StarProject.Data;
 using StarProject.Models;
 using StarProject.Services;
+using OfficeOpenXml;
+using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
+
 
 
 namespace StarProject
 {
-
 	public class Program
 	{
 		public static void Main(string[] args)
@@ -64,6 +66,16 @@ namespace StarProject
 				});
 
 			builder.Services.AddAuthorization();
+
+      //除錯幫助
+      builder.Logging.AddConsole();
+			builder.Logging.SetMinimumLevel(LogLevel.Information);
+          
+			//Excel需要
+      ExcelPackage.License.SetNonCommercialOrganization("StarProject Dev Team");
+          
+			//MailService
+			builder.Services.AddTransient<MailService>();
 
 			var app = builder.Build();
 			// Configure the HTTP request pipeline.

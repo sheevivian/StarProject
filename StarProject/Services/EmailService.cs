@@ -1,6 +1,7 @@
 ﻿using MailKit.Net.Smtp;
-using MimeKit;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace StarProject.Services
 {
@@ -51,7 +52,7 @@ namespace StarProject.Services
 				message.Body = bodyBuilder.ToMessageBody();
 
 				using var client = new SmtpClient();
-				await client.ConnectAsync(_emailSettings.Server, _emailSettings.Port, _emailSettings.Security);
+				await client.ConnectAsync(_emailSettings.Server, 587, SecureSocketOptions.StartTls); 
 				await client.AuthenticateAsync(_emailSettings.Account, _emailSettings.Password);
 				await client.SendAsync(message);
 				await client.DisconnectAsync(true);

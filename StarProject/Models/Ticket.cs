@@ -25,6 +25,8 @@ public partial class Ticket
 
     public DateTime? UpdateDate { get; set; }
 
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
     public virtual TicCategory TicCategoryNoNavigation { get; set; } = null!;
 
     public virtual ICollection<TicketStock> TicketStocks { get; set; } = new List<TicketStock>();

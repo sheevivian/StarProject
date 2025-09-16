@@ -1,30 +1,171 @@
 ﻿@using Microsoft.AspNetCore.Html
 @model IEnumerable<StarProject.Models.Participant>
-@{
-    // 由 ListByEvent 傳入
-    int eventId = ViewBag.EventId ?? 0;
+@Html.AntiForgeryToken()  <!-- ✅ 加這行，供前端抓 Token -->
 
-    // 檢查是否有資料
+<style>
+    .table > thead > tr > th {
+        font-size: 18px !important;
+        color: #FFFFFF;
+        background-color: #2B4C8C;
+        letter-spacing: .2rem;
+    }
+
+    .table > tbody > tr.active > td {
+        background-color: rgba(223,245,255,.521) !important;
+    }
+
+    .table > tbody > tr > td {
+        border-color: #D5D8DB !important;
+    }
+
+    .table tbody tr:hover td {
+        background-color: #F4F1FF !important;
+    }
+
+    .table-rounded {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table {
+        border-collapse: separate !important;
+        border-spacing: 0;
+        border-radius: 20px;
+        overflow: hidden;
+        vertical-align: middle;
+    }
+
+    .btn-group .btn {
+        border-radius: 0;
+    }
+
+    .btn-group .btn:first-child {
+        border-radius: 0.375rem 0 0 0.375rem;
+    }
+
+    .btn-group .btn:last-child {
+        border-radius: 0 0.375rem 0.375rem 0;
+    }
+
+    .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .15rem .5rem;
+        font-size: .875rem;
+        line-height: 1.1;
+        border: 1px solid currentColor;
+        border-radius: 2px; /* 非膠囊，方角 */
+        background: transparent; /* 透明底 */
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .status-chip .dot {
+        width: .5rem;
+        height: .5rem;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: .85;
+        display: inline-block;
+    }
+
+    .status-success {
+        color: #198754;
+    }
+    /* Bootstrap success 綠 */
+    .status-pending {
+        color: #6c757d;
+    }
+    /* 次要灰 */
+    .status-cancel {
+        color: #dc3545;
+    }
+    /* Bootstrap danger 紅 */
+
+    /* 去除所有直向邊線（欄位分隔線） */
+    .table > :not(caption) > * > * {
+        border-left-width: 0 !important;
+        border-right-width: 0 !important;
+    }
+
+    /* 只保留水平底線（可自行調淡或拿掉） */
+    .table thead th,
+    .table tbody td {
+        border-bottom: 1px solid rgba(0,0,0,.08); /* 想再淡一點就改 .05 */
+    }
+
+    /* 表頭不要上邊線 */
+    .table thead th {
+        border-top: 0 !important;
+    }
+
+    /* 只拿掉 table 本身的外框線，外層 .table-responsive 的邊框保留 */
+    #participantsTableContainer .table {
+        border: 0 !important; /* 防止出現整圈外框 */
+        border-radius: 0 !important;
+        overflow: visible !important;
+    }
+
+    /* 邊緣那一圈線也一併消失（保留列與列之間的水平分隔線） */
+    #participantsTableContainer .table > :not(caption) > * > * {
+        border-left-width: 0 !important;
+        border-right-width: 0 !important;
+    }
+
+    /* 表頭不要上邊線（避免上緣再畫一條） */
+    #participantsTableContainer thead th {
+        border-top: 0 !important;
+    }
+
+    /* 最後一列不要底線，避免和外框的下邊線疊成雙線 */
+    #participantsTableContainer tbody tr:last-child td {
+        border-bottom: 0 !important;
+    }
+
+    /* 保留一般列與列之間的水平分隔線（若你想要） */
+    #participantsTableContainer tbody td {
+        border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+
+
+</style>
+
+@{
+    int eventId = ViewBag.EventId ?? 0;
     bool hasRows = Model != null && Model.Any();
 
-    // 狀態→badge
-    Func<string?, IHtmlContent> badge = (s) =>
+    Func<string?, IHtmlContent> statusChip = (s) =>
     {
-        var zh = s switch
+        string label, cls;
+        switch (s)
         {
-            "Success" or "報名成功" => "報名成功",
-            "Pending" => "待處理",
-            "Canceled" or "Cancelled" => "報名取消已退款",
-            _ => s ?? "未知狀態"
-        };
-        var cls = s switch
-        {
-            "Success" or "報名成功" => "badge bg-success",
-            "Pending" => "badge bg-secondary",
-            "Canceled" or "Cancelled" => "badge bg-danger",
-            _ => "badge bg-light text-dark"
-        };
-        return new HtmlString($"<span class=\"{cls}\">{zh}</span>");
+            case "Success":
+            case "報名成功":
+                label = "報名成功"; cls = "status-success"; break;
+            case "Pending":
+                label = "待處理"; cls = "status-pending"; break;
+            case "Canceled":
+            case "Cancelled":
+                label = "報名取消已退款"; cls = "status-cancel"; break;
+            default:
+                label = s ?? "未知狀態"; cls = "status-pending"; break;
+        }
+
+        // 為避免萬一 label 含特殊字元，先做 HTML encode
+        var safeLabel = System.Net.WebUtility.HtmlEncode(label);
+
+        var html = $"<span class=\"status-chip {cls}\">" +
+                   $"<i class=\"dot\"></i><span>{safeLabel}</span>" +
+                   $"</span>";
+
+        return new HtmlString(html);
     };
 }
 
@@ -37,7 +178,7 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
     <div class="d-flex align-items-center gap-2">
         <button type="button" id="btnBulkDelete" class="btn btn-sm btn-outline-danger">
-            <i class="bi bi-trash"></i> 批次刪除
+            <i class="bi bi-trash"></i> 多筆刪除
         </button>
         <small class="text-muted">請先勾選要操作的項目</small>
     </div>
@@ -47,20 +188,20 @@
 </div>
 
 <div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle mb-0">
-        <thead class="table-light">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-center">
             <tr>
-                <th style="width:40px">
+                <th style="width:60px ">
                     <input type="checkbox" id="checkAll" data-check-all />
                 </th>
                 <th style="width:160px">報名日期</th>
                 <th style="width:160px">最後更新</th>
                 <th>會員姓名</th>
-                <th style="width:120px">狀態</th>
-                <th style="width:200px">操作</th>
+                <th style="width:160px">狀態</th>
+                <th style="width:220px">操作</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="text-center">
             @if (!hasRows)
             {
                 <tr>
@@ -101,22 +242,21 @@
                                 <div class="small text-muted">@p.UsersNoNavigation.Email</div>
                             }
                         </td>
-                        <td>@badge(p.Status)</td>
+                        <td>@statusChip(p.Status)</td>
                         <td>
-                            <div class="btn-group" role="group">
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-secondary js-resend-mail"
-                                        data-id="@p.No"
-                                        title="重新發送報名確認信">
-                                    <i class="bi bi-envelope-arrow-up"></i>
-                                </button>
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-danger js-row-delete"
-                                        data-id="@p.No"
-                                        title="刪除此報名資料">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-sm me-1 js-resend"
+                                    data-id="@p.No"
+                                    title="重寄報名確認信">
+                                <i class="bi bi-arrow-repeat me-1"></i> 重寄確認信
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm js-row-delete"
+                                    data-id="@p.No"
+                                    title="刪除這筆報名">
+                                <i class="bi bi-trash3 me-1"></i> 刪除
+                            </button>
                         </td>
                     </tr>
                 }
@@ -125,146 +265,3 @@
     </table>
 </div>
 
-<script>
-    (function() {
-        'use strict';
-
-        console.log('_ParticipantsTable script loaded');
-
-        // 重寄 Mail 功能
-        document.addEventListener('click', async function(e) {
-            const btn = e.target.closest('.js-resend-mail');
-            if (!btn) return;
-
-            const participantId = btn.dataset.id;
-            if (!participantId) {
-                alert('找不到參與者ID');
-                return;
-            }
-
-            // 防止重複點擊
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="spinner-border spinner-border-sm"></i>';
-
-            try {
-                const tokenEl = document.querySelector('#bulkForm input[name="__RequestVerificationToken"]');
-                if (!tokenEl) {
-                    throw new Error('找不到防偽Token');
-                }
-
-                const formData = new FormData();
-                formData.append('__RequestVerificationToken', tokenEl.value);
-                formData.append('id', participantId);
-
-                const response = await fetch('/Participants/ResendSignup', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // 成功提示
-                    btn.innerHTML = '<i class="bi bi-check-circle text-success"></i>';
-                    btn.classList.remove('btn-outline-secondary');
-                    btn.classList.add('btn-success');
-
-                    setTimeout(() => {
-                        btn.innerHTML = originalHtml;
-                        btn.classList.remove('btn-success');
-                        btn.classList.add('btn-outline-secondary');
-                        btn.disabled = false;
-                    }, 3000);
-
-                    // 可選：顯示成功提示
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '發送成功',
-                            text: '報名確認信已重新發送',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    }
-                } else {
-                    throw new Error(result.message || '發送失敗');
-                }
-
-            } catch (error) {
-                console.error('重寄郵件失敗:', error);
-                alert('重寄郵件失敗: ' + (error.message || error));
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-            }
-        });
-
-        // 全選/取消全選功能
-        document.addEventListener('change', function(e) {
-            const target = e.target;
-
-            // 全選 checkbox
-            if (target.matches('#checkAll[data-check-all]')) {
-                const isChecked = target.checked;
-                const rowCheckboxes = document.querySelectorAll('input[name="ids"]');
-                rowCheckboxes.forEach(cb => {
-                    cb.checked = isChecked;
-                });
-                target.indeterminate = false;
-                return;
-            }
-
-            // 單行 checkbox - 更新全選狀態
-            if (target.matches('input[name="ids"]')) {
-                const allCheckboxes = Array.from(document.querySelectorAll('input[name="ids"]'));
-                const checkedCount = allCheckboxes.filter(cb => cb.checked).length;
-                const checkAllBox = document.querySelector('#checkAll[data-check-all]');
-
-                if (checkAllBox) {
-                    if (checkedCount === 0) {
-                        checkAllBox.checked = false;
-                        checkAllBox.indeterminate = false;
-                    } else if (checkedCount === allCheckboxes.length) {
-                        checkAllBox.checked = true;
-                        checkAllBox.indeterminate = false;
-                    } else {
-                        checkAllBox.checked = false;
-                        checkAllBox.indeterminate = true;
-                    }
-                }
-            }
-        });
-
-        console.log('_ParticipantsTable script setup complete');
-    })();
-</script>
-
-<style>
-    .table th {
-        border-top: none;
-        font-weight: 600;
-        background-color: #f8f9fa !important;
-    }
-
-    .btn-group .btn {
-        border-radius: 0;
-    }
-
-        .btn-group .btn:first-child {
-            border-radius: 0.375rem 0 0 0.375rem;
-        }
-
-        .btn-group .btn:last-child {
-            border-radius: 0 0.375rem 0.375rem 0;
-        }
-
-    .table-responsive {
-        border-radius: 0.5rem;
-        overflow: hidden;
-        border: 1px solid #dee2e6;
-    }
-</style>

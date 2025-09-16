@@ -11,13 +11,21 @@
 
 <!-- 標題 & 匯出「全部」 -->
 <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="fw-bold text-white">報名管理</h1>
-    <div class="d-flex gap-2">
+    <h1 class="fw-bold text-black">報名管理</h1>
+    <div class="d-flex gap-2 flex-wrap">
         <a class="btn btn-warning text-dark" asp-controller="Participants" asp-action="Create">
             <i class="fi fi-sr-alien"></i> 新增
         </a>
-        <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportExcel">匯出全部 Excel</a>
-        <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportCsv">匯出全部 CSV</a>
+
+        <!-- 跟 _ParticipantsTable 風格一致：細框、btn-sm、方角、帶圖示 -->
+        <a class="btn btn-outline-success btn-export"
+           asp-controller="Participants" asp-action="ExportExcel">
+            <i class="fa-solid fa-file-excel me-1"></i> 匯出全部 Excel
+        </a>
+        <a class="btn btn-outline-primary btn-export"
+           asp-controller="Participants" asp-action="ExportCsv">
+            <i class="fa-solid fa-file-csv me-1"></i> 匯出全部 CSV
+        </a>
     </div>
 </div>
 
@@ -111,25 +119,26 @@
 <div class="modal fade" id="participantsModal" tabindex="-1" aria-labelledby="participantsModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header d-flex justify-content-between align-items-center">
                 <div>
                     <h4 class="modal-title fw-bold mb-1" id="participantsModalLabel">參與者名單</h4>
                     <div class="small text-muted" id="participantsModalSub">活動編號：<span id="modalEventId">-</span></div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
-            </div>
 
-            <div class="modal-body">
-                <div class="d-flex align-items-center gap-2 mb-3">
+                <!-- 匯出按鈕區 -->
+                <div class="d-flex gap-2">
                     <a class="btn btn-outline-primary" id="btnExportCsv" target="_blank" rel="noopener">
                         <i class="fa-solid fa-file-csv me-1"></i> 匯出 CSV（本活動）
                     </a>
                     <a class="btn btn-outline-success" id="btnExportExcel" target="_blank" rel="noopener">
                         <i class="fa-solid fa-file-excel me-1"></i> 匯出 Excel（本活動）
                     </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
                 </div>
+            </div>
 
-                <div id="participantsTableContainer" class="border rounded p-2 position-relative" style="min-height:180px">
+            <div class="modal-body">
+                <div id="participantsTableContainer" class="position-relative" style="min-height:180px">
                     <div class="text-center text-muted py-5" id="tableLoading">
                         <div class="spinner-border spinner-border-sm me-2" role="status"></div>
                         載入中…
@@ -142,12 +151,8 @@
 
 @section Styles {
     <style>
-        body {
-            background: #161616;
-        }
-
         h1 {
-            color: #fff;
+            color: #000000;
         }
 
         .wrapper {
@@ -242,6 +247,106 @@
         #participantsTableContainer table th {
             vertical-align: middle;
         }
+        /* ===== 按鈕強化 ===== */
+        .btn-outline-primary.btn-sm i,
+        .btn-outline-danger.btn-sm i {
+            pointer-events: none;
+        }
+
+        .btn-outline-primary.btn-sm:is(:hover,:focus) {
+            box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+        }
+
+        .btn-outline-danger.btn-sm:is(:hover,:focus) {
+            box-shadow: 0 0 0 .2rem rgba(220,53,69,.12);
+        }
+
+        /* 載入中狀態 */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: .8;
+        }
+
+        .btn-loading > i {
+            visibility: hidden;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            animation: spin .6s linear infinite;
+        }
+
+        /* 抖動動畫（錯誤時套用 .shake） */
+        @@keyframes shake {
+            10%, 90% {
+                transform: translateX(-1px);
+            }
+
+            20%, 80% {
+                transform: translateX( 2px);
+            }
+
+            30%, 50%, 70% {
+                transform: translateX(-4px);
+            }
+
+            40%, 60% {
+                transform: translateX( 4px);
+            }
+        }
+
+        .shake {
+            animation: shake .45s ease both;
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            .shake {
+                animation: none !important;
+            }
+        }
+
+        /* 匯出鈕一致化（可選） */
+        #btnExportCsv, #btnExportExcel {
+            white-space: nowrap;
+        }
+
+        /* 與 _ParticipantsTable 對齊的小顆細框按鈕 */
+        .btn-export {
+            display: inline-flex;
+            align-items: center; /* 垂直置中 */
+            justify-content: center; /* 內容置中 */
+            gap: .5rem; /* 圖示與文字間距 */
+            font-size: 1rem; /* 比 btn-sm 大一號，接近黃色按鈕 */
+            font-weight: 600;
+            padding: .48rem .9rem; /* 視覺高度與黃色按鈕差不多 */
+            border-radius: var(--bs-border-radius-lg); /* 更圓，但不是膠囊 */
+            white-space: nowrap; /* 不換行 */
+            line-height: 1.2;
+        }
+
+        .btn-export i {
+            pointer-events: none;
+                transform: translateY(0.5px);
+        }
+
+        /* hover/focus 陰影一致 */
+        .btn-outline-success.btn-sm:is(:hover, :focus) {
+            box-shadow: 0 0 0 .2rem rgba(25,135,84,.15);
+        }
+
+        .btn-outline-primary.btn-sm:is(:hover, :focus) {
+            box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+        }
+
     </style>
 }
 
@@ -275,6 +380,17 @@
             modalEl.addEventListener('hidden.bs.modal', () => {
                 cleanupModalArtifacts();
             });
+
+            // ✅ 新增：重寄確認信的 API 路徑
+            const resendUrl = '@Url.Action("ResendSignup", "Participants")';
+
+            // 小工具：切換按鈕的 loading 狀態
+            function setBtnLoading(btn, on) {
+            if (!btn) return;
+            if (on) { btn.classList.add('btn-loading'); btn.setAttribute('disabled', 'disabled'); }
+            else { btn.classList.remove('btn-loading'); btn.removeAttribute('disabled'); }
+        }
+
 
             // 卡片點擊 → 顯示 Modal + 載入名單
             document.addEventListener('click', function (e) {
@@ -458,6 +574,120 @@
 
                 await performBulkDelete(eventId, [id]);
             });
+
+                    // 事件：重寄確認信（在 Partial 裡面的 .js-resend）
+        document.addEventListener('click', async function (e) {
+            const btn = e.target.closest('.js-resend');
+            if (!btn) return;
+
+            e.preventDefault();
+
+            const id = Number(btn.dataset.id);
+            if (!id) {
+                alert('重寄失敗：找不到參與者編號');
+                return;
+            }
+
+            const token = getAntiForgeryToken();
+            if (!token) {
+                alert('重寄失敗：找不到驗證 Token，請重新整理頁面');
+                return;
+            }
+
+            try {
+                setBtnLoading(btn, true);
+
+                const form = new FormData();
+                form.append('__RequestVerificationToken', token);
+                form.append('id', String(id));
+
+                const resp = await fetch(resendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        // ⬇ 這行可強化相容性（部分站台設定只收 Header）
+                        'RequestVerificationToken': token
+                    },
+                    body: form
+                });
+
+                if (resp.status === 400 || resp.status === 401 || resp.status === 403) {
+                    throw new Error('驗證失敗（可能缺少或過期的 Anti-Forgery Token），請重新整理頁面再試。');
+                }
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+                const data = await resp.json();
+                if (data.success) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'success', title: '已重寄', text: data.message || '報名確認信已重新發送', timer: 1600, showConfirmButton: false });
+                    } else {
+                        alert(data.message || '已重新發送確認信');
+                    }
+                } else {
+                    btn.classList.add('shake');
+                    setTimeout(() => btn.classList.remove('shake'), 500);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: '重寄失敗', text: data.message || '請稍後再試' });
+                    } else {
+                        alert('重寄失敗：' + (data.message || '請稍後再試'));
+                    }
+                }
+            } catch (err) {
+                btn.classList.add('shake');
+                setTimeout(() => btn.classList.remove('shake'), 500);
+                alert('重寄失敗：' + (err.message || err));
+            } finally {
+                setBtnLoading(btn, false);
+            }
+        });
+                // === 全選/反選：工具函式，依勾選狀態更新 header 的 indeterminate ===
+        function updateCheckAllState() {
+            const container = document.getElementById('participantsTableContainer');
+            if (!container) return;
+            const all = Array.from(container.querySelectorAll('tbody input[name="ids"]:not(:disabled)'));
+            const checkAllBox = container.querySelector('#checkAll[data-check-all]');
+            if (!checkAllBox) return;
+
+            const checkedCount = all.filter(cb => cb.checked).length;
+            if (all.length === 0) {
+                checkAllBox.checked = false;
+                checkAllBox.indeterminate = false;
+                return;
+            }
+            if (checkedCount === 0) {
+                checkAllBox.checked = false;
+                checkAllBox.indeterminate = false;
+            } else if (checkedCount === all.length) {
+                checkAllBox.checked = true;
+                checkAllBox.indeterminate = false;
+            } else {
+                checkAllBox.checked = false;
+                checkAllBox.indeterminate = true;
+            }
+        }
+
+        // === 事件委派：按「全選框」→ 勾選/取消所有列 ===
+        document.addEventListener('change', function (e) {
+            const container = document.getElementById('participantsTableContainer');
+            if (!container) return;
+
+            // 點了表頭的全選框
+            if (e.target.matches('#participantsTableContainer #checkAll, #participantsTableContainer #checkAll[data-check-all]')) {
+                const isChecked = e.target.checked;
+                container
+                    .querySelectorAll('tbody input[name="ids"]:not(:disabled)')
+                    .forEach(cb => cb.checked = isChecked);
+                updateCheckAllState();
+                return;
+            }
+
+            // 單列 checkbox 勾選變更 → 更新 header 狀態
+            if (e.target.matches('#participantsTableContainer tbody input[name="ids"]')) {
+                updateCheckAllState();
+            }
+        });
+
+
 
             console.log('Index script setup complete');
         });

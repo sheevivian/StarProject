@@ -2,37 +2,29 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using NETCore.MailKit;
-using NETCore.MailKit.Core;
-using NETCore.MailKit.Extensions;
-using NETCore.MailKit.Infrastructure.Internal;
 using StarProject.Data;
 using StarProject.Models;
+using StarProject.Attributes;
 using StarProject.Services;
 using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
 
 
 namespace StarProject
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
 
-            // ApplicationDbContext (Identity 用)
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("DefaultConnection"),
-                    sqlOptions => sqlOptions.EnableRetryOnFailure()
-                ));
+	public class Program
+	{
+		public static void Main(string[] args)
+		{
+			var builder = WebApplication.CreateBuilder(args);
 
-            // StarProjectContext (業務資料庫)
-            builder.Services.AddDbContext<StarProjectContext>(options =>
-                options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("StarProject"),
-                    sqlOptions => sqlOptions.EnableRetryOnFailure()
-                ));
+			// Add services to the container.
+			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+				?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+			// ��Ʈw�t�m
+			builder.Services.AddDbContext<ApplicationDbContext>(options =>
+				options.UseSqlServer(connectionString));
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -43,59 +35,68 @@ namespace StarProject
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<IPromotionService, PromotionService>();
 
+			// Identity �t�m
+			builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+				options.SignIn.RequireConfirmedAccount = true)
+				.AddEntityFrameworkStores<ApplicationDbContext>();
 
-			builder.Services.AddMailKit(config =>
+			// MVC �t�m - �[�J����L�o��
+			builder.Services.AddControllersWithViews(options =>
 			{
-				config.UseMailKit(builder.Configuration.GetSection("Email").Get<MailKitOptions>());
+				// ������U�j��K�X�ק�L�o��
+				options.Filters.Add<ForcePasswordChangeAttribute>();
 			});
 
-			// Cookie 驗證
+			builder.Services.AddRazorPages();
+
+			// �l��A�Ȱt�m
+			builder.Services.Configure<EmailSettings>(
+				builder.Configuration.GetSection("EmailSettings"));
+			builder.Services.AddScoped<IEmailService, EmailService>();
+
+			// Cookie ���Ұt�m
 			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-	        .AddCookie(options =>
-	        {
-		        options.LoginPath = "/Login"; // 未登入會導向此頁
-	        });
+				.AddCookie(options =>
+				{
+					options.LoginPath = "/Login/Index";
+					options.LogoutPath = "/Login/Index";
+					options.AccessDeniedPath = "/Home/AccessDenied";
+					options.ExpireTimeSpan = TimeSpan.FromHours(8);
+					options.SlidingExpiration = true;
+				});
 
-			/// 全域都要經過驗證才能進入
-			builder.Services.AddAuthorization(options =>
-			{
-				options.FallbackPolicy = new AuthorizationPolicyBuilder()
-					.RequireAuthenticatedUser()
-					.Build();
-			});
-
+			builder.Services.AddAuthorization();
 
 			var app = builder.Build();
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 
-            {
-                app.UseMigrationsEndPoint();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
-            }
+			{
+				app.UseMigrationsEndPoint();
+			}
+			else
+			{
+				app.UseExceptionHandler("/Home/Error");
+				app.UseHsts();
+			}
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseRouting();
-            //登入驗證的功能
+			app.UseHttpsRedirection();
+			app.UseStaticFiles();
+			app.UseRouting();
+
+
+			// ���ҩM���v
 			app.UseAuthentication();
 			app.UseAuthorization();
 
-			app.UseAuthentication(); // 如果有 Identity 登入功能
-			app.UseAuthorization();
+			// ���Ѱt�m
+			app.MapControllerRoute(
+				name: "default",
+				pattern: "{controller=Login}/{action=Index}/{id?}");
 
-			app.UseAuthorization();
+			app.MapRazorPages();
 
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
-            app.MapRazorPages();
-
-            app.Run();
-        }
-    }
+			app.Run();
+		}
+	}
 }

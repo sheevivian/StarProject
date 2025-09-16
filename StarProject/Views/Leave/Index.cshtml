@@ -1,0 +1,443 @@
+﻿@{
+    ViewData["Title"] = "請假申請";
+}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+    }
+
+    .leave-container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        max-width: 1000px;
+        margin: 0 auto 20px auto;
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+    }
+
+    .employee-info {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .form-section {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+        .form-section h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 20px;
+        }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                border-color: #007bff;
+                box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+                outline: none;
+            }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+    .required-mark {
+        color: red;
+        margin-left: 3px;
+    }
+
+    .form-buttons {
+        text-align: center;
+        margin-top: 30px;
+        gap: 20px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        font-size: 18px;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        min-width: 150px;
+        font-weight: bold;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-decoration: none;
+        }
+
+    .btn-submit {
+        background-color: #28a745;
+        color: white;
+    }
+
+        .btn-submit:hover {
+            background-color: #218838;
+        }
+
+    .btn-back {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+
+    .records-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+    }
+
+        .records-table th,
+        .records-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .records-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        .records-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .records-table tr:hover {
+            background-color: #e9ecef;
+        }
+
+    .leave-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+        min-width: 60px;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    /* 訊息提示樣式 */
+    .message-alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        min-width: 300px;
+        padding: 15px 20px;
+        border-radius: 6px;
+        font-weight: bold;
+        display: none;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .message-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .message-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    @@keyframes slideIn {
+        from
+
+    {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    }
+
+    @@media (max-width: 768px) {
+        .leave-container
+
+    {
+        margin: 10px;
+        padding: 20px;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    }
+</style>
+
+<div class="leave-container">
+    <h1>📝 請假申請系統</h1>
+
+    <div class="employee-info">
+        @ViewBag.EmployeeName
+    </div>
+
+    <div class="form-section">
+        <h3>💼 新增請假申請</h3>
+        <form id="leaveForm">
+            <div class="form-group">
+                <label for="LeaveTypeId">假別<span class="required-mark">*</span></label>
+                <select id="LeaveTypeId" name="LeaveTypeId" required>
+                    <option value="">請選擇假別</option>
+                    @if (ViewBag.LeaveTypes != null)
+                    {
+                        @foreach (var type in (List<StarProject.Models.LeaveType>)ViewBag.LeaveTypes)
+                        {
+                            <option value="@type.No">@type.TypeName</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="StartDate">開始日期<span class="required-mark">*</span></label>
+                <input type="date" id="StartDate" name="StartDate" required />
+            </div>
+
+            <div class="form-group">
+                <label for="EndDate">結束日期<span class="required-mark">*</span></label>
+                <input type="date" id="EndDate" name="EndDate" required />
+            </div>
+
+            <div class="form-group">
+                <label for="Reason">請假原因<span class="required-mark">*</span></label>
+                <textarea id="Reason" name="Reason" placeholder="請輸入請假原因..." required></textarea>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-submit" id="submitBtn">📤 送出申請</button>
+                <a href="@Url.Action("Index", "Attendance")" class="btn btn-back">🔙 回到打卡頁面</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="leave-container">
+    <h2>📊 我的請假記錄</h2>
+    <table class="records-table">
+        <thead>
+            <tr>
+                <th>假別</th>
+                <th>申請日期</th>
+                <th>請假期間</th>
+                <th>天數</th>
+                <th>狀態</th>
+                <th>請假原因</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (ViewBag.MyApplications != null && ((List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications).Any())
+            {
+                @foreach (var app in (List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications)
+                {
+                    <tr>
+                        <td>@app.LeaveType.TypeName</td>
+                        <td>@app.AppliedAt.ToString("MM/dd HH:mm")</td>
+                        <td>
+                            @app.StartDate.ToString("MM/dd")
+                            @if (app.StartDate != app.EndDate)
+                            {
+                                <span> ~ @app.EndDate.ToString("MM/dd")</span>
+                            }
+                        </td>
+                        <td>@app.TotalDays 天</td>
+                        <td>
+                            @switch (app.Status)
+                            {
+                                case "pending":
+                                    <span class="leave-status status-pending">待審核</span>
+                                    break;
+                                case "approved":
+                                    <span class="leave-status status-approved">已核准</span>
+                                    break;
+                                case "rejected":
+                                    <span class="leave-status status-rejected">已拒絕</span>
+                                    break;
+                                default:
+                                    <span class="leave-status">@app.Status</span>
+                                    break;
+                            }
+                        </td>
+                        <td style="max-width: 200px; word-wrap: break-word;">@app.Reason</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" style="color: #666; font-style: italic;">還沒有請假記錄</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- 訊息提示區域 -->
+<div id="messageAlert" class="message-alert">
+    <span id="messageText"></span>
+</div>
+
+@* 加入防偽令牌 *@
+@Html.AntiForgeryToken()
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // 顯示訊息
+    function showMessage(message, isError = false) {
+        const alertDiv = document.getElementById('messageAlert');
+        const messageText = document.getElementById('messageText');
+
+        messageText.textContent = message;
+        alertDiv.className = `message-alert ${isError ? 'message-error' : 'message-success'}`;
+        alertDiv.style.display = 'block';
+
+        setTimeout(() => {
+            alertDiv.style.display = 'none';
+        }, 4000);
+    }
+
+    // 設定日期限制
+    function setDateConstraints() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('StartDate').min = today;
+        document.getElementById('EndDate').min = today;
+
+        // 當開始日期改變時，更新結束日期的最小值
+        document.getElementById('StartDate').addEventListener('change', function() {
+            document.getElementById('EndDate').min = this.value;
+            if (document.getElementById('EndDate').value < this.value) {
+                document.getElementById('EndDate').value = this.value;
+            }
+        });
+    }
+
+    // 提交請假申請
+    async function submitLeaveApplication() {
+        const form = document.getElementById('leaveForm');
+        const formData = new FormData(form);
+        const submitBtn = document.getElementById('submitBtn');
+
+        // 驗證表單
+        if (!form.checkValidity()) {
+            showMessage('請填寫所有必填欄位', true);
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '送出中...';
+
+        try {
+            const response = await fetch('@Url.Action("Apply", "Leave")', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                }
+            });
+
+            const result = await response.json();
+            showMessage(result.message, !result.success);
+
+            if (result.success) {
+                form.reset();
+                setTimeout(() => location.reload(), 2000);
+            }
+        } catch (error) {
+            showMessage('申請失敗，請重試', true);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '📤 送出申請';
+        }
+    }
+
+    // 頁面載入完成後初始化
+    $(document).ready(function() {
+        setDateConstraints();
+
+        // 綁定表單提交事件
+        $('#leaveForm').on('submit', function(e) {
+            e.preventDefault();
+            submitLeaveApplication();
+        });
+    });
+</script>

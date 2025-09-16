@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StarProject.Models;
 
@@ -11,9 +12,11 @@ using StarProject.Models;
 namespace StarProject.Migrations
 {
     [DbContext(typeof(StarProjectContext))]
-    partial class StarProjectContextModelSnapshot : ModelSnapshot
+    [Migration("20250915053057_AddAttendanceSystem")]
+    partial class AddAttendanceSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

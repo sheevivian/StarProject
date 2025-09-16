@@ -23,6 +23,7 @@ namespace StarProject.ViewModels
 		[Display(Name = "到職日期")]
 		public DateTime HireDate { get; set; } = DateTime.Today;
 
+		[Required(ErrorMessage = "電子郵件為必填欄位")]
 		[EmailAddress(ErrorMessage = "請輸入有效的Email格式")]
 		[StringLength(100, ErrorMessage = "Email不可超過100個字元")]
 		[Display(Name = "Email")]

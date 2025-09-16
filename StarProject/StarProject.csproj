@@ -25,7 +25,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="NETCore.MailKit" Version="2.1.0" />
     <PackageReference Include="NPOI" Version="2.7.4" />
-
   </ItemGroup>
 
 </Project>

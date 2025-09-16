@@ -122,7 +122,7 @@ public partial class StarProjectContext : DbContext
             entity.HasOne(d => d.EmpNoNavigation).WithMany(p => p.AttendanceRecords)
                 .HasForeignKey(d => d.EmpNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AttendanceRecordds_Emps");
+                .HasConstraintName("FK_AttendanceRecords_Emps");
         });
 
         modelBuilder.Entity<AuditLog>(entity =>
@@ -643,6 +643,7 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
+
             entity.HasIndex(e => e.Code, "UQ_Participant_Code").IsUnique();
 
             entity.Property(e => e.Code).HasMaxLength(7);
@@ -926,6 +927,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
+
             entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8774F13C0");
 
             entity.ToTable("TicCategory");

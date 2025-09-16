@@ -1,16 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
+using StarProject.Metadatas;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace StarProject.ViewModels
 {
+	[ModelMetadataType(typeof(TicketMetadata))]
 	public class TicketStockSumViewModel
 	{
-		[Display(Name = "票券編號")]
-		public int TicketNo { get; set; }
+		public int No { get; set; }
 
-		[Display(Name = "庫存數量")]
+		public string Name { get; set; }
+
+		public string Image { get; set; }
+
+		[DisplayName("票券種類")]
+		public string TicCategory { get; set; }
+
+		public string Type { get; set; }
+
+		public DateTime ReleaseDate { get; set; }
+
+		[DisplayName("庫存")]
 		public int TotalStock { get; set; }
-
-		[Display(Name = "日期")]
-		public DateTime Date { get; set; }
 	}
 }

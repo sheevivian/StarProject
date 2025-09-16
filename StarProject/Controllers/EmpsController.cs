@@ -84,6 +84,13 @@ namespace StarProject.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create(CreateEmpViewModel viewModel)
 		{
+			// 臨時調試：檢查 EmailService 是否正確注入
+			if (_emailService == null)
+			{
+				TempData["EmailError"] = "EmailService 未正確注入";
+				return RedirectToAction(nameof(Index));
+			}
+
 			// 檢查ModelState
 			if (!ModelState.IsValid)
 			{

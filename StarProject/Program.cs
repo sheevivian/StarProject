@@ -74,7 +74,7 @@ namespace StarProject
       ExcelPackage.License.SetNonCommercialOrganization("StarProject Dev Team");
           
 			//MailService
-			builder.Services.AddTransient<MailService>();
+			//builder.Services.AddTransient<MailService>();
 
 			var app = builder.Build();
 			// Configure the HTTP request pipeline.

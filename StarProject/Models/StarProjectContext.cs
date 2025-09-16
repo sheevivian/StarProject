@@ -122,7 +122,7 @@ public partial class StarProjectContext : DbContext
             entity.HasOne(d => d.EmpNoNavigation).WithMany(p => p.AttendanceRecords)
                 .HasForeignKey(d => d.EmpNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AttendanceRecords_Emps");
+                .HasConstraintName("FK_AttendanceRecordds_Emps");
         });
 
         modelBuilder.Entity<AuditLog>(entity =>
@@ -207,8 +207,7 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.EventNoNavigation).WithMany()
                 .HasForeignKey(d => d.EventNo)
-				.OnDelete(DeleteBehavior.Cascade)
-				.HasConstraintName("FK_Collection_Event");
+                .HasConstraintName("FK_Collection_Event");
 
             entity.HasOne(d => d.KnowledgeNoNavigation).WithMany()
                 .HasForeignKey(d => d.KnowledgeNo)
@@ -289,7 +288,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
-            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
             entity.Property(e => e.IdNumber).HasMaxLength(50);
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
@@ -325,6 +323,30 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<EventNotif>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("EventNotif");
+
+            entity.HasIndex(e => new { e.EventNo, e.ParticipantNo, e.Category }, "UQ_EventNotif_Event_Participant_Category").IsUnique();
+
+            entity.Property(e => e.Category).HasMaxLength(20);
+            entity.Property(e => e.EventNo).HasColumnName("Event_No");
+            entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
+            entity.Property(e => e.Senttime).HasColumnType("datetime");
+            entity.Property(e => e.Status).HasMaxLength(20);
+
+            entity.HasOne(d => d.EventNoNavigation).WithMany()
+                .HasForeignKey(d => d.EventNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_eventNotif_event");
+
+            entity.HasOne(d => d.ParticipantNoNavigation).WithMany()
+                .HasForeignKey(d => d.ParticipantNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EventNotif_Participant");
+        });
 
         modelBuilder.Entity<Faq>(entity =>
         {
@@ -623,13 +645,15 @@ public partial class StarProjectContext : DbContext
 
             entity.HasIndex(e => e.Code, "UQ_Participant_Code").IsUnique();
 
+            entity.Property(e => e.Code).HasMaxLength(7);
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.PaymentNo)
-
                 .HasMaxLength(50)
                 .HasColumnName("Payment_No");
             entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
-            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasColumnName("status");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
             entity.Property(e => e.UsersNo)
                 .HasMaxLength(50)
@@ -681,8 +705,9 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-        entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8070DBC6B");
-        entity.ToTable("ProCategory");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8070DBC6B");
+
+            entity.ToTable("ProCategory");
 
             entity.Property(e => e.No).HasMaxLength(6);
             entity.Property(e => e.Name).HasMaxLength(20);
@@ -822,12 +847,10 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("PromotionRule");
 
-
             entity.Property(e => e.ConditionType).HasMaxLength(20);
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.MemberLevel).HasMaxLength(50);
-
             entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
             entity.Property(e => e.RuleType)
                 .HasMaxLength(50)
@@ -877,20 +900,21 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<Schedule>(entity =>
         {
+            entity.HasKey(e => e.EventNo);
 
-			entity.ToTable("Schedule");
-			entity.HasKey(e => e.EventNo);
-			entity.Property(e => e.EventNo).HasColumnName("Event_No");
-			entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
-			entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
+            entity.ToTable("Schedule");
 
-			entity.HasOne(d => d.EventNoNavigation)
-				.WithOne() // 一對一
-				.HasForeignKey<Schedule>(d => d.EventNo)
-				.OnDelete(DeleteBehavior.Cascade) // 連帶刪除
-				.HasConstraintName("FK_Schedule_event");
-		});
+            entity.Property(e => e.EventNo)
+                .ValueGeneratedNever()
+                .HasColumnName("Event_No");
+            entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
+            entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
 
+            entity.HasOne(d => d.EventNoNavigation).WithOne(p => p.Schedule)
+                .HasForeignKey<Schedule>(d => d.EventNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Schedule_event");
+        });
 
         modelBuilder.Entity<StarMap>(entity =>
         {
@@ -905,9 +929,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-
             entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8774F13C0");
-
 
             entity.ToTable("TicCategory");
 
@@ -1010,32 +1032,7 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_UserAchievements_Users");
         });
 
-		modelBuilder.Entity<EventNotif>(entity =>
-		{
-			entity.ToTable("EventNotif");
-
-            entity.HasKey(e => new { e.EventNo, e.ParticipantNo, e.Category });
-			entity.Property(e => e.EventNo).HasColumnName("Event_No");
-			entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
-			entity.Property(e => e.Senttime).HasColumnType("datetime2"); 
-			entity.Property(e => e.Category).HasMaxLength(20);           
-			entity.Property(e => e.Status).HasMaxLength(20);
-
-			entity.HasOne(e => e.EventNoNavigation)
-				  .WithMany()
-				  .HasForeignKey(e => e.EventNo)
-				  .OnDelete(DeleteBehavior.ClientSetNull);
-
-			entity.HasOne(e => e.ParticipantNoNavigation)
-				  .WithMany()
-				  .HasForeignKey(e => e.ParticipantNo)
-				  .OnDelete(DeleteBehavior.ClientSetNull);
-
-			entity.ToTable(tb => tb.UseSqlOutputClause(false));
-		});
-
-
-		modelBuilder.Entity<UserSecurity>(entity =>
+        modelBuilder.Entity<UserSecurity>(entity =>
         {
             entity
                 .HasNoKey()

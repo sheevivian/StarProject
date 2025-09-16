@@ -6,7 +6,6 @@ using StarProject.Data;
 using StarProject.Models;
 using StarProject.Services;
 using OfficeOpenXml;
-using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
 
 
 

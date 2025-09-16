@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StarProject.Models;
@@ -20,12 +19,11 @@ public partial class Participant
 
     public string? PaymentNo { get; set; }
 
-	public string Code { get; set; } = "";
+    public string? Code { get; set; }
 
-	[ValidateNever]
-	public virtual Event EventNoNavigation { get; set; } = null!;
-	[ValidateNever]
-	public virtual PaymentTransaction? PaymentNoNavigation { get; set; }
-	[ValidateNever]
-	public virtual User UsersNoNavigation { get; set; } = null!;
+    public virtual Event EventNoNavigation { get; set; } = null!;
+
+    public virtual PaymentTransaction? PaymentNoNavigation { get; set; }
+
+    public virtual User UsersNoNavigation { get; set; } = null!;
 }

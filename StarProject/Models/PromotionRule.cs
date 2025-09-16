@@ -21,6 +21,5 @@ public partial class PromotionRule
 
     public string? MemberLevel { get; set; }
 
-
     public virtual Promotion PromotionNoNavigation { get; set; } = null!;
 }

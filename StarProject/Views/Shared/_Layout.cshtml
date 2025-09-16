@@ -68,7 +68,7 @@
                 <div id="collapseEmp" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" asp-area="" asp-controller="Emps" asp-action="Index">帳號管理</a>
-                        <a class="collapse-item" href="#">權限管理</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Role" asp-action="Index">權限管理</a>
                         <a class="collapse-item" href="#">人事流程申請</a>
                     </div>
                 </div>
@@ -340,22 +340,17 @@
                             <a class="nav-link d-flex align-items-center profile" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="fw900 dn1100px">您好！</span>
-                                <span class="username fw900 dn1100px">崔始源</span>
+                                <span class="username fw900 dn1100px">@User.FindFirst("FullName")?.Value</span>
                                 <img class="img-profile rounded-circle" src="~/img/astronaut.gif" />
                             </a>
                             <ul class="dropdown-menu mt-1 dropdownlist dropdown-menu-1000px-end">
                                 <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i>個人資料</a></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fa-solid fa-clock-rotate-left"></i>操作歷程
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" asp-area="" asp-controller="Attendance" asp-action="Index">
                                         <i class="fa-regular fa-calendar-days"></i>出勤紀錄
                                     </a>
                                 </li>
-                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-paw"></i>請假系統</a></li>
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Leave" asp-action="Index"><i class="fa-solid fa-paw"></i>請假系統</a></li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StarProject.Models;
 
@@ -11,9 +12,11 @@ using StarProject.Models;
 namespace StarProject.Migrations
 {
     [DbContext(typeof(StarProjectContext))]
-    partial class StarProjectContextModelSnapshot : ModelSnapshot
+    [Migration("20250915053057_AddAttendanceSystem")]
+    partial class AddAttendanceSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -428,6 +431,7 @@ namespace StarProject.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Image")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location")
@@ -866,6 +870,7 @@ namespace StarProject.Migrations
 
                     b.Property<decimal?>("Discount")
                         .HasColumnType("decimal(10, 2)");
+
                     b.Property<string>("DiscountType")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -890,7 +895,6 @@ namespace StarProject.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
-
 
                     b.Property<string>("Type")
                         .HasMaxLength(30)
@@ -1009,19 +1013,18 @@ namespace StarProject.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Event_No");
 
-                    b.Property<string>("PaymentNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int?>("PaymentNo")
+                        .HasColumnType("int")
                         .HasColumnName("Payment_No");
 
                     b.Property<DateTime>("RegisteredDate")
-
                         .HasColumnType("datetime");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("status");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
@@ -1125,7 +1128,6 @@ namespace StarProject.Migrations
 
                     b.HasKey("No")
                         .HasName("PK__ProCateg__3214D4A8C77E0BC9");
-
 
                     b.ToTable("ProCategory", (string)null);
                 });
@@ -1357,7 +1359,6 @@ namespace StarProject.Migrations
                     b.Property<decimal?>("DiscountValue")
                         .HasColumnType("decimal(10, 2)");
 
-
                     b.Property<int>("PromotionNo")
                         .HasColumnType("int")
                         .HasColumnName("Promotion_No");
@@ -1375,7 +1376,6 @@ namespace StarProject.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("ALL");
-
 
                     b.HasIndex("PromotionNo");
 
@@ -1477,7 +1477,7 @@ namespace StarProject.Migrations
                     b.Property<DateTime>("ReleaseDate")
                         .HasColumnType("datetime");
 
-                    b.HasKey("EventNo");
+                    b.HasIndex("EventNo");
 
                     b.ToTable("Schedule", (string)null);
                 });
@@ -1528,10 +1528,8 @@ namespace StarProject.Migrations
                     b.HasKey("No")
                         .HasName("PK__TicCateg__3214D4A8F8D1D924");
 
-
                     b.ToTable("TicCategory", (string)null);
                 });
-
 
             modelBuilder.Entity("StarProject.Models.Ticket", b =>
                 {
@@ -1768,7 +1766,6 @@ namespace StarProject.Migrations
                     b.HasOne("StarProject.Models.Event", "EventNoNavigation")
                         .WithMany()
                         .HasForeignKey("EventNo")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("FK_Collection_Event");
 
                     b.HasOne("StarProject.Models.Knowledge", "KnowledgeNoNavigation")
@@ -1838,7 +1835,6 @@ namespace StarProject.Migrations
                     b.HasOne("StarProject.Models.Event", "EventNoNavigation")
                         .WithMany()
                         .HasForeignKey("EventNo")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_eventNotif_event");
 
@@ -2113,9 +2109,8 @@ namespace StarProject.Migrations
             modelBuilder.Entity("StarProject.Models.Schedule", b =>
                 {
                     b.HasOne("StarProject.Models.Event", "EventNoNavigation")
-                        .WithOne()
-                        .HasForeignKey("StarProject.Models.Schedule", "EventNo")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany()
+                        .HasForeignKey("EventNo")
                         .IsRequired()
                         .HasConstraintName("FK_Schedule_event");
 

@@ -1,0 +1,286 @@
+﻿@model List<StarProject.Models.Role>
+@{
+    ViewData["Title"] = "權限管理";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-shield-alt"></i> 角色權限管理
+                    </h3>
+                </div>
+
+                <div class="card-body">
+                    <!-- 操作按鈕 -->
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-success" onclick="savePermissions()">
+                            <i class="fas fa-save"></i> 儲存變更
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="location.reload()">
+                            <i class="fas fa-redo"></i> 重新載入
+                        </button>
+                    </div>
+
+                    <!-- 權限表格 -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="permissionTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="min-width: 120px;">角色名稱</th>
+                                    <th class="text-center permission-header" data-permission="emp">
+                                        <div>員工管理</div>
+                                        <small>(Emp)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="user">
+                                        <div>用戶管理</div>
+                                        <small>(User)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="info">
+                                        <div>資訊管理</div>
+                                        <small>(Info)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="event">
+                                        <div>活動管理</div>
+                                        <small>(Event)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="pd">
+                                        <div>產品管理</div>
+                                        <small>(Pd)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="tic">
+                                        <div>票務管理</div>
+                                        <small>(Tic)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="pm">
+                                        <div>專案管理</div>
+                                        <small>(Pm)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="order">
+                                        <div>訂單管理</div>
+                                        <small>(Order)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="cs">
+                                        <div>客服管理</div>
+                                        <small>(CS)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="oa">
+                                        <div>OA系統</div>
+                                        <small>(OA)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="conlist">
+                                        <div>聯絡人清單</div>
+                                        <small>(CoNList)</small>
+                                    </th>
+                                    <th class="text-center permission-header" data-permission="cone">
+                                        <div>聯絡人編輯</div>
+                                        <small>(CoNE)</small>
+                                    </th>
+                                    <th class="text-center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var role in Model)
+                                {
+                                    <tr data-role-id="@role.No">
+                                        <td class="fw-bold">@role.RoleName</td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="emp" @(role.Emp ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="user" @(role.User ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="info" @(role.Info ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="event" @(role.Event ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="pd" @(role.Pd ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="tic" @(role.Tic ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="pm" @(role.Pm ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="order" @(role.Order ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="cs" @(role.Cs ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="oa" @(role.Oa ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="conlist" @(role.CoNlist ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input permission-checkbox"
+                                                   data-permission="cone" @(role.CoNe ? "checked" : "") />
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleRowPermissions(this)">
+                                                全選/清空
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>操作說明：</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>點擊核取方塊可以開啟或關閉特定權限</li>
+                                <li>點擊欄位標題可以快速設定該權限的所有角色</li>
+                                <li>點擊「全選/清空」可以快速設定該角色的所有權限</li>
+                                <li>完成編輯後請記得點擊「儲存變更」按鈕</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .permission-header {
+        cursor: pointer;
+        transition: background-color 0.2s;
+        min-width: 100px;
+    }
+
+        .permission-header:hover {
+            background-color: #495057 !important;
+        }
+
+    .permission-checkbox {
+        cursor: pointer;
+        transform: scale(1.2);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style>
+
+<script>
+    // 儲存權限變更
+    function savePermissions() {
+        const updates = [];
+
+        // 收集所有角色的權限資料
+        $('#permissionTable tbody tr').each(function() {
+            const roleId = $(this).data('role-id');
+            const permissions = {};
+
+            $(this).find('.permission-checkbox').each(function() {
+                const permission = $(this).data('permission');
+                permissions[permission] = $(this).is(':checked');
+            });
+
+            updates.push({
+                roleId: roleId,
+                emp: permissions.emp || false,
+                user: permissions.user || false,
+                info: permissions.info || false,
+                event: permissions.event || false,
+                pd: permissions.pd || false,
+                tic: permissions.tic || false,
+                pm: permissions.pm || false,
+                order: permissions.order || false,
+                cs: permissions.cs || false,
+                oa: permissions.oa || false,
+                conlist: permissions.conlist || false,
+                cone: permissions.cone || false
+            });
+        });
+
+        // 顯示載入中
+        const saveBtn = $('button:contains("儲存變更")');
+        const originalText = saveBtn.html();
+        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 儲存中...');
+
+        // 發送更新請求
+        $.ajax({
+            url: '@Url.Action("UpdatePermissions", "Role")',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(updates),
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message || '權限更新成功');
+                } else {
+                    toastr.error(response.message || '更新失敗');
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error('發生錯誤：' + error);
+            },
+            complete: function() {
+                // 恢復按鈕狀態
+                saveBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    }
+
+    // 切換某個角色的所有權限
+    function toggleRowPermissions(button) {
+        const row = $(button).closest('tr');
+        const checkboxes = row.find('.permission-checkbox');
+        const hasAnyChecked = checkboxes.is(':checked');
+
+        checkboxes.prop('checked', !hasAnyChecked);
+    }
+
+    // 點擊欄位標題切換該權限的所有角色
+    $(document).ready(function() {
+        $('.permission-header').click(function() {
+            const permission = $(this).data('permission');
+            const columnIndex = $(this).index();
+            const checkboxes = $(`#permissionTable tbody tr td:nth-child(${columnIndex + 1}) .permission-checkbox`);
+            const hasAnyChecked = checkboxes.is(':checked');
+
+            checkboxes.prop('checked', !hasAnyChecked);
+        });
+
+        // 載入 toastr (如果有的話)
+        if (typeof toastr === 'undefined') {
+            window.toastr = {
+                success: function(msg) { alert('成功：' + msg); },
+                error: function(msg) { alert('錯誤：' + msg); },
+                warning: function(msg) { alert('警告：' + msg); }
+            };
+        }
+    });
+</script>
+
+<!-- Anti-forgery token -->
+@Html.AntiForgeryToken()

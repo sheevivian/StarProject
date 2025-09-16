@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "權限不足";
+    Layout = null; // 使用獨立布局
+}
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - 天文館管理系統</title>
+	<link href="~/css/access_denied.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- 星空背景 -->
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <div class="access-denied-card">
+            <div class="telescope-icon">🔭</div>
+            <h1>權限不足</h1>
+            <div class="error-code">ERROR 403</div>
+            <p>很抱歉，您目前沒有足夠的權限訪問天文台管理系統。<br>請聯繫系統管理員獲取相應的訪問權限，或確認您的登入狀態。</p>
+
+            <div class="action-buttons">
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                    🏠 返回首頁
+                </a>
+                <button class="btn btn-secondary" onclick="contactAdmin()">
+                    📧 聯繫管理員
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-info">
+        阿波羅天文館IT部門 © @DateTime.Now.Year | 系統維護：天文館技術部
+    </div>
+	<script src="~/js/access_denied.js"></script>
+</body>
+</html>

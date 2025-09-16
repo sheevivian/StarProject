@@ -5,15 +5,15 @@ namespace StarProject.Models;
 
 public partial class OrderStatus
 {
-    public string OrderNo { get; set; } = null!;
+    public int StatusId { get; set; }
 
-    public string Motion { get; set; } = null!;
+    public int DeliveryId { get; set; }
 
-    public DateTime Update { get; set; }
+    public string StatusType { get; set; } = null!;
 
-    public string? EmpNo { get; set; }
+    public DateTime StatusTime { get; set; }
 
-    public virtual Emp? EmpNoNavigation { get; set; }
+    public string? Notes { get; set; }
 
-    public virtual OrderMaster OrderNoNavigation { get; set; } = null!;
+    public virtual OrderDelivery Delivery { get; set; } = null!;
 }

@@ -21,32 +21,27 @@ namespace StarProject.Controllers
         // 如果你要提供 Chart 資料的 API
         public IActionResult GetCategoryNestedData()
         {
-            var categories = new List<string> {
+            var productCategories = new List<string> {
         "卡片書籤", "服包飾品", "益智桌遊", "地球儀",
         "生活雜貨", "書籍刊物", "餐廚用品", "交通卡",
         "設計文具", "望遠鏡"
     };
 
-
             var counts = _context.OrderItems
-                .Where(o => categories.Contains(o.Category))
+                .Where(o => productCategories.Contains(o.Category))
                 .GroupBy(o => o.Category)
-                .Select(g => new { name = g.Key, value = g.Count() })
+                .Select(g => new { name = g.Key, value = g.Sum(x => x.Quantity) })
                 .ToList();
 
-
-
-            var revenues = _context.OrderItems // 如果票券也是在 OrderItem
-                        .Where(o => categories.Contains(o.Category))
-                        .GroupBy(o => o.Category)
-                        .Select(g => new {
-                            name = g.Key,
-                            value = g.Sum(x => x.UnitPrice * x.Quantity) // 改成營收總和
-                        })
-                   .ToList();
+            var revenues = _context.OrderItems
+                .Where(o => productCategories.Contains(o.Category))
+                .GroupBy(o => o.Category)
+                .Select(g => new { name = g.Key, value = g.Sum(x => x.Quantity * x.UnitPrice) })
+                .ToList();
 
             return Json(new { counts, revenues });
         }
+
 
         public IActionResult GetTicketCategoryData()
         {
@@ -56,29 +51,36 @@ namespace StarProject.Controllers
     };
 
             var counts = _context.OrderItems
-                            .Where(o => ticketCategories.Contains(o.Category))
-                            .GroupBy(o => o.Category)
-                            .Select(g => new { name = g.Key, value = g.Count() })
-                            .ToList();
+                .Where(o => ticketCategories.Contains(o.Category))
+                .GroupBy(o => o.Category)
+                .Select(g => new { name = g.Key, value = g.Sum(x => x.Quantity) })
+                .ToList();
 
-
-
-            var revenues = _context.OrderItems // 如果票券也是在 OrderItem
-                        .Where(o => ticketCategories.Contains(o.Category))
-                        .GroupBy(o => o.Category)
-                        .Select(g => new {
-                            name = g.Key,
-                            value = g.Sum(x => x.UnitPrice * x.Quantity) // 改成營收總和
-                        })
-                   .ToList();
-
-
-
+            var revenues = _context.OrderItems
+                .Where(o => ticketCategories.Contains(o.Category))
+                .GroupBy(o => o.Category)
+                .Select(g => new { name = g.Key, value = g.Sum(x => x.Quantity * x.UnitPrice) })
+                .ToList();
 
             return Json(new { counts, revenues });
         }
 
+
+        public IActionResult GetCategoryStats()
+        {
+            var data = (from p in _context.Participants
+                        join e in _context.Events on p.EventNo equals e.No
+                        group p by e.Category into g
+                        select new
+                        {
+                            Category = g.Key,
+                            ParticipantCount = g.Count()
+                        })
+                   .OrderByDescending(x => x.ParticipantCount)
+                   .ToList();
+
+            return Json(data);
+        }
     }
-}
-    
+}   
 

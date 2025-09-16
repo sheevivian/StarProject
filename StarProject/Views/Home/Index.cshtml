@@ -23,10 +23,9 @@
             
                 <div class="cardsetting">
                     <h5 class="card-title text-center">商品營收分析</h5>
-                    <div id="productChart" style="height:350px;"></div>
-                    <br>
+                    <div id="productChart" style="height:340px;"></div>
                 <h5 class="card-title text-center">票券營收分析</h5>
-                    <div id="ticketChart" style="height:350px; margin-top:20px;"></div>
+                    <div id="ticketChart" style="height:340px; margin-top:10px;"></div>
                 </div>
 
            
@@ -39,20 +38,20 @@
                     <div class="card shadow-sm text-center p-3 card-red text-light">
                         <i class="bi bi-box2-heart fs-1"></i>
                         <h5 class="card-title mt-2">庫存預警</h5>
-                        <p class="card-text">5 項商品低庫存</p>
+                        <p class="card-text"> 5項商品低庫存</p>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card shadow-sm text-center p-3 card-darkblue text-light">
                         <i class="bi bi-cart-check fs-1"></i>
-                        <h5 class="card-title mt-2">本週訪客數</h5>
+                        <h5 class="card-title mt-2">本月訪客數</h5>
                         <p class="card-text">1200人</p>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card shadow-sm text-center p-3 card-yellow text-light">
                         <i class="bi bi-cash-coin fs-1"></i>
-                        <h5 class="card-title mt-2">今日營收</h5>
+                        <h5 class="card-title mt-2">累計營收</h5>
                         <p class="card-text">$15,000</p>
                     </div>
                 </div>
@@ -65,15 +64,20 @@
                 </div>
             </div>
 
+            
             <!-- 活動報名柱狀圖 -->
             <div class="col-12 mt-4">
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h5 class="card-title text-center">活動報名人數</h5>
-                        <canvas id="eventChart" style="height:300px;"></canvas>
+                
+                    <div class="cardsetting">
+                        <h5 class="card-title text-center">活動參與統計</h5>
+                        <div id="categoryChart" style="height:335px;"></div>
+                       
+                      
                     </div>
-                </div>
+                
             </div>
+
+   
         </div>
     </div>
 </div>
@@ -93,7 +97,7 @@
         // 商品
         var productChart = echarts.init(document.getElementById('productChart'));
         $.getJSON('/Chart/GetCategoryNestedData', function (res) {
-            const blueColors = [ '#28004D','#4B0091','#000093','#2828FF','#004B97','#2894FF','#00E3E3','#A6FFFF'];
+            const blueColors = [ '#200d7d','#23458b','#0008ff','#1f87d6','#2bc1f3','#0ddfe3','#7cb7cb','#bbebf7',];
 
             res.counts.forEach((item, index) => {
                 item.itemStyle = { color: blueColors[index % blueColors.length] };
@@ -168,43 +172,54 @@
             ticketChart.setOption(option);
         });
 
+            var chartDom = document.getElementById('categoryChart');
+    var myChart = echarts.init(chartDom);
 
-          const ctx = document.getElementById('eventChart').getContext('2d');
-    const eventChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['活動 A', '活動 B', '活動 C', '活動 D'], // X 軸活動名稱
-            datasets: [{
-                label: '報名人數',
-                data: [120, 90, 150, 60], // 對應各活動報名人數
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(75, 192, 192, 0.7)',
-                    'rgba(255, 206, 86, 0.7)',
-                    'rgba(255, 99, 132, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(255, 99, 132, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false } // 不顯示右上圖例
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 20 }
-                }
+    fetch('/Chart/GetCategoryStats')
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                chartDom.innerHTML = "沒有資料";
+                return;
             }
+
+            let categories = data.map(d => d.category);
+            let counts = data.map(d => d.participantCount);
+              const colors = ['#3453a2', '#75c8f9', '#499b8a', '#82d38d', '#f1c232', '#b9635d', '#811313', '#F44336'];
+            myChart.setOption({
+                
+    tooltip: {},
+    grid: {
+        left: '10px',   // 左邊距離
+        right: '10px',  // 右邊距離
+        top: '30px',    // 上邊距離
+        bottom: '30px', // 下邊距離
+        containLabel: true // 確保軸標籤顯示
+    },
+    xAxis: {
+        type: 'category',
+        data: categories,
+        axisLabel: {
+            interval: 0, // 每個都顯示
+            rotate: 30   // 適度旋轉防重疊
         }
-    });
+    },
+    yAxis: { type: 'value' },
+        series: [{
+        name: '參與人數',
+        type: 'bar',
+        data: counts.map((c, i) => ({
+            value: c,
+            itemStyle: { color: colors[i % colors.length] }, // 每個柱子不同顏色
+            label: { show: true, position: 'top', formatter: '{c}' } // 顯示數字
+        }))
+    }]
+            });
+        });
+
+
+     
+
 
 
 

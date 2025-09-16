@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StarProject.Models;
 
-public partial class Event
+public partial class Event1
 {
     public int No { get; set; }
 

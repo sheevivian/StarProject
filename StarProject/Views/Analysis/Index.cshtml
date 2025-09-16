@@ -1,0 +1,211 @@
+﻿@{
+    ViewData["Title"] = "月營收分析";
+}
+
+<h2>月營收分析</h2>
+
+<div>
+    <label for="yearSelect">年份：</label>
+    <select id="yearSelect"></select>
+
+    <label for="monthSelect">月份：</label>
+    <select id="monthSelect"></select>
+</div>
+
+<h3>商品類別</h3>
+<div id="productChart" style="width:600px; height:400px;"></div>
+
+<h3>票券類別</h3>
+<div id="ticketChart" style="width:600px; height:400px;"></div>
+
+<h3>每月營收折線圖</h3>
+<div id="revenueChart" style="width:100%; height:500px;"></div>
+
+
+@{
+    ViewData["Title"] = "回歸分析圖表";
+}
+
+<h2 class="mb-4">回歸分析</h2>
+
+<div id="productRegression" style="width: 100%; height: 400px; margin-bottom: 40px;"></div>
+<div id="ticketRegression" style="width: 100%; height: 400px;"></div>
+
+<!-- ECharts CDN -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- 回歸分析套件 -->
+<script src="https://cdn.jsdelivr.net/npm/regression@2.0.1/dist/regression.min.js"></script>
+
+<!-- ECharts CDN -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(function() {
+        // 初始化下拉選項
+        const now = new Date();
+        for(let y=now.getFullYear(); y>=2020; y--) {
+            $("#yearSelect").append(`<option value="${y}">${y}</option>`);
+        }
+        for(let m=1; m<=12; m++) {
+            $("#monthSelect").append(`<option value="${m}">${m}</option>`);
+        }
+
+        function loadCharts() {
+            const year = $("#yearSelect").val();
+            const month = $("#monthSelect").val();
+
+            // 商品圖表
+            $.getJSON(`/Analysis/GetMonthlyProductData?year=${year}&month=${month}`, function(res){
+                var productChart = echarts.init(document.getElementById('productChart'));
+                const colors = ['#003060','#84C1FF','#00CACA','#A6FFFF','#006030','#96FED1','#548C00','#6A6AFF'];
+
+                res.counts.forEach((item,index)=>item.itemStyle={color: colors[index % colors.length]});
+                res.revenues.forEach((item,index)=>item.itemStyle={color: colors[index % colors.length]});
+
+                productChart.setOption({
+                    tooltip: { trigger: 'item' },
+                    legend: { top: '90%', left: 'center' },
+                    series: [
+                        { name: '營收金額', type: 'pie', radius: [0,'40%'], label:{position:'inside'}, data: res.revenues },
+                        { name: '銷售數量', type: 'pie', radius: ['55%','70%'], label:{position:'outside'}, data: res.counts }
+                    ]
+                });
+            });
+
+            // 票券圖表
+            $.getJSON(`/Analysis/GetMonthlyTicketData?year=${year}&month=${month}`, function(res){
+                var ticketChart = echarts.init(document.getElementById('ticketChart'));
+                const colors = ['#4F0202','#984B4B','#6C3365','#B766AD','#9F0050','#FFC1E0','#FFB5B5','#FFE6FF'];
+
+                res.counts.forEach((item,index)=>item.itemStyle={color: colors[index % colors.length]});
+                res.revenues.forEach((item,index)=>item.itemStyle={color: colors[index % colors.length]});
+
+                ticketChart.setOption({
+                    tooltip: { trigger: 'item' },
+                    legend: { top: '90%', left: 'center' },
+                    series: [
+                        { name: '營收金額', type: 'pie', radius: [0,'40%'], label:{position:'inside'}, data: res.revenues },
+                        { name: '銷售數量', type: 'pie', radius: ['55%','70%'], label:{position:'outside'}, data: res.counts }
+                    ]
+                });
+            });
+        }
+
+        // 初次載入
+        loadCharts();
+
+        // 下拉選擇改變時重新載入
+        $("#yearSelect, #monthSelect").change(loadCharts);
+    });
+
+    // ====== 折線圖 (ECharts) ======
+    var chartDom = document.getElementById('revenueChart');
+    var myChart = echarts.init(chartDom);
+
+    fetch('/Analysis/RevenueByMonth')
+        .then(res => res.json())
+        .then(data => {
+            let years = [...new Set(data.map(d => d.year))].sort();
+            let months = [1,2,3,4,5,6,7,8,9,10,11,12];
+            let categories = [...new Set(data.map(d => d.category))];
+            let latestYear = years[years.length - 1];
+
+            let series = categories.map(cat => {
+                return {
+                    name: cat,
+                    type: 'line',
+                    data: months.map(m => {
+                        let item = data.find(d => d.month === m && d.category === cat && d.year === latestYear);
+                        return item ? item.revenue : 0;
+                    })
+                };
+            });
+
+            var option = {
+                title: { text: '各分類每月營收折線圖（' + latestYear + '）' },
+                tooltip: { trigger: 'axis' },
+                legend: { data: categories },
+                xAxis: { type: 'category', data: months.map(m => m + '月') },
+                yAxis: { type: 'value', name: '營收' },
+                series: series
+            };
+
+            myChart.setOption(option);
+        });
+
+     function fetchRegressionData(type, chartDomId, title) {
+        fetch(`/Analysis/GetDiscountRevenueData?type=${type}`)
+            .then(response => response.json())
+            .then(data => {
+                var chartDom = document.getElementById(chartDomId);
+                var myChart = echarts.init(chartDom);
+
+                var points = data.map(d => [d.discount, d.revenue]);
+
+                // 計算回歸線
+                var n = points.length;
+                var sumX = points.reduce((a, b) => a + b[0], 0);
+                var sumY = points.reduce((a, b) => a + b[1], 0);
+                var sumXY = points.reduce((a, b) => a + b[0] * b[1], 0);
+                var sumX2 = points.reduce((a, b) => a + b[0] * b[0], 0);
+
+                var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                var intercept = (sumY - slope * sumX) / n;
+
+                // 回歸線資料
+                var minX = Math.min(...points.map(p => p[0]));
+                var maxX = Math.max(...points.map(p => p[0]));
+                var regressionLine = [
+                    [minX, slope * minX + intercept],
+                    [maxX, slope * maxX + intercept]
+                ];
+
+                var option = {
+                    title: {
+                        text: title,
+                        left: "center"
+                    },
+                    tooltip: {
+                        trigger: "axis",
+                        axisPointer: { type: "cross" }
+                    },
+                    xAxis: { name: "折扣" },
+                    yAxis: { name: "營收" },
+                    series: [
+                        {
+                            name: "數據點",
+                            type: "scatter",
+                            data: points
+                        },
+                        {
+                            name: "回歸線",
+                            type: "line",
+                            data: regressionLine,
+                            smooth: true,
+                            lineStyle: { color: "red" },
+                            markPoint: {
+                                data: [
+                                    {
+                                        coord: regressionLine[1],
+                                        value: `y = ${slope.toFixed(2)}x + ${intercept.toFixed(2)}`,
+                                        itemStyle: { color: "blue" }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                };
+
+                myChart.setOption(option);
+            });
+    }
+
+    // 分別載入商品 & 票券回歸圖
+    fetchRegressionData("Product", "productRegression", "商品回歸分析");
+    fetchRegressionData("Ticket", "ticketRegression", "票券回歸分析");
+</script>
+
+
+
+

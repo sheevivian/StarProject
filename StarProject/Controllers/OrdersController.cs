@@ -74,8 +74,48 @@ public class OrdersController : Controller
         ViewBag.Order = order;
         ViewBag.Items = items;
 
-        return View();
+        return View("~/Views/Orders/Details.cshtml");
     }
+
+
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateItem(int listid, int quantity, decimal discount)
+    {
+        var item = await _context.OrderItems.FindAsync(listid);
+        if (item == null) return Json(new { success = false, message = "找不到項目" });
+
+        item.Quantity = quantity;
+        item.Discount = discount;
+        item.DiscountedPrice = item.UnitPrice * quantity * (1 - discount);
+
+        _context.Update(item);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true, discountedPrice = item.DiscountedPrice });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteItem(int listid)
+    {
+        var item = await _context.OrderItems.FindAsync(listid);
+        if (item == null) return Json(new { success = false, message = "找不到項目" });
+
+        _context.OrderItems.Remove(item);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true });
+    }
+
+
+
+
+
+
+
+
 
     // 匯出 Excel (非商業用)
     public IActionResult ExportExcel(string category, string paymentStatus, string userName)

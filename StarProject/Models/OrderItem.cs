@@ -9,6 +9,10 @@ public partial class OrderItem
 
     public string OrderNo { get; set; } = null!;
 
+    public int? ProductNo { get; set; }
+
+    public int? TicketNo { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string Category { get; set; } = null!;
@@ -28,4 +32,8 @@ public partial class OrderItem
     public string? Type { get; set; }
 
     public string? DiscountType { get; set; }
+
+    public virtual OrderMaster OrderNoNavigation { get; set; } = null!;
+
+    public virtual Ticket? TicketNoNavigation { get; set; }
 }

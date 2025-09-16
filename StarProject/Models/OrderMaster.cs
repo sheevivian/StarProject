@@ -35,5 +35,9 @@ public partial class OrderMaster
 
     public virtual ICollection<OrderC> OrderCs { get; set; } = new List<OrderC>();
 
+    public virtual ICollection<OrderDelivery> OrderDeliveries { get; set; } = new List<OrderDelivery>();
+
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
     public virtual User UserNoNavigation { get; set; } = null!;
 }

@@ -49,6 +49,13 @@
             background-color:#2B4C8C;
             color:#FFFFFF
         }
+
+        .sortable-placeholder {
+            background: #f0f0f0;
+            border: 2px dashed #bbb;
+            height: 100px; /* 依你 li 的高度調整 */
+            border-radius: 8px;
+        }
     </style>
     
 </head>
@@ -248,6 +255,10 @@
 
         // 拖曳排序
         imagePreviewList.sortable({
+            placeholder: "sortable-placeholder", // 拖曳時顯示的佔位樣式
+            opacity: 0.8,                        // 拖曳中的透明度
+            cursor: "move",                      // 游標樣式
+            tolerance: "pointer",                // 判斷位置更直覺
             update: function(){
                 const newOrder = [];
                 imagePreviewList.children('li').each((i, li) => {
@@ -259,9 +270,6 @@
                 updatePreview();
             }
         });
-
-
-
 
     </script>
 

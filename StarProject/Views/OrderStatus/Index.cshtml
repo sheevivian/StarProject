@@ -1,0 +1,34 @@
+﻿@model List<StarProject.Models.OrderMaster>
+
+<h2 class="text-center my-4">出貨管理</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>訂單編號</th>
+            <th>會員編號</th>
+            <th>付款狀態</th>
+            <th>出貨狀態</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.No</td>
+                <td>@order.UserNo</td>
+                <td>@order.PaymentStatus</td>
+                <td>@order.Status</td>
+                <td>
+                    <a class="btn btn-purple" 
+                       href="@Url.Action("ShippingOrder", "OrderStatus", new { orderNo = order.No })">
+                        建立出貨單
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

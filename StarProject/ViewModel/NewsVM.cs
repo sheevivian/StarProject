@@ -21,14 +21,20 @@ namespace StarProject.ViewModel
         public DateTime CreatedDate { get; set; }
         public DateTime PublishDate { get; set; }
 
-        // 多張圖片
-        public List<string> Images { get; set; } = new();
-
-        // 上傳的新圖片 (接收 <input type="file" multiple /> )
-        public List<IFormFile> ImageFiles { get; set; } = new();
+		// 舊圖片相關
+		public List<string> Images { get; set; } = new();       // 舊圖片 URL
+		public List<int> ImageIds { get; set; } = new();        // 舊圖片 Id (NewsImage.No)
 
 		[ValidateNever]
-		// 新增 OrderNo 清單（對應每張 ImageFiles 的順序）
-		public List<int> ImageOrderNos { get; set; } = new();
+		public Dictionary<int, int> ImageOrderMap { get; set; } = new();
+		// key=舊圖片 Id, value=順序
+
+		[ValidateNever]
+		public List<int> DeleteImageIds { get; set; } = new(); // 待刪除的舊圖片 Id
+
+		// 新圖片相關
+		public List<IFormFile> ImageFiles { get; set; } = new(); // 上傳新圖片
+		[ValidateNever]
+		public List<int> ImageOrderNos { get; set; } = new();   // 新圖片順序
 	}
 }

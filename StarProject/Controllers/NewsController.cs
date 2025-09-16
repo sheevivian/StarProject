@@ -115,47 +115,144 @@ namespace StarProject.Controllers
                 return NotFound();
             }
 
-            var news = await _context.News.FindAsync(id);
-            if (news == null)
-            {
-                return NotFound();
-            }
-            return View(news);
-        }
+	        var news = await _context.News
+		        .Include(n => n.NewsImages) // 撈出圖片
+		        .FirstOrDefaultAsync(n => n.No == id);
+
+			if (news == null)
+			{
+				return NotFound();
+			}
+
+			// 塞進 VM
+			var model = new NewsVM
+			{
+				No = news.No,
+				Title = news.Title,
+				Content = news.Content,
+				Category = news.Category,
+				PublishDate = news.PublishDate,
+				CreatedDate = news.CreatedDate,
+				// 舊圖片
+				Images = news.NewsImages
+				  .OrderBy(img => img.OrderNo)
+				  .Select(img => img.Image)
+				  .ToList(),
+				ImageIds = news.NewsImages
+				   .OrderBy(img => img.OrderNo)
+				   .Select(img => img.No)    // ⚠ 注意這裡要拿 Id
+				   .ToList(),
+				ImageOrderNos = news.NewsImages
+						.OrderBy(img => img.OrderNo)
+						.Select(img => img.OrderNo)
+						.ToList()
+			};
+
+			return View(model);
+		}
 
         // POST: News/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("No,Category,Title,Content,CreatedDate,PublishDate")] News news)
+        public async Task<IActionResult> Edit(int id, NewsVM model)
         {
-            if (id != news.No)
-            {
-                return NotFound();
-            }
+			if (id != model.No)
+			{
+				return NotFound();
+			}
 
-            if (ModelState.IsValid)
+			if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(news);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!NewsExists(news.No))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+				var news = await _context.News
+				   .Include(n => n.NewsImages)
+				   .FirstOrDefaultAsync(n => n.No == id);
+
+				if (news == null)
+				{
+					return NotFound();
+				}
+
+				try
+				{
+					// 1️⃣ 更新 News 基本資料
+					news.Title = model.Title;
+					news.Content = model.Content;
+					news.Category = model.Category;
+					news.PublishDate = model.PublishDate;
+					news.CreatedDate = model.CreatedDate;
+
+					// 2️⃣ 更新圖片 (新增 + 更新順序)
+					if (model.ImageFiles != null && model.ImageFiles.Count > 0)
+					{
+						int maxOrder = news.NewsImages.Any()
+							   ? news.NewsImages.Max(x => x.OrderNo)
+							   : 0;
+
+						for (int i = 0; i < model.ImageFiles.Count; i++)
+						{
+							var file = model.ImageFiles[i];
+							if (file.Length > 0)
+							{
+								try
+								{
+									string imageUrl = await ImgUploadHelper.UploadToImgBB(file);
+
+									var newsImage = new NewsImage
+									{
+										NewsNo = news.No,
+										Image = imageUrl,
+										OrderNo = ++maxOrder
+									};
+									_context.NewsImages.Add(newsImage);
+								}
+								catch (Exception ex)
+								{
+									ModelState.AddModelError("", $"圖片 {file.FileName} 上傳失敗: {ex.Message}");
+								}
+							}
+						}
+					}
+
+					// 3️⃣ 更新舊圖片順序
+					if (model.ImageOrderMap != null && model.ImageOrderMap.Count > 0)
+					{
+						foreach (var kv in model.ImageOrderMap) // key=ImageId, value=OrderNo
+						{
+							var img = news.NewsImages.FirstOrDefault(x => x.No == kv.Key);
+							if (img != null)
+							{
+								img.OrderNo = kv.Value;
+							}
+						}
+					}
+
+					// 4️⃣ 刪除圖片
+					if (model.DeleteImageIds != null && model.DeleteImageIds.Any())
+					{
+						var toDelete = news.NewsImages
+										   .Where(img => model.DeleteImageIds.Contains(img.No))
+										   .ToList();
+						_context.NewsImages.RemoveRange(toDelete);
+					}
+
+					await _context.SaveChangesAsync();
+				}
+				catch (DbUpdateConcurrencyException)
+				{
+					if (!NewsExists(model.No))
+					{
+						return NotFound();
+					}
+					else
+					{
+						throw;
+					}
+				}
+				return RedirectToAction(nameof(Index));
             }
-            return View(news);
+            return View(model);
         }
 
         // GET: News/Delete/5

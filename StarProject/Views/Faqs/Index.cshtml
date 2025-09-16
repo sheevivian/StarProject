@@ -1,0 +1,539 @@
+﻿@model IEnumerable<StarProject.Models.Faq>
+
+@{
+    ViewData["Title"] = "FAQ/常見問題清單";
+}
+
+<head>
+    <style>
+        .custom-badge {
+            display: inline-block; /* 讓寬度固定生效 */
+            width: 120px; /* 固定寬度，可依需求調整 */
+            text-align: center; /* 文字置中 */
+            padding: 5px 15px; /* 調整上下左右的空間，使 badge 放大 */
+            font-size: 12px; /* 保持文字大小不變 */
+            height: auto; /* 讓高度自動配合 padding */
+            font-weight: lighter; /* 讓文字加粗 */
+        }
+
+        /* Accordion 項目背景透明、無外框與陰影 */
+        .accordion .accordion-item {
+            background-color: transparent; /* 背景透明 */
+            border: none; /* 去掉外框線 */
+            box-shadow: none; /* 去掉陰影 */
+            border-bottom: 1px solid #dee2e6; /* 每列下方分隔線 */
+        }
+
+        /* 最後一列不要線（可選） */
+        .accordion .accordion-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Accordion 按鈕透明 */
+        .accordion .accordion-button {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        /* 展開時按鈕透明 */
+        .accordion .accordion-button:focus,
+        .accordion .accordion-button:not(.collapsed) {
+            background-color: transparent;
+            box-shadow: none;
+        }
+
+        /* Accordion body 背景透明 */
+        .accordion .accordion-body {
+            background-color: transparent;
+            padding: 1rem 4rem; /* 可依需求調整 */
+        }
+
+        .bg-account {
+            background-color: #FFAB91
+        }
+
+        .bg-product {
+            background-color: #B0BEC5
+        }
+
+        .bg-order {
+            background-color: #C5E1A5
+        }
+
+        .bg-money {
+            background-color: #FFE082
+        }
+
+        .bg-delivery {
+            background-color: #EDE7F6
+        }
+
+        .bg-service {
+            background-color: #FFCC80
+        }
+
+        .bg-event {
+            background-color: #E0F7FA
+        }
+
+        .bg-other {
+            background-color: #90CAF9
+        }
+
+        .accordion-header:hover {
+            background-color: #FCF6E0 !important;
+        }
+
+        .accordion-header.actived {
+            background-color: #FCF6E0;
+        }
+
+        .accordion-header.active {
+            background-color: #FCF6E0;
+        }
+
+        /* accordion 項目展開時，整個 header + body 左側顯示線 */
+        .accordion-item.show-left-line {
+            border-left: 4px solid #FFB84C; /* 線的顏色與寬度可調整 */
+        }
+
+        .form-check:hover{
+            background-color: #EAECF4;
+        }
+
+        .btn-faqs {
+            border: 1px solid gray;
+            /* background-color: #DCC7B0; */
+            /* color:#FFFFFF */
+            border-radius: 15px;
+        }
+
+        .btn-faqs:hover {
+            border: 1px solid gray;
+            /* color:#FFFFFF */
+        }
+    </style>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+
+<main class="flex-fill position-relative">
+    <!-- 標題+新增 -->
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">FAQ/常見問題清單</h1>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
+    </div>
+
+    <!-- CSRF Token -->
+    <form id="deleteForm">
+        @Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+    </form>
+
+    <!-- 搜尋框+每頁筆數 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input" placeholder="請輸入關鍵字">
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
+                    <!-- 類型 -->
+                    <li>
+                        <div class="ps-2 fs14px">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="帳號" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+                                        帳號 / 會員相關
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="商品" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+                                        商品 / 服務資訊
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="訂單" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+                                        訂單 / 購買流程
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="付款" id="cat4">
+                                    <label class="form-check-label" for="cat4">
+                                        付款 / 金流相關
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="配送" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        配送 / 物流相關
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="退換貨" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        退換貨 / 售後服務
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="優惠" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        優惠 / 活動
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="聯絡" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        聯絡 / 其他
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- 完成+清除 -->
+                    <li class="d-flex gap-1">
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+                            完成
+                        </button>
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+                            清除
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="width:150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option selected value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
+        <span id="selectedFiltersText" class="text-secondary"></span>
+    </div>
+
+    <!-- 全選 -->
+    <div class="mt-2 mb-1 d-flex align-items-center ms-2" style="height:38px">
+        <label for="checkAll" class="fw-bold fs-6 d-flex align-items-center" style="cursor:pointer;">
+            <input class="form-check-input m-0 me-2" type="checkbox" value="" id="checkAll"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="全選" data-bs-trigger="hover">
+            全選
+        </label>
+
+        <!-- 全選垃圾桶及文字 -->
+        <div class="ms-auto d-flex align-items-center">
+            <span id="selectNum" style="display:none" class="fw-bold fs-6 me-2">已選取0項</span>
+            <button type="button" class="btn p-0 fs-6" id="delectAll"
+                    data-bs-toggle="modal" data-bs-target="#deleteAllModal" style="display:none">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 列表 -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="table-rounded">
+                <div class="accordion" id="accordionExample">
+                    @await Html.PartialAsync("_FaqsRows", Model)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分頁 -->
+    <div id="pagination">
+        @await Html.PartialAsync("_Pagination", Model)
+    </div>
+
+    <!-- 全選刪除彈窗 -->
+    <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    確定要刪除已選取的項目嗎？
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定刪除</button>
+                    <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+</main>
+
+@section Scripts {
+    <script>
+        let pageNumber = parseInt($('#pageSizeSelect').val()) || 10; // 預設每頁數量
+
+        $(function () {
+
+            // checkbox change（使用 change 比 click 更可靠）
+            $(document).on('change', '.checkbox', function () {
+                const $cb = $(this);
+                const $item = $cb.closest('.accordion-header'); // 找近的 accordion item
+                const checkedCount = $('.checkbox:checked').length;
+
+                // 顯示或隱藏刪除按鈕與已選數字
+                if (checkedCount > 0) {
+                    $('#delectAll, #selectNum').show();
+                    $('#selectNum').text(`已選取${checkedCount}項`);
+                } else {
+                    $('#delectAll, #selectNum').hide();
+                    $('#selectNum').text(`已選取0項`);
+                }
+
+                // 加 / 移除 active
+                if ($cb.is(':checked')) {
+                    $item.addClass('actived');
+                } else {
+                    $item.removeClass('actived');
+                }
+
+                // 同步全選 checkbox 狀態
+                $('#checkAll').prop('checked', $('.checkbox').length === checkedCount);
+            });
+
+            // 全選 change
+            $('#checkAll').on('change', function () {
+                const checked = $(this).is(':checked');
+
+                $('.checkbox').prop('checked', checked);           // 勾選所有 row checkbox
+                if (checked) {
+                    $('.accordion-header').addClass('actived');       // 加上 active
+                } else {
+                    $('.accordion-header').removeClass('actived');    // 移除 active
+                }
+
+                // 顯示或隱藏刪除按鈕與數量
+                const cnt = $('.checkbox:checked').length;
+                if (cnt > 0) {
+                    $('#delectAll, #selectNum').show();
+                    $('#selectNum').text(`已選取${cnt}項`);
+                } else {
+                    $('#delectAll, #selectNum').hide();
+                    $('#selectNum').text(`已選取0項`);
+                }
+            });
+
+            // 當 accordion 展開時
+            $('.accordion-collapse').on('show.bs.collapse', function () {
+                // 先移除其他 header 的 active
+                $('.accordion-header').removeClass('active');
+
+                // 取得對應 header
+                var $header = $(this).prev('.accordion-header');
+                $header.addClass('active');
+            });
+
+            // 當 accordion 收合時
+            $('.accordion-collapse').on('hide.bs.collapse', function () {
+                var $header = $(this).prev('.accordion-header');
+                $header.removeClass('active');
+            });
+
+            $(document).on('show.bs.collapse', '.accordion-collapse', function () {
+                $(this).closest('.accordion-item').addClass('show-left-line');
+            });
+
+            $(document).on('hide.bs.collapse', '.accordion-collapse', function () {
+                $(this).closest('.accordion-item').removeClass('show-left-line');
+            });
+
+            // 批次刪除
+            $('#delectAllYes').click(function () {
+                // 收集所有勾選的 checkbox 的 value (假設 value 存 id)
+                let ids = $('.checkbox:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (ids.length === 0) return; // 沒有選擇不動作
+
+                // ✅ 取得 CSRF token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '/Faqs/DeleteMultiple', // 後端批次刪除 Action
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token, // CSRF 驗證
+                        ids: ids // 傳 id 陣列
+                    },
+                    traditional: true, // 陣列傳送格式
+                    success: function () {
+                        let page = parseInt($('#paginationInfo').text()) || 1; // 取得目前頁碼
+                        refreshTable(page);
+                        $('.checkbox:checked').closest('tr').remove();
+                        $('#delectAll, #selectNum').hide();
+                        $('#checkAll').prop('checked', false);
+                    },
+                    error: function () {
+                        alert("刪除失敗！");
+                    }
+                });
+            })
+
+            // 點搜尋按鈕
+            $('#btnSearch').on("click", () => {
+                refreshTable(1);
+                updateSelectedFilters()
+            });
+
+            // 也可以輸入框 keyup 即時觸發
+            $('#searchInput').on("keyup", () => {
+                refreshTable(1);
+                updateSelectedFilters()
+            });
+
+            $('#filterFinsh').click(function () {
+                updateFilterCount();
+                updateSelectedFilters()
+                refreshTable(1);
+
+                // 找到最接近的 dropdown-toggle
+                var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
+
+                // 取得 bootstrap dropdown instance
+                var dropdown = bootstrap.Dropdown.getInstance(toggleBtn);
+
+                // 沒有的話就新建
+                if (!dropdown) dropdown = new bootstrap.Dropdown(toggleBtn);
+
+                // 呼叫官方的 hide 方法來關閉
+                dropdown.hide();
+            });
+
+            // 搜尋清除按鈕
+            document.querySelector(".btn-outline-search").addEventListener("click", function () {
+                document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+                document.getElementById("searchInput").value = "";
+                updateSelectedFilters();
+                updateFilterCount()
+                refreshTable(1);
+            });
+
+            // 分頁按鈕
+            $(".pagination").on("click", ".pagination .page-link", function (e) {
+                e.preventDefault();
+                let page = $(this).data("page");
+                refreshTable(page);
+            });
+
+            // 當 select 改變時
+            $('#pageSizeSelect').on('change', function () {
+                pageNumber = parseInt($(this).val()); // 更新 pageNumber
+
+                refreshTable(1);
+            });
+
+            // 更新篩選顯示文字
+            function updateSelectedFilters() {
+                let selected = [];
+
+                // 找到所有勾選的 checkbox
+                let checkedBoxes = $(".dropdown-menu input[type=checkbox]:checked");
+
+                if (checkedBoxes.length) {
+                    // 取 label 文字
+                    let labels = checkedBoxes.map(function () {
+                        return $(this).next("label").text();
+                    }).get();
+
+                    selected.push("<strong>類型：</strong>" + labels.join(", "));
+                }
+                // 顯示或隱藏 div
+                if (selected.length) {
+                    $("#selectedFiltersDiv").show();
+                    $("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
+                } else {
+                    $("#selectedFiltersDiv").hide();
+                    $("#selectedFiltersText").html("");
+                }
+            }
+
+            function updateFilterCount() {
+                var checkedCount = $(".dropdown-menu input[type=checkbox]:checked").length;
+
+                if (checkedCount > 0) {
+                    $("#filterCount").show();
+                    $("#filterCount").text(checkedCount);
+                } else {
+                    $("#filterCount").hide();
+                }
+            }
+
+        });
+
+        // 統一刷新列表
+        async function refreshTable(page = 1, filters = {}) {
+            try {
+
+                filters.Page = page;
+                filters.PageSize = pageNumber;
+                filters.keyword = $('#searchInput').val();
+                filters.Categories = [...document.querySelectorAll(".dropdown-menu input[type=checkbox]:checked")].map(cb => cb.value);
+
+                // 取得 CSRF Token
+                filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
+
+                let response = await $.ajax({
+                    url: '/Faqs/SearchSelect',
+                    type: 'POST',
+                    data: JSON.stringify(filters),
+                    contentType: "application/json"
+                });
+
+                // 如果本頁沒有資料且頁數大於 1，自動回前一頁
+                if (response.tableHtml.trim() === "" && page > 1) {
+                    return await refreshTable(page - 1, filters);
+                }
+
+                // 更新accordionExample
+                $("#accordionExample").html(response.tableHtml);
+
+                // 更新 pagination
+                $("#pagination").html(response.paginationHtml);
+
+                // 更新分頁顯示
+                $('#paginationInfo').text(page);
+
+                $('#delectAll, #selectNum').hide();
+                $('#checkAll').prop('checked', false);
+
+            } catch (err) {
+                alert("更新列表失敗：" + err.responseText || err.statusText);
+            }
+        }
+    </script>
+}

@@ -31,6 +31,8 @@ public partial class OrderMaster
 
     public string Status { get; set; } = null!;
 
+    public string? DiscountType { get; set; }
+
     public virtual ICollection<OrderC> OrderCs { get; set; } = new List<OrderC>();
 
     public virtual User UserNoNavigation { get; set; } = null!;

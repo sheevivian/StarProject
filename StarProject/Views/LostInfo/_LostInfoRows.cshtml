@@ -1,0 +1,45 @@
+﻿@model IEnumerable<StarProject.Models.LostInfo>
+
+@foreach (var item in Model)
+{
+	<tr>
+		<td style="width:50px">
+			<input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No">
+		</td>
+		<td style="width:346px">
+			@Html.DisplayFor(modelItem => item.Name)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.Category)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.Status)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.FoundDate)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => item.CreatedDate)
+		</td>
+		<td style="width:116px;text-align: center;">
+			<button type="button"
+					class="btn btn-color btn-sm btn-detail"
+					data-id="@item.No"
+					data-name="@item.Name"
+					data-category="@item.Category"
+					data-desc="@item.Desc"
+                    data-founddate="@item.FoundDate.ToString("yyyy-MM-dd")"
+					data-createddate="@item.CreatedDate.ToString("yyyy-MM-dd HH:mm")"
+					data-status="@item.Status"
+					data-image="@item.Image"
+					data-ownerName="@item.OwnerName"
+					data-ownerPhone="@item.OwnerPhone"
+					data-bs-toggle="offcanvas" 
+					data-bs-target="#offcanvasDetail">
+				詳細內容
+			</button>
+		</td>
+	</tr>
+}
+
+

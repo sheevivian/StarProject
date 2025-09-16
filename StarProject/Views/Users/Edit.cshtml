@@ -1,4 +1,5 @@
-﻿@model StarProject.Models.User
+@using StarProject.DTOs.UsersDTOs
+@model UserEditDTO
 
 @{
     ViewData["Title"] = "Edit";
@@ -17,16 +18,6 @@
                 <label asp-for="Account" class="control-label"></label>
                 <input asp-for="Account" class="form-control" />
                 <span asp-validation-for="Account" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PasswordHash" class="control-label"></label>
-                <input asp-for="PasswordHash" class="form-control" />
-                <span asp-validation-for="PasswordHash" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PasswordSalt" class="control-label"></label>
-                <input asp-for="PasswordSalt" class="form-control" />
-                <span asp-validation-for="PasswordSalt" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
@@ -48,14 +39,9 @@
                 <input asp-for="Address" class="form-control" />
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="IdNumber" class="control-label"></label>
-                <input asp-for="IdNumber" class="form-control" />
-                <span asp-validation-for="IdNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
+                <select asp-for="Status" class="form-control" asp-items="ViewBag.StatusList"></select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
             <div class="form-group">

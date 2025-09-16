@@ -401,6 +401,7 @@ namespace StarProject.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Image")
+
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location")
@@ -835,6 +836,10 @@ namespace StarProject.Migrations
                     b.Property<decimal?>("Discount")
                         .HasColumnType("decimal(10, 2)");
 
+                    b.Property<string>("DiscountType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<decimal?>("DiscountedPrice")
                         .HasColumnType("decimal(10, 2)");
 
@@ -855,6 +860,11 @@ namespace StarProject.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(10, 2)");
@@ -895,6 +905,10 @@ namespace StarProject.Migrations
 
                     b.Property<decimal?>("DiscountAmount")
                         .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("DiscountType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("MerchantTradeNo")
                         .IsRequired()
@@ -967,17 +981,20 @@ namespace StarProject.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Event_No");
 
+
                     b.Property<string>("PaymentNo")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("Payment_No");
 
                     b.Property<DateTime>("RegisteredDate")
+
                         .HasColumnType("datetime");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
+
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1002,9 +1019,11 @@ namespace StarProject.Migrations
 
             modelBuilder.Entity("StarProject.Models.PaymentTransaction", b =>
                 {
-                    b.Property<string>("No")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("No")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("No"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1079,7 +1098,8 @@ namespace StarProject.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.HasKey("No")
-                        .HasName("PK__ProCateg__3214D4A89987FFD4");
+
+                        .HasName("PK__ProCateg__3214D4A860C92A06");
 
                     b.ToTable("ProCategory", (string)null);
                 });
@@ -1293,33 +1313,21 @@ namespace StarProject.Migrations
 
             modelBuilder.Entity("StarProject.Models.PromotionRule", b =>
                 {
-                    b.Property<int?>("ConditionAmount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal?>("DiscountValue")
-                        .HasColumnType("decimal(10, 2)");
+                    b.Property<string>("Action")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("PromotionNo")
                         .HasColumnType("int")
                         .HasColumnName("Promotion_No");
 
-                    b.Property<string>("RuleType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("Percentage");
+                    b.Property<string>("Rule")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("TargetCategory")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("ALL");
+                    b.Property<string>("Scope")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasIndex("PromotionNo");
 
@@ -1434,26 +1442,10 @@ namespace StarProject.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.HasKey("No")
-                        .HasName("PK__TicCateg__3214D4A89B19B687");
+
+                        .HasName("PK__TicCateg__3214D4A80970CBCD");
 
                     b.ToTable("TicCategory", (string)null);
-                });
-
-            modelBuilder.Entity("StarProject.Models.TickestStock", b =>
-                {
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("Stock")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TicketNo")
-                        .HasColumnType("int")
-                        .HasColumnName("Ticket_No");
-
-                    b.HasIndex("TicketNo");
-
-                    b.ToTable("TickestStock", (string)null);
                 });
 
             modelBuilder.Entity("StarProject.Models.Ticket", b =>
@@ -1501,6 +1493,24 @@ namespace StarProject.Migrations
                     b.HasIndex("TicCategoryNo");
 
                     b.ToTable("Ticket", (string)null);
+                });
+
+
+            modelBuilder.Entity("StarProject.Models.TicketStock", b =>
+                {
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketNo")
+                        .HasColumnType("int")
+                        .HasColumnName("Ticket_No");
+
+                    b.HasIndex("TicketNo");
+
+                    b.ToTable("TicketStock", (string)null);
                 });
 
             modelBuilder.Entity("StarProject.Models.User", b =>
@@ -1674,7 +1684,9 @@ namespace StarProject.Migrations
                     b.HasOne("StarProject.Models.Event", "EventNoNavigation")
                         .WithMany()
                         .HasForeignKey("EventNo")
+
                         .OnDelete(DeleteBehavior.Cascade)
+
                         .HasConstraintName("FK_Collection_Event");
 
                     b.HasOne("StarProject.Models.Knowledge", "KnowledgeNoNavigation")
@@ -1744,7 +1756,9 @@ namespace StarProject.Migrations
                     b.HasOne("StarProject.Models.Event", "EventNoNavigation")
                         .WithMany()
                         .HasForeignKey("EventNo")
+
                         .OnDelete(DeleteBehavior.Cascade)
+
                         .IsRequired()
                         .HasConstraintName("FK_eventNotif_event");
 
@@ -1900,6 +1914,7 @@ namespace StarProject.Migrations
                     b.HasOne("StarProject.Models.PaymentTransaction", "PaymentNoNavigation")
                         .WithMany("Participants")
                         .HasForeignKey("PaymentNo")
+
                         .HasConstraintName("FK_Participant_PaymentTransaction");
 
                     b.HasOne("StarProject.Models.User", "UsersNoNavigation")
@@ -2031,24 +2046,15 @@ namespace StarProject.Migrations
             modelBuilder.Entity("StarProject.Models.Schedule", b =>
                 {
                     b.HasOne("StarProject.Models.Event", "EventNoNavigation")
+
                         .WithOne()
                         .HasForeignKey("StarProject.Models.Schedule", "EventNo")
                         .OnDelete(DeleteBehavior.Cascade)
+
                         .IsRequired()
                         .HasConstraintName("FK_Schedule_event");
 
                     b.Navigation("EventNoNavigation");
-                });
-
-            modelBuilder.Entity("StarProject.Models.TickestStock", b =>
-                {
-                    b.HasOne("StarProject.Models.Ticket", "TicketNoNavigation")
-                        .WithMany()
-                        .HasForeignKey("TicketNo")
-                        .IsRequired()
-                        .HasConstraintName("Tic_No_FK");
-
-                    b.Navigation("TicketNoNavigation");
                 });
 
             modelBuilder.Entity("StarProject.Models.Ticket", b =>
@@ -2060,6 +2066,18 @@ namespace StarProject.Migrations
                         .HasConstraintName("FK_Ticket_TicCategory");
 
                     b.Navigation("TicCategoryNoNavigation");
+                });
+
+
+            modelBuilder.Entity("StarProject.Models.TicketStock", b =>
+                {
+                    b.HasOne("StarProject.Models.Ticket", "TicketNoNavigation")
+                        .WithMany()
+                        .HasForeignKey("TicketNo")
+                        .IsRequired()
+                        .HasConstraintName("Tic_No_FK");
+
+                    b.Navigation("TicketNoNavigation");
                 });
 
             modelBuilder.Entity("StarProject.Models.UserAchievement", b =>

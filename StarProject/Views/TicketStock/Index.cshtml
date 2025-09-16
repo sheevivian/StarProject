@@ -1,0 +1,72 @@
+﻿@model IEnumerable<StarProject.ViewModels.TicketStockSumViewModel>
+
+@{
+    ViewData["Title"] = "票券庫存管理";
+	
+    var grouped = Model
+	.GroupBy(m => m.ReleaseDate)
+	.OrderByDescending(g => g.Key);
+
+    var dateQuery = Context.Request.Query["date"];
+}
+<head>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+
+<main class="flex-fill position-relative">
+    <!-- 標題+新增 -->
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">商品庫存管理</h1>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
+    </div>
+
+    <!-- CSRF Token -->
+    <form id="deleteForm">
+        @Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+    </form>
+
+    <!-- 日期篩選表單 -->
+    <form method="get" class="mb-4">
+        <label for="date">選擇日期：</label>
+        <input type="date" name="date" id="date" value="@dateQuery" class="form-control d-inline-block w-auto" />
+        <button type="submit" class="btn btn-primary ms-2">篩選</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">清除篩選</a>
+    </form>
+
+    <!-- 依日期分容器 -->
+    @foreach (var dayGroup in grouped)
+    {
+        <div class="card mb-3">
+            <div class="card-header bg-light fw-bold">
+                @dayGroup.Key.ToString("yyyy-MM-dd")
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>票券編號</th>
+                            <th>票券名稱</th>
+                            <th>分類</th>
+                            <th>類型</th>
+                            <th>總庫存</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in dayGroup)
+                        {
+                            <tr>
+                                <td>@item.No</td>
+                                <td>@item.Name</td>
+                                <td>@item.TicCategory</td>
+                                <td>@item.Type</td>
+                                <td>@item.TotalStock</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</main>
+            
+

@@ -5,6 +5,18 @@
     {
       "library": "font-awesome@7.0.0",
       "destination": "wwwroot/font-awesome/"
+    },
+    {
+      "library": "tailwindcss@4.1.13",
+      "destination": "wwwroot/lib/tailwindcss/"
+    },
+    {
+      "library": "bootstrap-select@1.13.18",
+      "destination": "wwwroot/bootstrap-select/"
+    },
+    {
+      "library": "ckeditor5@44.3.0",
+      "destination": "wwwroot/ckeditor5/"
     }
   ]
 }

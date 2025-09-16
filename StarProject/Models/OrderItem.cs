@@ -23,5 +23,7 @@ public partial class OrderItem
 
     public string? CouponCode { get; set; }
 
-    public virtual OrderMaster OrderNoNavigation { get; set; } = null!;
+    public string? Type { get; set; }
+
+    public string? DiscountType { get; set; }
 }

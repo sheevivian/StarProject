@@ -22,7 +22,6 @@ public partial class Participant
 
 	public string Code { get; set; } = "";
 
-
 	[ValidateNever]
 	public virtual Event EventNoNavigation { get; set; } = null!;
 	[ValidateNever]

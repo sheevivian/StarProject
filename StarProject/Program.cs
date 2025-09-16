@@ -1,76 +1,110 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NETCore.MailKit;
+using NETCore.MailKit.Core;
+using NETCore.MailKit.Extensions;
+using NETCore.MailKit.Infrastructure.Internal;
 using StarProject.Data;
 using StarProject.Models;
 using StarProject.Services;
 using OfficeOpenXml;
+using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
 
 
 
 namespace StarProject
 {
-	public class Program
-	{
-		public static void Main(string[] args)
-		{
-			var builder = WebApplication.CreateBuilder(args);
-			ExcelPackage.License.SetNonCommercialOrganization("StarProject Dev Team");
 
-			// Add services to the container.
-			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-				?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-			builder.Logging.AddConsole();
-			builder.Logging.SetMinimumLevel(LogLevel.Information);
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-			builder.Services.AddDbContext<ApplicationDbContext>(options =>
-				options.UseSqlServer(connectionString));
-			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            // ApplicationDbContext (Identity Áî®)
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()
+                ));
 
-			builder.Services.AddDbContext<StarProjectContext>(options =>
+            // StarProjectContext (Ê•≠ÂãôË≥áÊñôÂ∫´)
+            builder.Services.AddDbContext<StarProjectContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("StarProject"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()
+                ));
+
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+            // Identity
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<IPromotionService, PromotionService>();
+
+
+			builder.Services.AddMailKit(config =>
 			{
-				options.UseSqlServer(builder.Configuration.GetConnectionString("StarProject"));
+				config.UseMailKit(builder.Configuration.GetSection("Email").Get<MailKitOptions>());
 			});
 
-			builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-				.AddEntityFrameworkStores<ApplicationDbContext>();
+			// Cookie È©óË≠â
+			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+	        .AddCookie(options =>
+	        {
+		        options.LoginPath = "/Login"; // Êú™ÁôªÂÖ•ÊúÉÂ∞éÂêëÊ≠§È†Å
+	        });
 
-			builder.Services.AddControllersWithViews();
+			/// ÂÖ®ÂüüÈÉΩË¶ÅÁ∂ìÈÅéÈ©óË≠âÊâçËÉΩÈÄ≤ÂÖ•
+			builder.Services.AddAuthorization(options =>
+			{
+				options.FallbackPolicy = new AuthorizationPolicyBuilder()
+					.RequireAuthenticatedUser()
+					.Build();
+			});
 
-			// ´OØd°GßYÆ…±H∞e°u≥¯¶W¶®•\´H°vµ••\Ø‡§¥ª› MailService
+
+      //Èô§ÈåØÂπ´Âä©
+      builder.Logging.AddConsole();
+			builder.Logging.SetMinimumLevel(LogLevel.Information);
+          
+			//ExcelÈúÄË¶Å
+      ExcelPackage.License.SetNonCommercialOrganization("StarProject Dev Team");
+          
+			//MailService
 			builder.Services.AddTransient<MailService>();
 
-			// ≤æ∞£°G¨°∞ ´e 7 §—¥£øÙ™∫≠I¥∫§uß@
-			// builder.Services.AddHostedService<SevenDayReminderWorker>();
-
 			var app = builder.Build();
-
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
-			{
-				app.UseMigrationsEndPoint();
-			}
-			else
-			{
-				app.UseExceptionHandler("/Home/Error");
-				app.UseHsts();
-			}
 
-			app.UseHttpsRedirection();
-			app.UseStaticFiles();
+            {
+                app.UseMigrationsEndPoint();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
 
-			app.UseRouting();
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseRouting();
+            //ÁôªÂÖ•È©óË≠âÁöÑÂäüËÉΩ
+			      app.UseAuthentication(); // Â¶ÇÊûúÊúâ Identity ÁôªÂÖ•ÂäüËÉΩ
+			      app.UseAuthorization();
 
-			// ≠Y¶≥µn§J/µ˘•U¨yµ{°A´ÿƒ≥•[§W°G
-			// app.UseAuthentication();
 
-			app.UseAuthorization();
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapRazorPages();
 
-			app.MapControllerRoute(
-				name: "default",
-				pattern: "{controller=Home}/{action=Index}/{id?}");
-			app.MapRazorPages();
-
-			app.Run();
-		}
-	}
+            app.Run();
+        }
+    }
 }

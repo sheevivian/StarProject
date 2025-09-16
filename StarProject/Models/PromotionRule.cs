@@ -15,7 +15,12 @@ public partial class PromotionRule
 
     public string TargetCategory { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
+
+    public string? ConditionType { get; set; }
+
+    public string? MemberLevel { get; set; }
+
 
     public virtual Promotion PromotionNoNavigation { get; set; } = null!;
 }

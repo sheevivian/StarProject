@@ -14,24 +14,25 @@ namespace StarProject.Helpers
 		/// <param name="pageSize">每頁大小</param>
 		/// <returns>(Items, Total)</returns>
 		public static async Task<(IReadOnlyList<TEntity> Items, int Total, int TotalPages)> PaginateAsync<TEntity>(
-		IQueryable<TEntity> query,
-		int page,
-		int pageSize)
-		where TEntity : class
-		{
-			page = page <= 0 ? 1 : page;
-			pageSize = pageSize <= 0 ? 10 : pageSize;
 
-			var total = await query.CountAsync();
-			var totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        IQueryable<TEntity> query,
+        int page,
+        int pageSize)
+        where TEntity : class
+        {
+            page = page <= 0 ? 1 : page;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
 
-			var items = await query
-				.Skip((page - 1) * pageSize)
-				.Take(pageSize)
-				.ToListAsync();
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)pageSize);
 
-			return (items, total, totalPages);
-		}
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total, totalPages);
+        }
 	}
 }
 

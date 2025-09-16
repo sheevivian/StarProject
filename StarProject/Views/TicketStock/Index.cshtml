@@ -3,21 +3,58 @@
 @{
     ViewData["Title"] = "票券庫存管理";
 	
-    var grouped = Model
+    var groupedByDate = Model
 	.GroupBy(m => m.ReleaseDate)
 	.OrderByDescending(g => g.Key);
 
-    var dateQuery = Context.Request.Query["date"];
+    var startDateQuery = Context.Request.Query["startDate"];
+    var endDateQuery = Context.Request.Query["endDate"];
 }
 <head>
-    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        .btn-accor{
+            padding: 8px 16px;
+        }
+
+        .btn-accor:hover {
+            background-color: #eaecf4;
+        }
+
+        .btn-search {
+            --bs-btn-bg: rgb(250, 208, 72);
+            --bs-btn-border-color: rgb(250, 208, 72);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #ffc720;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        }
+
+        .btn-outline-search {
+            --bs-btn-color: #ffc107;
+            --bs-btn-border-color: #ffc107;
+            --bs-btn-hover-color: #ffc107;
+            --bs-btn-hover-bg: rgba(253, 246, 222, 0.897);
+            --bs-btn-hover-border-color: #ffc107;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #ffc107;
+            --bs-btn-active-border-color: #ffc107;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+    </style>
 </head>
 
 <main class="flex-fill position-relative">
     <!-- 標題+新增 -->
     <div class="d-flex align-items-center mb-3">
-        <h1 class="fw-bold flex-grow-1 mb-0">商品庫存管理</h1>
-        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
+        <h1 class="fw-bold flex-grow-1 mb-0">票券庫存管理</h1>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 設定庫存</a>
     </div>
 
     <!-- CSRF Token -->
@@ -27,46 +64,128 @@
 
     <!-- 日期篩選表單 -->
     <form method="get" class="mb-4">
-        <label for="date">選擇日期：</label>
-        <input type="date" name="date" id="date" value="@dateQuery" class="form-control d-inline-block w-auto" />
-        <button type="submit" class="btn btn-primary ms-2">篩選</button>
-        <a asp-action="Index" class="btn btn-secondary ms-2">清除篩選</a>
+        <label for="date" class="fs-5 fw-bold me-2">起始日期</label>
+        <input type="date" name="startDate" id="startDate" value="@ViewData["startDate"]" class="form-control d-inline-block w-auto me-4" />
+        <label for="date" class="fs-5 fw-bold me-2">結束日期</label>
+        <input type="date" name="endDate" id="endDate" value="@ViewData["endDate"]" class="form-control d-inline-block w-auto" />
+        <button type="submit" class="btn btn-outline-secondary ms-4"><i class="fa-solid fa-filter"></i> 篩選</button>
     </form>
 
-    <!-- 依日期分容器 -->
-    @foreach (var dayGroup in grouped)
-    {
-        <div class="card mb-3">
-            <div class="card-header bg-light fw-bold">
-                @dayGroup.Key.ToString("yyyy-MM-dd")
-            </div>
-            <div class="card-body">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>票券編號</th>
-                            <th>票券名稱</th>
-                            <th>分類</th>
-                            <th>類型</th>
-                            <th>總庫存</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in dayGroup)
-                        {
-                            <tr>
-                                <td>@item.No</td>
-                                <td>@item.Name</td>
-                                <td>@item.TicCategory</td>
-                                <td>@item.Type</td>
-                                <td>@item.TotalStock</td>
-                            </tr>
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-5 g-3 mb-3">
+        @foreach (var dayGroup in groupedByDate)
+        {
+            var dateId = $"date-{dayGroup.Key:yyyyMMdd}";
+            <div class="col rounded-lg">
+                <div class="card mb-3 h-100 shadow">
+                    <div class="card-header fw-bold text-white fs-5" style="background-color:#2B4C8C;">
+                        日期： @dayGroup.Key.ToString("yyyy-MM-dd")
+                    </div>
+                    <div class="card-body p-0 px-2 pt-2">
+                        @{
+                            var catIndex = 0; // 每個日期的類別索引
                         }
-                    </tbody>
-                </table>
+                        @foreach (var ticketGroupByCat in dayGroup.GroupBy(x => x.TicCategory))
+                        {
+                            // 判斷這個分類底下是否有任何票券庫存 < 1000
+                            var isAnyLowStock = ticketGroupByCat.Any(x => x.TotalStock < 100);
+
+                            // 外層 Accordion id
+                            var ticketCat = $"{dateId}-cat{catIndex}";
+                            <div class="accordion m-2" id="accordionTicket-@ticketCat">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header p-0" id="heading-@ticketCat">
+                                        <button class="accordion-button collapsed btn-accor" type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#collapse-@ticketCat"
+                                                aria-expanded="false"
+                                                aria-controls="collapse-@ticketCat">
+                                            @if (isAnyLowStock)
+                                            {
+                                                <div class="bg-danger rounded-circle me-2" style="width:10px; height:10px;"></div>
+                                            }
+                                             @ticketGroupByCat.Key
+                                        </button>
+                                    </h2>
+                                    <div id="collapse-@ticketCat" class="accordion-collapse collapse"
+                                         aria-labelledby="heading-@ticketCat">
+                                        <div class="accordion-body p-0">
+                                            @{
+                                                var nameIndex = 0; // 每個類別下的票券名稱索引
+                                            }
+                                            @foreach (var ticketGroupByName in ticketGroupByCat.GroupBy(x => x.Name))
+                                            {
+                                                // 計算這個展覽所有庫存的總和
+                                                var totalStock = ticketGroupByName.Sum(x => x.TotalStock);
+                                                var isLowStock = totalStock < 100;
+
+                                                // 內層 Accordion id
+                                                var ticketId = $"{ticketCat}-name{nameIndex}";
+                                                <div class="accordion m-3" id="accordionTicket-@ticketId">
+                                                    <div class="accordion-item">
+                                                        <h2 class="accordion-header" id="heading-@ticketId">
+                                                            <button class="accordion-button collapsed btn-accor" type="button"
+                                                                    data-bs-toggle="collapse"
+                                                                    data-bs-target="#collapse-@ticketId"
+                                                                    aria-expanded="false"
+                                                                    aria-controls="collapse-@ticketId">
+                                                                @ticketGroupByName.Key
+                                                                @if (isLowStock)
+                                                                {
+                                                                    <span class="badge bg-danger ms-2 rounded-pill" style="font-size:15px;">
+                                                                        庫存注意
+                                                                    </span>
+                                                                }
+                                                            </button>
+                                                        </h2>
+                                                        <div id="collapse-@ticketId" class="accordion-collapse collapse"
+                                                             aria-labelledby="heading-@ticketId">
+                                                            <div class="accordion-body p-3">
+                                                                <!-- 票券類型 + 庫存 -->
+                                                                <table class="table table-sm border border-0">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>票券類型</th>
+                                                                            <th>庫存</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach (var item in ticketGroupByName)
+                                                                        {
+                                                                            var lowerClass = totalStock < 100 ? "text-danger fw-bold border-0 border border-bottom border-black" : "";
+                                                                            <tr>
+                                                                                <td>@item.Type</td>
+                                                                                <td class="@lowerClass">@item.TotalStock</td>
+                                                                            </tr>
+
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                nameIndex++;
+                                            }
+
+                                        </div> 
+                                    </div>
+                                </div>
+                            </div>
+                            catIndex++;
+                        }
+                    </div>
+                </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 </main>
-            
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+
 

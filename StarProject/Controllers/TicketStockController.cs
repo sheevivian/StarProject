@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using StarProject.Models;
 using StarProject.ViewModels;
 using System;
@@ -13,17 +16,23 @@ namespace StarProject.Controllers
     public class TicketStockController : Controller
     {
         private readonly StarProjectContext _context;
-        DateTime startDate = DateTime.MinValue;
-        DateTime endDate = DateTime.MaxValue;
 
 		public TicketStockController(StarProjectContext context)
         {
             _context = context;
         }
 
-        // GET: TicketStock
-        public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate)
+
+		// GET: TicketStock
+		public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate)
         {
+			// 如果沒有傳入參數，就給預設值
+			if (!startDate.HasValue)
+				startDate = DateTime.Today;
+
+			if (!endDate.HasValue)
+				endDate = DateTime.Today.AddDays(7);
+
 			// 1️⃣ 把每日庫存投影成同樣結構
 			var dailyStocks = _context.TicketStocks
 				.Select(s => new
@@ -92,11 +101,17 @@ namespace StarProject.Controllers
 
 			var result = await query.ToListAsync();
 
+			// 也把預設值傳到 View，方便表單顯示
+			ViewData["startDate"] = startDate.Value.ToString("yyyy-MM-dd");
+			ViewData["endDate"] = endDate.Value.ToString("yyyy-MM-dd");
+
 			return View(result);
 		}
 
-        // GET: TicketStock/Details/5
-        public async Task<IActionResult> Details(int? id)
+		
+
+		// GET: TicketStock/Details/5
+		public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -114,32 +129,72 @@ namespace StarProject.Controllers
             return View(ticketStock);
         }
 
-        // GET: TicketStock/Create
-        public IActionResult Create()
-        {
-            ViewData["TicketNo"] = new SelectList(_context.Tickets, "No", "No");
-            return View();
-        }
+		// 票券庫存建立-多筆(GET)
+		// GET: TicketStock/DownloadTemplate
+		[HttpGet]
+		public IActionResult DownloadTemplate()
+		{
+			var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "exceltemps", "TicketStockTemplate.xlsx");
+			var fileBytes = System.IO.File.ReadAllBytes(filePath);
+			return File(fileBytes,
+						"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+						"TicketStockTemplate.xlsx");
+		}
 
-        // POST: TicketStock/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TicketNo,Date,Stock,No")] TicketStock ticketStock)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(ticketStock);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["TicketNo"] = new SelectList(_context.Tickets, "No", "No", ticketStock.TicketNo);
-            return View(ticketStock);
-        }
+		// 票券庫存建立-多筆(POST)
+		// POST: Product/CreateMultiple
+		[HttpPost]
+		public async Task<IActionResult> CreateMultiple(IFormFile excelFile)
+		{
+			if (excelFile == null || excelFile.Length == 0)
+			{
+				ModelState.AddModelError("", "請選擇檔案");
+				return View();
+			}
+
+			var ticketstocks = new List<TicketStock>();
+
+			using (var stream = excelFile.OpenReadStream())
+			{
+				IWorkbook workbook;
+				if (Path.GetExtension(excelFile.FileName).ToLower() == ".xls")
+				{
+					workbook = new HSSFWorkbook(stream); // 2003 格式
+				}
+				else
+				{
+					workbook = new XSSFWorkbook(stream); // 2007+
+				}
+
+				var sheet = workbook.GetSheetAt(0); // 讀第一個工作表
 
 
-        private bool TicketStockExists(int id)
+				for (int row = 2; row <= sheet.LastRowNum; row++) // 從第 3 列開始 (第1列標題、第2列範例)
+				{
+					var currentRow = sheet.GetRow(row);
+					if (currentRow == null) continue;
+					var ticketstock = new TicketStock
+					{
+						//No = lastNo,
+						//Name = currentRow.GetCell(0)?.ToString(),
+						//ProCategoryNo = currentRow.GetCell(1)?.ToString(),
+						//Price = decimal.TryParse(currentRow.GetCell(2)?.ToString(), out var price) ? price : 0,
+						//Status = currentRow.GetCell(3)?.ToString(),
+						//ReleaseDate = DateTime.TryParse(currentRow.GetCell(4)?.ToString(), out var dt) ? dt : DateTime.Now,
+						//UpdateDate = DateTime.Now
+					};
+					products.Add(product);
+				}
+				_context.Products.AddRange(products);
+				await _context.SaveChangesAsync();
+			}
+			TempData["Success"] = $"成功匯入 {products.Count} 筆資料";
+			return RedirectToAction("Index");
+		}
+
+
+
+		private bool TicketStockExists(int id)
         {
             return _context.TicketStocks.Any(e => e.No == id);
         }

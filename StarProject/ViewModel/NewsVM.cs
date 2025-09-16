@@ -33,7 +33,7 @@ namespace StarProject.ViewModel
 		public List<int> DeleteImageIds { get; set; } = new(); // 待刪除的舊圖片 Id
 
 		// 新圖片相關
-		public List<IFormFile> ImageFiles { get; set; } = new(); // 上傳新圖片
+		public List<IFormFile> ImageFiles { get; set; } = new List<IFormFile>(); // 上傳新圖片
 		[ValidateNever]
 		public List<int> ImageOrderNos { get; set; } = new();   // 新圖片順序
 	}

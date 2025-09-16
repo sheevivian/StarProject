@@ -112,7 +112,7 @@
                         <!-- 多圖上傳 -->
                         <div class="mb-3">
                             <label class="form-label fw-bold fs-5">上傳圖片</label>
-                            <input asp-for="ImageFiles" type="file" class="form-control" multiple id="imageFilesInput" />
+                            <input type="file" class="form-control" multiple id="imageFilesInput" name="ImageFiles" />
                         </div>
 
                         <!-- Carousel 預覽 + 拖曳排序 -->
@@ -244,16 +244,17 @@
             });
         }
 
-        // 將 fileList 同步回 input
         function updateFileInput(){
             const dataTransfer = new DataTransfer();
-            fileList.forEach(obj => {
-                dataTransfer.items.add(obj.file);
-            });
-            if(fileList.length>0{
+            if(fileList.length > 0){
+                fileList.forEach(obj => {
+                    dataTransfer.items.add(obj.file);
+                });
                 imageFilesInput.files = dataTransfer.files;
+            } else {
+                // 不改 input.files，保持原本空值
+                imageFilesInput.value = "";
             }
-            
         }
 
         // 拖曳排序
@@ -296,13 +297,10 @@
                     }
                 })
                 .then(editor => {
-                   // 將 CKEditor 的內容同步回原本的 textarea
+                    // 只綁一次事件
                     editor.model.document.on('change:data', () => {
-                        // 同步內容回 textarea
-                        editor.model.document.on('change:data', () => {
-                            textarea.value = editor.getData();
-                            console.log(textarea.value);
-                        });
+                        textarea.value = editor.getData();
+                        // console.log(textarea.value); // 可以保留或刪掉
                     });
                 })
                 .catch(error => {

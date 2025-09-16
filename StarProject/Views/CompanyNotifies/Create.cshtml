@@ -137,13 +137,10 @@
                     }
                 })
                 .then(editor => {
-                   // 將 CKEditor 的內容同步回原本的 textarea
+                    // 只綁一次事件
                     editor.model.document.on('change:data', () => {
-                        // 同步內容回 textarea
-                        editor.model.document.on('change:data', () => {
-                            textarea.value = editor.getData();
-                            console.log(textarea.value);
-                        });
+                        textarea.value = editor.getData();
+                        // console.log(textarea.value); // 可以保留或刪掉
                     });
                 })
                 .catch(error => {
@@ -151,4 +148,5 @@
                 });
         });
     </script>
+}
 }

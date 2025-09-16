@@ -9,11 +9,14 @@ using NETCore.MailKit.Infrastructure.Internal;
 using StarProject.Data;
 using StarProject.Models;
 using StarProject.Services;
+using OfficeOpenXml;
 using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
+
 
 
 namespace StarProject
 {
+
     public class Program
     {
         public static void Main(string[] args)
@@ -65,6 +68,16 @@ namespace StarProject
 			});
 
 
+      //除錯幫助
+      builder.Logging.AddConsole();
+			builder.Logging.SetMinimumLevel(LogLevel.Information);
+          
+			//Excel需要
+      ExcelPackage.License.SetNonCommercialOrganization("StarProject Dev Team");
+          
+			//MailService
+			builder.Services.AddTransient<MailService>();
+
 			var app = builder.Build();
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
@@ -82,13 +95,9 @@ namespace StarProject
             app.UseStaticFiles();
             app.UseRouting();
             //登入驗證的功能
-			app.UseAuthentication();
-			app.UseAuthorization();
+			      app.UseAuthentication(); // 如果有 Identity 登入功能
+			      app.UseAuthorization();
 
-			app.UseAuthentication(); // 如果有 Identity 登入功能
-			app.UseAuthorization();
-
-			app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",

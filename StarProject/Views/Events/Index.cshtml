@@ -1,0 +1,367 @@
+﻿@using System
+@using System.Linq
+@model IEnumerable<StarProject.Models.Event>
+
+@{
+    ViewData["Title"] = "活動總覽";
+    var now = DateTime.Now;
+
+    // 本月清單與報名數字典（Controller 先準備好）
+    var list = (IEnumerable<dynamic>)(ViewBag.ThisMonthEvents ?? new List<dynamic>());
+    var regs = (System.Collections.Generic.IDictionary<int, int>)(ViewBag.RegsByEvent ?? new System.Collections.Generic.Dictionary<int, int>());
+
+    // 即將到來清單
+    var upcoming = (IEnumerable<dynamic>)(ViewBag.UpcomingEvents ?? new List<dynamic>());
+}
+
+<style>
+    /* 星空（不影響 navbar / sidebar） */
+    .star-skin {
+        position: relative;
+        isolation: isolate;
+        background: transparent !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+        .star-skin::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse at bottom, #0b0c1c 0%, #1a1b2c 100%);
+        }
+
+        .star-skin > .starfield {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+            .star-skin > .starfield .star {
+                position: absolute;
+                background: #fff;
+                border-radius: 50%;
+                width: 2px;
+                height: 2px;
+                opacity: .8;
+            }
+
+        .star-skin > *:not(.starfield) {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 原本全域的深色表格樣式（保留） */
+        .star-skin .card, .star-skin .table {
+            background-color: rgba(0,0,0,.6);
+            color: #fff;
+        }
+
+        .star-skin .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(255,255,255,.05) !important;
+        }
+
+        /* --- 白底表格覆寫：只影響 .table-white，蓋掉上面的黑底 --- */
+        .star-skin .table-white {
+            background: #fff !important;
+            color: #212529 !important;
+        }
+
+        .table-white {
+            border-radius: .75rem;
+            overflow: hidden;
+        }
+
+        .table-white th, .table-white td {
+            color: #212529 !important;
+            border-color: rgba(0,0,0,.125);
+        }
+
+        .table-white.table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(0,0,0,.03) !important;
+        }
+
+        .table-white .progress {
+            background: rgba(0,0,0,.1);
+        }
+
+        /* 標題配色（比照 list.cshtml），且欄位名稱置中 */
+        .table-head-blue th {
+            font-size: 18px !important;
+            color: #fff !important;
+            background-color: #2B4C8C !important;
+            letter-spacing: .2rem;
+            text-align: center;
+            vertical-align: middle;
+            border-color: #2B4C8C !important;
+        }
+
+        .table-head-blue th:first-child {
+            width: 56px;
+        }
+
+        /* 統計卡片 + 圖示樣式 */
+        .stat-card {
+            border-radius: .75rem;
+        }
+
+        .stat-icon {
+            font-size: 1.75rem;
+            line-height: 1;
+            opacity: .92;
+            color: inherit;
+        }
+
+        /* 依狀態不同點綴色 */
+        .stat-open .stat-icon {
+            color: #4da3ff;
+        }
+        /* 開放/報名中 */
+        .stat-done .stat-icon {
+            color: #6c757d;
+        }
+        /* 已結束：中性灰 */
+        .stat-cancel .stat-icon {
+            color: #ff7b7b;
+        }
+        /* 已取消 */
+
+        .stat-card h4 {
+            font-weight: 600;
+        }
+
+        .stat-card h3 {
+            font-weight: 700;
+        }
+
+        /* 品牌色按鈕：#2B4C8C */
+        .btn-brand {
+            --bs-btn-color: #fff;
+            --bs-btn-bg: #2B4C8C;
+            --bs-btn-border-color: #2B4C8C;
+            --bs-btn-hover-color: #fff;
+            --bs-btn-hover-bg: #254276;
+            --bs-btn-hover-border-color: #244070;
+            --bs-btn-focus-shadow-rgb: 43,76,140;
+            --bs-btn-active-color: #fff;
+            --bs-btn-active-bg: #223c6a;
+            --bs-btn-active-border-color: #213965;
+            --bs-btn-disabled-color: #fff;
+            --bs-btn-disabled-bg: #2B4C8C;
+            --bs-btn-disabled-border-color: #2B4C8C;
+        }
+
+        /* 微微抖動（只抖一下） */
+        .stat-card .stat-icon {
+            display: inline-block;
+            will-change: transform, filter;
+            transition: transform .25s ease, filter .25s ease, text-shadow .25s ease;
+            backface-visibility: hidden;
+        }
+
+        .stat-card:hover .stat-icon {
+            animation: micro-wiggle .6s ease-in-out 1;
+        }
+
+        @@keyframes micro-wiggle {
+            0% {
+                transform: translate3d(0,0,0) rotate(0deg);
+            }
+
+            25% {
+                transform: translate3d(.6px,-.6px,0) rotate(-1.5deg);
+            }
+
+            50% {
+                transform: translate3d(-.6px,.6px,0) rotate(1.5deg);
+            }
+
+            75% {
+                transform: translate3d(.4px,-.4px,0) rotate(-1deg);
+            }
+
+            100% {
+                transform: translate3d(0,0,0) rotate(0deg);
+            }
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            .stat-card:hover .stat-icon {
+                animation: none;
+            }
+        }
+
+        /* 統一主內容寬度（上方三區塊與下方清單對齊） */
+        .content-narrow, .table-narrow {
+            max-width: 960px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @@media (min-width:1400px) {
+            .content-narrow, .table-narrow {
+                max-width: 1000px;
+            }
+        }
+
+        /* 進度條高度 */
+        .progress {
+            height: .5rem;
+        }
+
+        .progress-left {
+            margin-left: 6px;
+            margin-right: 12px;
+        }
+</style>
+
+<div class="main-content-star">
+    <div class="container my-3 p-3">
+
+        <!-- 大標題（縮窄對齊） -->
+        <div class="content-narrow">
+            <h1 class="mb-4 text-white">活動總覽</h1>
+        </div>
+
+        <!-- 最新提醒（縮窄對齊） -->
+        <div class="content-narrow mb-4 d-flex align-items-start gap-3">
+            <div class="bg-danger text-white rounded-pill px-3 py-1 flex-shrink-0">即將到來</div>
+            <div class="p-3 bg-white text-dark rounded flex-grow-1 shadow-sm">
+                @string.Join("、", upcoming.Select(ev => $"{(string)ev.Title} ({((DateTime)ev.StartDate).ToString("M/d HH:mm")})"))
+            </div>
+        </div>
+
+        <!-- 統計卡片（縮窄對齊 + Font Awesome 圖示 + 微微抖動） -->
+        <div class="content-narrow">
+            <div class="row mb-4 text-center">
+
+                <div class="col-md-4 mb-3">
+                    <div class="card p-4 h-100 stat-card stat-open">
+                        <div class="stat-icon mb-2"><i class="fa-solid fa-satellite"></i></div>
+                        <h4 class="mb-1">報名中</h4>
+                        <h3 class="mb-3">@ViewBag.TotalOpenEvents</h3>
+                        <a class="btn btn-brand w-100" href='@Url.Action("List", new { status = "報名中" })'>查看詳情</a>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card p-4 h-100 stat-card stat-done">
+                        <div class="stat-icon mb-2"><i class="fa-solid fa-moon"></i></div>
+                        <h4 class="mb-1">已結束</h4>
+                        <h3 class="mb-3">@ViewBag.TotalEndedEvents</h3>
+                        <a class="btn btn-brand w-100" href='@Url.Action("List", new { status = "已結束" })'>查看詳情</a>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card p-4 h-100 stat-card stat-cancel">
+                        <div class="stat-icon mb-2"><i class="fa-solid fa-burst"></i></div>
+                        <h4 class="mb-1">已取消</h4>
+                        <h3 class="mb-3">@ViewBag.TotalCancelledEvents</h3>
+                        <a class="btn btn-brand w-100" href='@Url.Action("List", new { status = "已取消" })'>查看詳情</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 本月活動列表（縮窄對齊 + 白底圓角） -->
+        <h2 class="text-white d-flex align-items-center gap-2 mb-3 content-narrow">本月活動清單</h2>
+
+        <div class="table-narrow mx-auto">
+            <table class="table table-striped align-middle table-white rounded-3 overflow-hidden shadow-sm">
+                <thead class="table-head-blue">
+                    <tr>
+                        <th class="text-center" style="width:56px">
+                            <i class="fa-solid fa-star" style="color:#FFD43B;"></i>
+                        </th>
+                        <th>活動名稱</th>
+                        <th style="width:160px">開始時間</th>
+                        <th style="width:100px">狀態</th>
+                        <th style="width:220px">報名/上限</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in list.OrderBy(e => (DateTime)e.StartDate))
+                    {
+                        int evNo = (int)ev.No;
+                        int reg = regs.TryGetValue(evNo, out var tmp) ? tmp : 0;
+
+                        // 上限：null -> 0；非 null -> 轉 int（最穩定）
+                        int cap = ev.MaxParticipants is null ? 0 : Convert.ToInt32(ev.MaxParticipants);
+
+                        double pct = cap > 0 ? Math.Min(100.0, Math.Round(reg * 100.0 / cap)) : 0;
+                        string barCls = pct >= 100 ? "bg-danger" : (pct >= 80 ? "bg-warning" : "bg-success");
+
+                        string status = ev.Status as string ?? "";
+                        string badge = status == "報名中" ? "badge bg-primary"
+                        : status == "已結束" ? "badge bg-secondary"
+                        : status == "已取消" ? "badge bg-danger"
+                        : "badge bg-light text-dark";
+                        <tr>
+                            <td class="text-center"><i class="fa-solid fa-star" style="color:#FFD43B;"></i></td>
+                            <td class="text-truncate" title="@ev.Title">@ev.Title</td>
+                            <td>@(((DateTime)ev.StartDate).ToString("M/d HH:mm"))</td>
+                            <td><span class="@badge">@status</span></td>
+                            <td>
+                                <div class="d-flex justify-content-between text-muted small">
+                                    <span>@reg/@cap</span><span>@pct%</span>
+                                </div>
+                                <div class="progress progress-left" role="progressbar" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar @barCls" style="width:@pct%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    (function () {
+      const wrapper =
+        document.querySelector('#layoutSidenav_content > main') ||
+        document.querySelector('.content-wrapper') ||
+        document.querySelector('main.page-content') ||
+        document.querySelector('main');
+
+      if (!wrapper) return;
+
+      wrapper.classList.add('star-skin');
+
+      let starHost = wrapper.querySelector(':scope > .starfield');
+      if (!starHost) {
+        starHost = document.createElement('div');
+        starHost.className = 'starfield';
+        wrapper.prepend(starHost);
+      }
+
+      const STAR_COUNT = 180;
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < STAR_COUNT; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.top  = (Math.random() * 100) + '%';
+        s.style.left = (Math.random() * 100) + '%';
+        const d = 1 + Math.random() * 2;
+        s.style.width = d + 'px';
+        s.style.height = d + 'px';
+        s.style.opacity = (0.4 + Math.random() * 0.6).toFixed(2);
+        frag.appendChild(s);
+      }
+      starHost.appendChild(frag);
+
+      setInterval(() => {
+        starHost.querySelectorAll('.star').forEach(s => {
+          s.style.opacity = (0.2 + Math.random() * 0.8).toFixed(2);
+        });
+      }, 600);
+    })();
+</script>

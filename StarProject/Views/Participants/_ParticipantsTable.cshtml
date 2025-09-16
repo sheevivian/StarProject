@@ -1,0 +1,92 @@
+﻿@using Microsoft.AspNetCore.Html
+@model IEnumerable<StarProject.Models.Participant>
+@{
+    // 由 ListByEvent 傳入
+    int eventId = ViewBag.EventId ?? 0;
+
+    // 小工具：狀態顯示成 badge
+    Func<string?, IHtmlContent> badge = (s) =>
+    {
+        var zh = s switch
+        {
+            "Success" => "報名成功",
+            "Pending" => "待處理",
+            "Canceled" or "Cancelled" => "報名取消已退款",
+            _ => s ?? ""
+        };
+        var cls = s switch
+        {
+            "Success" => "badge bg-success",
+            "Pending" => "badge bg-secondary",
+            "Canceled" or "Cancelled" => "badge bg-danger",
+            _ => "badge bg-light text-dark"
+        };
+        return new HtmlString($"<span class=\"{cls}\">{zh}</span>");
+    };
+}
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th style="width:40px">
+                <input type="checkbox" id="chkAll" />
+            </th>
+            <th style="width:160px">報名日期</th>
+            <th style="width:160px">最後更新</th>
+            <th>會員姓名</th>
+            <th style="width:160px">狀態</th>
+            <th style="width:240px">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-center text-muted">尚無報名紀錄</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var p in Model)
+            {
+                <tr data-id="@p.No">
+                    <td>
+                        <!-- ❶ 統一 class 與 data-id，便於批次刪除腳本抓取 -->
+                        <input type="checkbox"
+                               class="row-check"
+                               name="selectedIds"
+                               value="@p.No"
+                               data-id="@p.No" />
+                    </td>
+                    <td>@p.RegisteredDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@p.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@p.UsersNoNavigation?.Name</td>
+                    <td>@badge(p.Status)</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <!-- ❷ 保留原本表單，但我們會用 JS 攔截，改成 AJAX 提交 -->
+                            <form asp-controller="Participants"
+                                  asp-action="ResendSignup"
+                                  method="post"
+                                  class="resend-form d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@p.No" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-envelope-arrow-up"></i> 重寄 Mail
+                                </button>
+                            </form>
+
+                            <!-- 單筆刪除仍走你原本 Delete 頁面（若要改 AJAX 可再加） -->
+                            <a asp-controller="Participants"
+                               asp-action="Delete"
+                               asp-route-id="@p.No"
+                               class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i> 刪除
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

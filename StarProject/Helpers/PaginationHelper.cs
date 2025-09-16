@@ -14,6 +14,7 @@ namespace StarProject.Helpers
 		/// <param name="pageSize">每頁大小</param>
 		/// <returns>(Items, Total)</returns>
 		public static async Task<(IReadOnlyList<TEntity> Items, int Total, int TotalPages)> PaginateAsync<TEntity>(
+
         IQueryable<TEntity> query,
         int page,
         int pageSize)

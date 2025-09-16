@@ -7,8 +7,6 @@
     <UserSecretsId>aspnet-StarProject-db4998f1-f3cc-409a-b880-638d5656a557</UserSecretsId>
   </PropertyGroup>
 
-  <ItemGroup>
-
 
   <ItemGroup>
     <Content Remove="bundleconfig.json" />

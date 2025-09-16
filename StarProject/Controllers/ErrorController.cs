@@ -12,13 +12,6 @@ namespace StarProject.Controllers
 		}
 
 		[HttpGet]
-		public IActionResult NotFound()
-		{
-			Response.StatusCode = 404;
-			return View();
-		}
-
-		[HttpGet]
 		public IActionResult InternalServerError()
 		{
 			Response.StatusCode = 500;

@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using StarProject.Attributes;
 using StarProject.Data;
 using StarProject.Models;
-using StarProject.Attributes;
 using StarProject.Services;
-using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
 
 
 namespace StarProject
@@ -22,11 +20,15 @@ namespace StarProject
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
 				?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-			// ��Ʈw�t�m
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(connectionString));
 
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+			builder.Services.AddDbContext<StarProjectContext>(options =>
+			{
+				options.UseSqlServer(builder.Configuration.GetConnectionString("StarProject"));
+			});
+
+			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             // Identity
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -35,10 +37,6 @@ namespace StarProject
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<IPromotionService, PromotionService>();
 
-			// Identity �t�m
-			builder.Services.AddDefaultIdentity<IdentityUser>(options =>
-				options.SignIn.RequireConfirmedAccount = true)
-				.AddEntityFrameworkStores<ApplicationDbContext>();
 
 			// MVC �t�m - �[�J����L�o��
 			builder.Services.AddControllersWithViews(options =>

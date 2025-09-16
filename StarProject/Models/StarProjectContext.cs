@@ -309,6 +309,8 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("EventNotif");
 
+            entity.HasIndex(e => new { e.EventNo, e.ParticipantNo, e.Category }, "UQ_EventNotif_Event_Participant_Category").IsUnique();
+
             entity.Property(e => e.Category).HasMaxLength(20);
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
@@ -591,6 +593,9 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
+            entity.HasIndex(e => e.Code, "UQ_Participant_Code").IsUnique();
+
+            entity.Property(e => e.Code).HasMaxLength(7);
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.PaymentNo).HasColumnName("Payment_No");
             entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
@@ -838,16 +843,18 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<Schedule>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Schedule");
+            entity.HasKey(e => e.EventNo);
 
-            entity.Property(e => e.EventNo).HasColumnName("Event_No");
+            entity.ToTable("Schedule");
+
+            entity.Property(e => e.EventNo)
+                .ValueGeneratedNever()
+                .HasColumnName("Event_No");
             entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
             entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
 
-            entity.HasOne(d => d.EventNoNavigation).WithMany()
-                .HasForeignKey(d => d.EventNo)
+            entity.HasOne(d => d.EventNoNavigation).WithOne(p => p.Schedule)
+                .HasForeignKey<Schedule>(d => d.EventNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Schedule_event");
         });

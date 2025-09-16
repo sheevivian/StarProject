@@ -31,5 +31,9 @@ public partial class Event
 
     public int? Deposit { get; set; }
 
-    public string Image { get; set; } = null!;
+    public string? Image { get; set; }
+
+    public virtual ICollection<Participant> Participants { get; set; } = new List<Participant>();
+
+    public virtual Schedule? Schedule { get; set; }
 }

@@ -16,4 +16,6 @@ public partial class EventNotif
     public string Status { get; set; } = null!;
 
     public virtual Event EventNoNavigation { get; set; } = null!;
+
+    public virtual Participant ParticipantNoNavigation { get; set; } = null!;
 }

@@ -5,13 +5,13 @@ namespace StarProject.Models;
 
 public partial class ProductImage
 {
-    public int No { get; set; }
-
     public int ProductNo { get; set; }
 
     public string Image { get; set; } = null!;
 
     public int? ImgOrder { get; set; }
+
+    public int No { get; set; }
 
     public virtual Product ProductNoNavigation { get; set; } = null!;
 }

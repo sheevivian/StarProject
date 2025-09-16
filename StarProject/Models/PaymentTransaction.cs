@@ -5,7 +5,7 @@ namespace StarProject.Models;
 
 public partial class PaymentTransaction
 {
-    public int No { get; set; }
+    public string No { get; set; } = null!;
 
     public string MerchantTradeNo { get; set; } = null!;
 
@@ -28,4 +28,6 @@ public partial class PaymentTransaction
     public string? RawResponse { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public virtual ICollection<Participant> Participants { get; set; } = new List<Participant>();
 }

@@ -15,15 +15,13 @@ public partial class Product
 
     public string Status { get; set; } = null!;
 
-    public DateTime? ReleaseDate { get; set; }
+    public DateTime ReleaseDate { get; set; }
 
-    public DateTime? UpdateDate { get; set; }
+    public DateTime UpdateDate { get; set; }
 
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 
     public virtual ProCategory ProCategoryNoNavigation { get; set; } = null!;
 
     public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
-
-    public virtual ICollection<ProductStock> ProductStocks { get; set; } = new List<ProductStock>();
 }

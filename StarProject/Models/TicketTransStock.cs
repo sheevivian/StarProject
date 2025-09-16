@@ -3,9 +3,11 @@ using System.Collections.Generic;
 
 namespace StarProject.Models;
 
-public partial class ProductStock
+public partial class TicketTransStock
 {
-    public int ProductNo { get; set; }
+    public int No { get; set; }
+
+    public int TicketNo { get; set; }
 
     public string Type { get; set; } = null!;
 
@@ -15,5 +17,5 @@ public partial class ProductStock
 
     public string? Note { get; set; }
 
-    public int No { get; set; }
+    public virtual Ticket TicketNoNavigation { get; set; } = null!;
 }

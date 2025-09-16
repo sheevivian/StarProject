@@ -21,5 +21,9 @@ public partial class Participant
 
     public string? Code { get; set; }
 
+    public virtual Event EventNoNavigation { get; set; } = null!;
+
+    public virtual PaymentTransaction? PaymentNoNavigation { get; set; }
+
     public virtual User UsersNoNavigation { get; set; } = null!;
 }

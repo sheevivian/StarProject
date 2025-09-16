@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging.Signing;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;
+using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;
 using StarProject.ViewModels;
 
 namespace StarProject.Controllers

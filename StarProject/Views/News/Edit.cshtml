@@ -1,4 +1,5 @@
-﻿@model StarProject.ViewModel.NewsVM
+﻿@using StarProject.ViewModels
+@model NewsVM
 
 @{
     ViewData["Title"] = "官網公告編輯";
@@ -116,7 +117,7 @@
                         <!-- 多圖上傳 -->
                         <div class="mb-3">
                             <label class="form-label fw-bold fs-5">上傳圖片</label>
-                            <input asp-for="ImageFiles" type="file" class="form-control" multiple id="imageFilesInput" />
+                            <input type="file" class="form-control" multiple id="imageFilesInput" name="ImageFiles" />
                         </div>
 
                         <!-- Carousel 預覽 + 拖曳排序 -->
@@ -194,120 +195,128 @@
         const carouselIndicators = $('#carouselIndicators');
         let fileList = []; // 新圖暫存
         let oldImages = []; // 舊圖暫存 {id, url}
+        let currentOrder = []; // 紀錄目前的顯示順序 (元素可能是 {type:'old', id} 或 {type:'new', index})
 
-                // 初始將舊圖加入 oldImages
+        // 初始將舊圖加入 oldImages
         $('#imagePreviewList li').each(function(){
             const li = $(this);
-            oldImages.push({id: li.data('id'), url: li.find('img').attr('src')});
+            const id = li.data('id');
+            oldImages.push({id: id, url: li.find('img').attr('src')});
+            currentOrder.push({type:'old', id:id});
         });
 
-        // 刪除舊圖
+                // 綁刪除舊圖
         function bindRemoveOld(){
             $('.remove-old-btn').off('click').on('click', function(){
                 const li = $(this).closest('li');
                 const imgId = li.data('id');
                 $('<input>',{type:'hidden',name:'DeleteImageIds',value:imgId}).appendTo('form');
                 oldImages = oldImages.filter(x => x.id != imgId);
+                currentOrder = currentOrder.filter(x => !(x.type=='old' && x.id==imgId));
                 updatePreview();
             });
         }
 
-        // 新圖上傳
+        // 上傳新圖
         imageFilesInput.addEventListener('change', () => {
             Array.from(imageFilesInput.files).forEach(file=>{
-                fileList.push({file:file, previewUrl:URL.createObjectURL(file)});
+                const newIndex = fileList.length;
+                fileList.push({file:file, previewUrl:URL.createObjectURL(file), index:newIndex});
+                currentOrder.push({type:'new', index:newIndex});
             });
             updatePreview();
         });
 
-        // 更新縮圖 + carousel
+        // updatePreview 改成依 currentOrder 排列
         function updatePreview(){
             imagePreviewList.empty();
             carouselInner.empty();
             carouselIndicators.empty();
+
             let orderCounter = 1;
-
-            // 舊圖
-            oldImages.forEach((img,i)=>{
-                const li = $(`
-                    <li class="position-relative d-inline-block me-2" style="width:100px;height:80px;" data-type="old" data-id="${img.id}">
-                        <img src="${img.url}" class="img-thumbnail w-100 h-100" style="object-fit:cover;">
-                        <button type="button" class="btn-close btn-close-white position-absolute remove-old-btn" style="top:2px;right:2px;"></button>
-                        <input type="hidden" name="ImageOrderMap[${img.id}]" value="${orderCounter++}" />
-                    </li>
-                `);
-                imagePreviewList.append(li);
-            });
-
-            // 新圖
-            fileList.forEach((obj,idx)=>{
-                const li = $(`
-                    <li class="position-relative d-inline-block me-2" style="width:100px;height:80px;" data-type="new" data-index="${idx}">
-                        <img src="${obj.previewUrl}" class="img-thumbnail w-100 h-100" style="object-fit:cover;">
-                        <button type="button" class="btn-close btn-close-white position-absolute remove-btn" style="top:2px;right:2px;"></button>
-                        <input type="hidden" name="ImageOrderNos" value="${orderCounter++}" data-index="${idx}" />
-                    </li>
-                `);
-                li.find('.remove-btn').click(()=>{
-                    fileList.splice(idx,1);
-                    updatePreview();
-                });
-                imagePreviewList.append(li);
-            });
-
-            // 綁定舊圖刪除
-            bindRemoveOld();
-
-            // 更新 carousel
             let count=0;
-            imagePreviewList.children('li').each((i,li)=>{
-                const imgSrc = $(li).find('img').attr('src');
-                const item = $(`<div class="carousel-item${count==0?' active':''}" data-type="${$(li).data('type')}" data-id="${$(li).data('id')}" data-index="${$(li).data('index')}"><img src="${imgSrc}" class="d-block w-100 h-100" style="object-fit:cover;"></div>`);
-                carouselInner.append(item);
-                const indicator = $(`<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="${count}" ${count==0?'class="active" aria-current="true"':''}></button>`);
-                carouselIndicators.append(indicator);
-                count++;
+
+            currentOrder.forEach(item=>{
+                if(item.type=='old'){
+                    const img = oldImages.find(x=>x.id==item.id);
+                    if(!img) return; // 已刪除
+                    const li = $(`
+                        <li class="position-relative d-inline-block me-2" style="width:100px;height:80px;"
+                            data-type="old" data-id="${img.id}">
+                            <img src="${img.url}" class="img-thumbnail w-100 h-100" style="object-fit:cover;">
+                            <button type="button" class="btn-close btn-close-white position-absolute remove-old-btn"
+                                    style="top:2px;right:2px;"></button>
+                            <input type="hidden" name="ImageOrderMap[${img.id}]" value="${orderCounter++}" />
+                        </li>
+                    `);
+                    imagePreviewList.append(li);
+
+                    const citem = $(`<div class="carousel-item${count==0?' active':''}" data-type="old" data-id="${img.id}">
+                                        <img src="${img.url}" class="d-block w-100 h-100" style="object-fit:cover;">
+                                     </div>`);
+                    carouselInner.append(citem);
+                    carouselIndicators.append(`<button type="button" data-bs-target="#carouselExampleIndicators"
+                        data-bs-slide-to="${count}" ${count==0?'class="active" aria-current="true"':''}></button>`);
+                    count++;
+
+                } else if(item.type=='new'){
+                    const obj = fileList[item.index];
+                    if(!obj) return; // 已刪除
+                    const li = $(`
+                        <li class="position-relative d-inline-block me-2" style="width:100px;height:80px;"
+                            data-type="new" data-index="${item.index}">
+                            <img src="${obj.previewUrl}" class="img-thumbnail w-100 h-100" style="object-fit:cover;">
+                            <button type="button" class="btn-close btn-close-white position-absolute remove-btn"
+                                    style="top:2px;right:2px;"></button>
+                            <input type="hidden" name="ImageOrderNos" value="${orderCounter++}" data-index="${item.index}" />
+                        </li>
+                    `);
+                    li.find('.remove-btn').click(()=>{
+                        fileList[item.index] = null; // 不直接 splice，避免 index 跑掉
+                        currentOrder = currentOrder.filter(x => !(x.type=='new' && x.index==item.index));
+                        updatePreview();
+                    });
+                    imagePreviewList.append(li);
+
+                    const citem = $(`<div class="carousel-item${count==0?' active':''}" data-type="new" data-index="${item.index}">
+                                        <img src="${obj.previewUrl}" class="d-block w-100 h-100" style="object-fit:cover;">
+                                     </div>`);
+                    carouselInner.append(citem);
+                    carouselIndicators.append(`<button type="button" data-bs-target="#carouselExampleIndicators"
+                        data-bs-slide-to="${count}" ${count==0?'class="active" aria-current="true"':''}></button>`);
+                    count++;
+                }
             });
 
-            // 顯示拖曳提示
+            bindRemoveOld();
             $('#dragTip').toggle(imagePreviewList.children('li').length>1);
         }
 
-        // 拖曳排序 (舊圖+新圖)
+        // 拖曳排序，更新 currentOrder
         imagePreviewList.sortable({
             placeholder: "sortable-placeholder",
             opacity: 0.8,
             cursor: "move",
             update: function(){
+                let newOrder = [];
                 let orderCounter = 1;
-                const carouselItems = $('#carouselInner .carousel-item').toArray();
-                const newCarousel = [];
 
                 imagePreviewList.children('li').each((i,li)=>{
                     const $li = $(li);
                     const type = $li.data('type');
                     if(type=='old'){
-                        $(`input[name='ImageOrderMap[${$li.data('id')}]']`).val(orderCounter++);
-                        newCarousel.push(carouselItems.find(x=>$(x).data('id')==$li.data('id')));
+                        const id = $li.data('id');
+                        $(`input[name='ImageOrderMap[${id}]']`).val(orderCounter++);
+                        newOrder.push({type:'old', id:id});
                     } else {
                         const idx = $li.data('index');
                         $(`input[name='ImageOrderNos'][data-index='${idx}']`).val(orderCounter++);
-                        newCarousel.push(carouselItems.find(x=>$(x).data('index')==idx));
+                        newOrder.push({type:'new', index:idx});
                     }
                 });
 
-                // 重新生成 carousel
-                carouselInner.empty();
-                newCarousel.forEach((item,i)=>{
-                    $(item).removeClass('active');
-                    if(i==0) $(item).addClass('active');
-                    carouselInner.append(item);
-                });
-
-                // 更新 indicator active
-                const indicators = $('#carouselIndicators button');
-                indicators.removeClass('active').removeAttr('aria-current');
-                indicators.eq(0).addClass('active').attr('aria-current','true');
+                currentOrder = newOrder;
+                updatePreview();
             }
         });
 
@@ -344,5 +353,4 @@
                 });
         });
     </script>
-}
 }

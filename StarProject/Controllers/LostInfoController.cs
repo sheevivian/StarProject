@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using NuGet.Protocol.Core.Types;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;
+using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Printing;

@@ -3,7 +3,7 @@
 @{
 	Layout = null;
 }
-}
+
 @{
     ViewData["Title"] = "登入";
 }
@@ -14,11 +14,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>天文館後台管理系統</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         /* === 基礎重置樣式 === */
@@ -61,18 +56,15 @@
         }
 
         @@keyframes twinkle {
-            0%
+            0% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
 
-        {
-            opacity: 0.3;
-            transform: scale(0.8);
-        }
-
-        100% {
-            opacity: 1;
-            transform: scale(1.2);
-        }
-
+            100% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
         }
 
         /* === 流星動畫 === */
@@ -86,26 +78,23 @@
         }
 
         @@keyframes meteor {
-            0%
+            0% {
+                transform: translateX(-100px) translateY(-100px);
+                opacity: 0;
+            }
 
-        {
-            transform: translateX(-100px) translateY(-100px);
-            opacity: 0;
-        }
+            10% {
+                opacity: 1;
+            }
 
-        10% {
-            opacity: 1;
-        }
+            90% {
+                opacity: 1;
+            }
 
-        90% {
-            opacity: 1;
-        }
-
-        100% {
-            transform: translateX(300px) translateY(300px);
-            opacity: 0;
-        }
-
+            100% {
+                transform: translateX(300px) translateY(300px);
+                opacity: 0;
+            }
         }
 
         /* === 主登入表單容器 === */
@@ -133,23 +122,7 @@
         /* === Logo區域 === */
         .logo-section {
             text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            /* 漸變背景 */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            color: white;
-            /* 發光效果 */
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            margin-bottom: 20px;
         }
 
         /* === 標題樣式 === */
@@ -216,11 +189,11 @@
         /* === 輸入框圖標 === */
         .input-icon {
             position: absolute;
-            left: 18px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: rgba(255, 255, 255, 0.6);
-            font-size: 16px;
+            font-size: 20px;
         }
 
         /* === 登入按鈕 === */
@@ -284,46 +257,52 @@
 
         /* === 手機端響應式設計 === */
         @@media (max-width: 480px) {
-            .login-container
+            .login-container {
+                width: 90%;
+                padding: 40px 30px;
+                margin: 20px;
+            }
 
-        {
-            width: 90%;
-            padding: 40px 30px;
-            margin: 20px;
-        }
+                .login-container h3 {
+                    font-size: 24px;
+                }
 
-        .login-container h3 {
-            font-size: 24px;
-        }
-
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            font-size: 28px;
-        }
-
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
         }
 
         @@media (max-height: 700px) {
-            .login-container
+            .login-container {
+                padding: 30px 40px;
+            }
 
-        {
-            padding: 30px 40px;
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+
+            .system-subtitle {
+                margin-bottom: 20px;
+            }
         }
 
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            font-size: 28px;
-            margin-bottom: 15px;
-        }
-
-        .system-subtitle {
-            margin-bottom: 20px;
-        }
-
-        }
     </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+          integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+    
 </head>
 <body>
     <!-- 星空背景容器 -->
@@ -333,9 +312,8 @@
     <div class="login-container">
         <!-- Logo和標題區域 -->
         <div class="logo-section">
-            <div class="logo-icon">
-                <i class="fas fa-satellite"></i>
-            </div>
+            
+                <img style="height:90px;width:90px" src="~/img/logo.png" alt="">
         </div>
 
         <h3>天文館後台系統</h3>
@@ -347,7 +325,7 @@
             <div class="input-wrapper">
                 <input asp-for="Account" placeholder="請輸入管理員帳號" required />
                 <span asp-validation-for="Account" class="text-danger"></span>
-                <i class="fas fa-user input-icon"></i>
+                <i class="fa-solid fa-user-astronaut input-icon"></i>
             </div>
 
             <!-- 密碼輸入區域 -->
@@ -355,7 +333,7 @@
             <div class="input-wrapper">
                 <input asp-for="Password" type="password" placeholder="請輸入密碼" required />
                 <span asp-validation-for="Password" class="text-danger"></span>
-                <i class="fas fa-lock input-icon"></i>
+                <i class="fa-solid fa-key input-icon"></i>
             </div>
 
             <!-- 登入按鈕 -->

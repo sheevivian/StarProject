@@ -1,0 +1,14 @@
+[
+  {
+    "outputFileName": "wwwroot/js/LostInfoIndex.min.js",
+    "inputFiles": [
+      "wwwroot/js/LostInfoIndex.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/LostInfoIndex.min.css",
+    "inputFiles": [
+      "wwwroot/css/LostInfoIndex.css"
+    ]
+  }
+]

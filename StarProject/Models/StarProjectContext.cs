@@ -53,6 +53,8 @@ public partial class StarProjectContext : DbContext
 
     public virtual DbSet<News> News { get; set; }
 
+    public virtual DbSet<NewsImage> NewsImages { get; set; }
+
     public virtual DbSet<OrderC> OrderCs { get; set; }
 
     public virtual DbSet<OrderDelivery> OrderDeliveries { get; set; }
@@ -98,6 +100,8 @@ public partial class StarProjectContext : DbContext
     public virtual DbSet<Ticket> Tickets { get; set; }
 
     public virtual DbSet<TicketStock> TicketStocks { get; set; }
+
+    public virtual DbSet<TicketTransStock> TicketTransStocks { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -325,6 +329,8 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("EventNotif");
 
+            entity.HasIndex(e => new { e.EventNo, e.ParticipantNo, e.Category }, "UQ_EventNotif_Event_Participant_Category").IsUnique();
+
             entity.Property(e => e.Category).HasMaxLength(20);
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
@@ -483,6 +489,20 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Title).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<NewsImage>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("NewsImage");
+
+            entity.Property(e => e.NewsNo).HasColumnName("News_No");
+
+            entity.HasOne(d => d.NewsNoNavigation).WithMany(p => p.NewsImages)
+                .HasForeignKey(d => d.NewsNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_NewsImage_News");
+        });
+
         modelBuilder.Entity<OrderC>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK_OrderCS_1");
@@ -623,6 +643,10 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
+
+            entity.HasIndex(e => e.Code, "UQ_Participant_Code").IsUnique();
+
+            entity.Property(e => e.Code).HasMaxLength(7);
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
             entity.Property(e => e.PaymentNo).HasColumnName("Payment_No");
             entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
@@ -679,7 +703,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8C77E0BC9");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8070DBC6B");
 
             entity.ToTable("ProCategory");
 
@@ -789,19 +813,14 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("ProductStock");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A897872B61");
+
+            entity.ToTable("ProductStock");
 
             entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.Note).HasMaxLength(50);
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
             entity.Property(e => e.Type).HasMaxLength(10);
-
-            entity.HasOne(d => d.ProductNoNavigation).WithMany()
-                .HasForeignKey(d => d.ProductNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ProductStock_ProductNo");
         });
 
         modelBuilder.Entity<Promotion>(entity =>
@@ -818,9 +837,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(20);
-            entity.Property(e => e.UsesTime)
-                .HasMaxLength(10)
-                .IsFixedLength();
         });
 
         modelBuilder.Entity<PromotionRule>(entity =>
@@ -829,8 +845,10 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("PromotionRule");
 
-            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.ConditionType).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.MemberLevel).HasMaxLength(50);
             entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
             entity.Property(e => e.RuleType)
                 .HasMaxLength(50)
@@ -880,16 +898,18 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<Schedule>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Schedule");
+            entity.HasKey(e => e.EventNo);
 
-            entity.Property(e => e.EventNo).HasColumnName("Event_No");
+            entity.ToTable("Schedule");
+
+            entity.Property(e => e.EventNo)
+                .ValueGeneratedNever()
+                .HasColumnName("Event_No");
             entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
             entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
 
-            entity.HasOne(d => d.EventNoNavigation).WithMany()
-                .HasForeignKey(d => d.EventNo)
+            entity.HasOne(d => d.EventNoNavigation).WithOne(p => p.Schedule)
+                .HasForeignKey<Schedule>(d => d.EventNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Schedule_event");
         });
@@ -907,7 +927,8 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8F8D1D924");
+
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8774F13C0");
 
             entity.ToTable("TicCategory");
 
@@ -931,6 +952,7 @@ public partial class StarProjectContext : DbContext
                 .HasMaxLength(6)
                 .HasColumnName("TicCategory_No");
             entity.Property(e => e.Type).HasMaxLength(30);
+            entity.Property(e => e.UpdateDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.TicCategoryNoNavigation).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.TicCategoryNo)
@@ -940,17 +962,34 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicketStock>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("TicketStock");
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("TicketStock");
 
             entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
 
-            entity.HasOne(d => d.TicketNoNavigation).WithMany()
+            entity.HasOne(d => d.TicketNoNavigation).WithMany(p => p.TicketStocks)
                 .HasForeignKey(d => d.TicketNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Tic_No_FK");
+        });
+
+        modelBuilder.Entity<TicketTransStock>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.ToTable("TicketTransStock");
+
+            entity.Property(e => e.Date).HasColumnType("datetime");
+            entity.Property(e => e.Note).HasMaxLength(50);
+            entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
+            entity.Property(e => e.Type).HasMaxLength(10);
+
+            entity.HasOne(d => d.TicketNoNavigation).WithMany(p => p.TicketTransStocks)
+                .HasForeignKey(d => d.TicketNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TicketTransStock_Ticket");
         });
 
         modelBuilder.Entity<User>(entity =>

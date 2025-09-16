@@ -6,9 +6,12 @@ using StarProject.Data;
 using StarProject.Models;
 using StarProject.Attributes;
 using StarProject.Services;
+using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
+
 
 namespace StarProject
 {
+
 	public class Program
 	{
 		public static void Main(string[] args)
@@ -19,37 +22,39 @@ namespace StarProject
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
 				?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-			// ¸ê®Æ®w°t¸m
+			// ï¿½ï¿½Æ®wï¿½tï¿½m
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(connectionString));
 
-			builder.Services.AddDbContext<StarProjectContext>(options =>
-			{
-				options.UseSqlServer(builder.Configuration.GetConnectionString("StarProject"));
-			});
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            // Identity
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
-			// Identity °t¸m
+            builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<IPromotionService, PromotionService>();
+
+			// Identity ï¿½tï¿½m
 			builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 				options.SignIn.RequireConfirmedAccount = true)
 				.AddEntityFrameworkStores<ApplicationDbContext>();
 
-			// MVC °t¸m - ¥[¤J¥þ°ì¹LÂo¾¹
+			// MVC ï¿½tï¿½m - ï¿½[ï¿½Jï¿½ï¿½ï¿½ï¿½Lï¿½oï¿½ï¿½
 			builder.Services.AddControllersWithViews(options =>
 			{
-				// ¥þ°ìµù¥U±j¨î±K½X­×§ï¹LÂo¾¹
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Uï¿½jï¿½ï¿½Kï¿½Xï¿½×§ï¿½Lï¿½oï¿½ï¿½
 				options.Filters.Add<ForcePasswordChangeAttribute>();
 			});
 
 			builder.Services.AddRazorPages();
 
-			// ¶l¥óªA°È°t¸m
+			// ï¿½lï¿½ï¿½Aï¿½È°tï¿½m
 			builder.Services.Configure<EmailSettings>(
 				builder.Configuration.GetSection("EmailSettings"));
 			builder.Services.AddScoped<IEmailService, EmailService>();
 
-			// Cookie ÅçÃÒ°t¸m
+			// Cookie ï¿½ï¿½ï¿½Ò°tï¿½m
 			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 				.AddCookie(options =>
 				{
@@ -63,9 +68,9 @@ namespace StarProject
 			builder.Services.AddAuthorization();
 
 			var app = builder.Build();
-
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
+
 			{
 				app.UseMigrationsEndPoint();
 			}
@@ -79,11 +84,12 @@ namespace StarProject
 			app.UseStaticFiles();
 			app.UseRouting();
 
-			// ÅçÃÒ©M±ÂÅv
+
+			// ï¿½ï¿½ï¿½Ò©Mï¿½ï¿½ï¿½v
 			app.UseAuthentication();
 			app.UseAuthorization();
 
-			// ¸ô¥Ñ°t¸m
+			// ï¿½ï¿½ï¿½Ñ°tï¿½m
 			app.MapControllerRoute(
 				name: "default",
 				pattern: "{controller=Login}/{action=Index}/{id?}");

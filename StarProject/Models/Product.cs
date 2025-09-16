@@ -15,9 +15,9 @@ public partial class Product
 
     public string Status { get; set; } = null!;
 
-    public DateTime? ReleaseDate { get; set; }
+    public DateTime ReleaseDate { get; set; }
 
-    public DateTime? UpdateDate { get; set; }
+    public DateTime UpdateDate { get; set; }
 
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 

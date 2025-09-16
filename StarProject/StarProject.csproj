@@ -9,6 +9,7 @@
 
 
   <ItemGroup>
+    <PackageReference Include="EPPlus" Version="8.1.1" />
     <Content Remove="bundleconfig.json" />
     <None Include="bundleconfig.json" />
   </ItemGroup>
@@ -23,9 +24,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.19" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+
+    <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="NETCore.MailKit" Version="2.1.0" />
     <PackageReference Include="NPOI" Version="2.7.4" />
-
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,145 @@
+﻿@model StarProject.Models.Participant
+@{
+    ViewData["Title"] = "新增報名";
+}
+
+<h2>新增報名</h2>
+<hr />
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+    @Html.AntiForgeryToken()
+
+    <div class="row g-3">
+
+        <!-- 活動 -->
+        <div class="col-md-6">
+            <label asp-for="EventNo" class="form-label">活動</label>
+            <select asp-for="EventNo" class="form-select" asp-items="ViewBag.EventNo" required id="EventNo">
+                <option value="">僅「報名中」的活動可供選取</option>
+            </select>
+            <span asp-validation-for="EventNo" class="text-danger"></span>
+        </div>
+
+        <!-- 會員 -->
+        <div class="col-md-6">
+            <label asp-for="UsersNo" class="form-label">會員</label>
+            <select asp-for="UsersNo" class="form-select" asp-items="ViewBag.UsersNo" required id="UsersNo">
+                <option value="">請選擇會員</option>
+            </select>
+            <span asp-validation-for="UsersNo" class="text-danger"></span>
+        </div>
+
+        <!-- 重複報名警示（紅色卡片，預設隱藏） -->
+        <div class="col-12">
+            <div id="dupWarn" class="alert alert-danger d-none" role="alert" aria-live="assertive">
+                <strong>重複報名！</strong> 此會員已報名該活動（狀態：報名成功），請勿重複建立。
+            </div>
+        </div>
+
+        <!-- 狀態 -->
+        <div class="col-md-6">
+            <label asp-for="Status" class="form-label">狀態</label>
+            <select asp-for="Status" class="form-select" required id="Status">
+                <option value="報名成功">報名成功</option>
+                <option value="報名取消已退款">報名取消已退款</option>
+            </select>
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button id="submitBtn" type="submit" class="btn btn-primary"
+                onclick="this.disabled=true; this.innerText='建立中…'; this.form.submit();">
+            建立
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">返回列表</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <style>
+        /* 按鈕抖動動畫（避免動到整頁） */
+        @@keyframes shake {
+            10%, 90% {
+                transform: translateX(-1px);
+            }
+
+            20%, 80% {
+                transform: translateX( 2px);
+            }
+
+            30%, 50%, 70% {
+                transform: translateX(-4px);
+            }
+
+            40%, 60% {
+                transform: translateX( 4px);
+            }
+        }
+
+        #submitBtn.shake {
+            animation: shake 0.5s ease both;
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            #submitBtn.shake {
+                animation: none;
+            }
+        }
+    </style>
+
+
+    <script>
+        (function () {
+            const elEvent  = document.getElementById('EventNo');
+            const elUser   = document.getElementById('UsersNo');
+            const dupWarn  = document.getElementById('dupWarn');
+            const submit   = document.getElementById('submitBtn');
+
+            function showDuplicateUI(isDup) {
+                if (isDup) {
+                    dupWarn.classList.remove('d-none');
+                    submit.disabled = true;
+                    // 套用抖動效果，0.6 秒後移除 class 以便下次再抖
+                    submit.classList.add('shake');
+                    setTimeout(() => submit.classList.remove('shake'), 600);
+                } else {
+                    dupWarn.classList.add('d-none');
+                    submit.disabled = false;
+                }
+            }
+
+            async function checkDuplicate() {
+                // 預設先重置
+                showDuplicateUI(false);
+
+                const eventId = elEvent.value;
+                const usersNo = elUser.value;
+                if (!eventId || !usersNo) return;
+
+                try {
+                    const url = `/Participants/CheckDuplicate?eventId=${encodeURIComponent(eventId)}&usersNo=${encodeURIComponent(usersNo)}`;
+                    const resp = await fetch(url, { method: 'GET' });
+                    const data = await resp.json(); // ← 修正：移除多餘字元
+                    if (data && data.exists) {
+                        showDuplicateUI(true);
+                    }
+                } catch {
+                    // 靜默失敗：不阻擋提交
+                }
+            }
+
+            if (elEvent) elEvent.addEventListener('change', checkDuplicate);
+            if (elUser)  elUser.addEventListener('change',  checkDuplicate);
+
+            // 初次載入也檢查一次（例如回填時）
+            checkDuplicate();
+        })();
+    </script>
+}

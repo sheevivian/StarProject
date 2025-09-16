@@ -9,6 +9,7 @@ using NETCore.MailKit.Infrastructure.Internal;
 using StarProject.Data;
 using StarProject.Models;
 using StarProject.Services;
+using OfficeOpenXml;
 using MailKitOptions = NETCore.MailKit.Core.MailKitOptions;
 
 
@@ -19,13 +20,17 @@ namespace StarProject
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            ExcelPackage.License.SetNonCommercialOrganization("StarProject Dev Team");
+          
             // ApplicationDbContext (Identity 用)
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
                     sqlOptions => sqlOptions.EnableRetryOnFailure()
                 ));
+          
+          builder.Logging.AddConsole();
+			  builder.Logging.SetMinimumLevel(LogLevel.Information);
 
             // StarProjectContext (業務資料庫)
             builder.Services.AddDbContext<StarProjectContext>(options =>
@@ -64,6 +69,12 @@ namespace StarProject
 					.Build();
 			});
 
+			builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+				.AddEntityFrameworkStores<ApplicationDbContext>();
+
+			builder.Services.AddControllersWithViews();
+
+			builder.Services.AddTransient<MailService>();
 
 			var app = builder.Build();
 			// Configure the HTTP request pipeline.

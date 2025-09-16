@@ -5,7 +5,7 @@ namespace StarProject.Models;
 
 public partial class PaymentTransaction
 {
-    public int No { get; set; }
+    public string No { get; set; } = null!;
 
     public string MerchantTradeNo { get; set; } = null!;
 

@@ -187,7 +187,8 @@ public partial class StarProjectContext : DbContext
 
             entity.HasOne(d => d.EventNoNavigation).WithMany()
                 .HasForeignKey(d => d.EventNo)
-                .HasConstraintName("FK_Collection_Event");
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("FK_Collection_Event");
 
             entity.HasOne(d => d.KnowledgeNoNavigation).WithMany()
                 .HasForeignKey(d => d.KnowledgeNo)
@@ -268,6 +269,7 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
+            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
             entity.Property(e => e.IdNumber).HasMaxLength(50);
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
@@ -301,31 +303,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.StartDate).HasColumnType("datetime");
             entity.Property(e => e.Title).HasMaxLength(50);
             entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<EventNotif>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("EventNotif");
-
-            entity.HasIndex(e => new { e.EventNo, e.ParticipantNo, e.Category }, "UQ_EventNotif_Event_Participant_Category").IsUnique();
-
-            entity.Property(e => e.Category).HasMaxLength(20);
-            entity.Property(e => e.EventNo).HasColumnName("Event_No");
-            entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
-            entity.Property(e => e.Senttime).HasColumnType("datetime");
-            entity.Property(e => e.Status).HasMaxLength(20);
-
-            entity.HasOne(d => d.EventNoNavigation).WithMany()
-                .HasForeignKey(d => d.EventNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_eventNotif_event");
-
-            entity.HasOne(d => d.ParticipantNoNavigation).WithMany()
-                .HasForeignKey(d => d.ParticipantNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EventNotif_Participant");
         });
 
         modelBuilder.Entity<Faq>(entity =>
@@ -593,15 +570,12 @@ public partial class StarProjectContext : DbContext
 
             entity.ToTable("Participant");
 
-            entity.HasIndex(e => e.Code, "UQ_Participant_Code").IsUnique();
-
-            entity.Property(e => e.Code).HasMaxLength(7);
             entity.Property(e => e.EventNo).HasColumnName("Event_No");
-            entity.Property(e => e.PaymentNo).HasColumnName("Payment_No");
-            entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
-            entity.Property(e => e.Status)
+            entity.Property(e => e.PaymentNo)
                 .HasMaxLength(50)
-                .HasColumnName("status");
+                .HasColumnName("Payment_No");
+            entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
+            entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
             entity.Property(e => e.UsersNo)
                 .HasMaxLength(50)
@@ -630,6 +604,7 @@ public partial class StarProjectContext : DbContext
 
             entity.HasIndex(e => e.MerchantTradeNo, "UQ__PaymentT__D6311911D4524583").IsUnique();
 
+            entity.Property(e => e.No).HasMaxLength(50);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -843,21 +818,19 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<Schedule>(entity =>
         {
-            entity.HasKey(e => e.EventNo);
 
-            entity.ToTable("Schedule");
+			entity.ToTable("Schedule");
+			entity.HasKey(e => e.EventNo);
+			entity.Property(e => e.EventNo).HasColumnName("Event_No");
+			entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
+			entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
 
-            entity.Property(e => e.EventNo)
-                .ValueGeneratedNever()
-                .HasColumnName("Event_No");
-            entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
-            entity.Property(e => e.ReleaseDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.EventNoNavigation).WithOne(p => p.Schedule)
-                .HasForeignKey<Schedule>(d => d.EventNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Schedule_event");
-        });
+			entity.HasOne(d => d.EventNoNavigation)
+				.WithOne() // 一對一
+				.HasForeignKey<Schedule>(d => d.EventNo)
+				.OnDelete(DeleteBehavior.Cascade) // 連帶刪除
+				.HasConstraintName("FK_Schedule_event");
+		});
 
         modelBuilder.Entity<StarMap>(entity =>
         {
@@ -975,7 +948,32 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_UserAchievements_Users");
         });
 
-        modelBuilder.Entity<UserSecurity>(entity =>
+		modelBuilder.Entity<EventNotif>(entity =>
+		{
+			entity.ToTable("EventNotif");
+
+            entity.HasKey(e => new { e.EventNo, e.ParticipantNo, e.Category });
+			entity.Property(e => e.EventNo).HasColumnName("Event_No");
+			entity.Property(e => e.ParticipantNo).HasColumnName("Participant_No");
+			entity.Property(e => e.Senttime).HasColumnType("datetime2"); 
+			entity.Property(e => e.Category).HasMaxLength(20);           
+			entity.Property(e => e.Status).HasMaxLength(20);
+
+			entity.HasOne(e => e.EventNoNavigation)
+				  .WithMany()
+				  .HasForeignKey(e => e.EventNo)
+				  .OnDelete(DeleteBehavior.ClientSetNull);
+
+			entity.HasOne(e => e.ParticipantNoNavigation)
+				  .WithMany()
+				  .HasForeignKey(e => e.ParticipantNo)
+				  .OnDelete(DeleteBehavior.ClientSetNull);
+
+			entity.ToTable(tb => tb.UseSqlOutputClause(false));
+		});
+
+
+		modelBuilder.Entity<UserSecurity>(entity =>
         {
             entity
                 .HasNoKey()

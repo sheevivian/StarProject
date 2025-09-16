@@ -6,9 +6,6 @@
     var cards = Model?.Cards ?? new List<EventCardVm>();
 }
 
-<!-- Debug -->
-<div class="text-white small">DEBUG cards.Count = @cards.Count</div>
-
 <!-- 標題 & 匯出「全部」 -->
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h1 class="fw-bold text-white">報名管理</h1>
@@ -18,19 +15,14 @@
     </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+<hr />
 
-<!-- 卡片網格（組員風格） -->
+<!-- 卡片網格-->
+<!-- 卡片網格-->
 <section class="wrapper">
     <div class="container">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="eventCardGrid">
+        <!-- 一行四張：lg 以上 4 欄；md 2 欄；xs 1 欄 -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="eventCardGrid">
             @if (!cards.Any())
             {
                 <div class="col-12">
@@ -41,7 +33,7 @@
             {
                 @foreach (var e in cards)
                 {
-                    // 背景圖處理
+                    // 背景圖處理（沿用你的邏輯）
                     var raw = e.CoverImageUrl ?? "";
                     string bg;
                     if (string.IsNullOrWhiteSpace(raw))
@@ -58,44 +50,59 @@
                         bg = Url.Content(normalized);
                     }
 
+                    // 狀態角標樣式：報名中=黃、已結束=灰、已取消=紅（可依實際字串調整）
+                    var status = (e.Status ?? "").Trim();
+                    string badgeClass = status switch
+                    {
+                        "報名中" => "bg-warning text-dark",
+                        "已結束" => "bg-secondary",
+                        "已取消" => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
                     <div class="col">
-                        <div class="card text-dark card-has-bg cardDetail h-100"
-                             style="background-image:url('@bg');"
+                        <div class="card h-100 event-card position-relative shadow-sm cardDetail"
                              data-event-id="@e.No"
                              data-event-title="@e.Title"
                              data-bs-toggle="modal"
                              data-bs-target="#participantsModal"
                              role="button"
                              aria-label="檢視 @e.Title 的報名名單">
-                            <img class="card-img d-none" src="@bg" alt="@e.Title" />
-                            <div class="card-img-overlay d-flex flex-column">
-                                <div class="card-body">
-                                    <small class="card-meta mb-2">@e.Category</small>
-                                    <h4 class="card-title mt-0 text-dark text-truncate">@e.Title</h4>
-                                    <small class="d-block">
-                                        <i class="far fa-clock me-1"></i>@e.StartDate.ToString("yyyy/MM/dd HH:mm")
-                                    </small>
+
+                            <!-- 狀態角標 -->
+                            <span class="badge position-absolute top-0 start-0 m-2 px-2 py-1 @badgeClass"
+                                  style="z-index:2; border-radius:.5rem;">
+                                @status
+                            </span>
+
+                            <!-- 上：固定比例的封面（16:9），圖片一致裁切 -->
+                            <div class="card-thumb" style="background-image:url('@bg');" aria-label="@e.Title"></div>
+
+                            <!-- 下：只保留 標題 / 時間 / 人數 -->
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title fw-bold text-truncate mb-2" title="@e.Title">@e.Title</h5>
+
+                                <div class="d-flex align-items-center gap-2 text-muted mb-1">
+                                    <i class="far fa-clock"></i>
+                                    <small>@e.StartDate.ToString("yyyy/MM/dd HH:mm")</small>
                                 </div>
-                                <div class="card-footer">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-people"></i>
-                                            <span>@e.CurrentCount / @e.MaxParticipants 人</span>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-geo-alt"></i>
-                                            <small class="text-truncate" style="max-width:160px">@e.Location</small>
-                                        </div>
-                                    </div>
+
+                                <div class="d-flex align-items-center gap-2 text-muted">
+                                    <i class="bi bi-people"></i>
+                                    <small>@e.CurrentCount / @e.MaxParticipants 人</small>
                                 </div>
+
+                                <!-- 點整張卡片可開啟名單 Modal -->
+                                <a class="stretched-link" href="javascript:void(0)"></a>
                             </div>
-                        </div> <!-- /card -->
-                    </div> <!-- /col -->
+                        </div>
+                    </div>
                 }
             }
         </div>
     </div>
 </section>
+
 
 <!-- Modal：顯示單一活動的參與者名單 -->
 <div class="modal fade" id="participantsModal" tabindex="-1" aria-labelledby="participantsModalLabel" aria-hidden="true">
@@ -142,130 +149,173 @@
 <!-- 樣式 -->
 @section Styles {
     <style>
-        body { background:#161616; }
-        h1 { color:#fff; }
-        .wrapper { margin:2rem 0; }
-
-        .card {
-            border:none; overflow:hidden; border-radius:20px; min-height:450px;
-            box-shadow:0 0 12px 0 rgba(0,0,0,0.2);
-            transition:all 500ms cubic-bezier(0.19,1,0.22,1);
-        }
-        @@media (max-width:768px){ .card{ min-height:350px; } }
-        @@media (max-width:420px){ .card{ min-height:300px; } }
-
-        .card.card-has-bg {
-            background-size:120%; background-repeat:no-repeat; background-position:center;
-            position:relative;
-        }
-        .card.card-has-bg:before {
-            content:''; position:absolute; inset:0; background:inherit; filter:grayscale(100%);
-        }
-        .card.card-has-bg:hover {
-            transform:scale(0.98); box-shadow:0 0 5px -2px rgba(0,0,0,0.3); background-size:130%;
+        body {
+            background: #161616;
         }
 
-        .card .card-img-overlay {
-            position:relative;
-            background:linear-gradient(0deg, rgba(255,186,33,0.38) 0%, rgba(255,186,33,1) 100%);
-            transition:all 800ms cubic-bezier(0.19,1,0.22,1);
-        }
-        .card:hover .card-img-overlay {
-            background:linear-gradient(0deg, rgba(255,186,33,0.5) 0%, rgba(255,186,33,1) 100%);
+        h1 {
+            color: #fff;
         }
 
-        .card .card-body { transition:all 500ms cubic-bezier(0.19,1,0.22,1); }
-        .card:hover .card-body { margin-top:10px; }
-        .card .card-title { font-weight:800; }
-        .card .card-meta {
-            color:rgba(0,0,0,0.55); text-transform:uppercase; font-weight:600; letter-spacing:1px;
+        .wrapper {
+            margin: 2rem 0;
         }
-        .card .card-footer { background:none; border-top:none; }
 
-        /* Modal 內表格對齊 */
+        /* 視覺層次：白底卡片＋陰影 */
+        .event-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #fff;
+            transition: transform .25s ease, box-shadow .25s ease;
+            position: relative; /* 建立堆疊脈絡，角標可定位 */
+        }
+
+            .event-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0,0,0,.18);
+            }
+
+        /* 上半：固定比例縮圖 (16:9) + cover，確保整齊 */
+        .card-thumb {
+            aspect-ratio: 16/9;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* 下半：內容層次清楚、左對齊 */
+        .card-body {
+            padding: 14px 16px 16px 16px;
+        }
+
+        .card-title {
+            line-height: 1.25;
+        }
+
+        /* 角標一定浮在最上、而且不擋點擊 */
+        .event-card .stretched-link::after {
+            z-index: 1;
+        }
+        /* Bootstrap 預設是 0，明確壓在底層 */
+        .event-card .badge {
+            z-index: 3;
+            pointer-events: none;
+        }
+        /* 角標永遠在最上，且不吃點擊 */
+
+        /* RWD 高度微調（四欄時仍清爽） */
+        @@media (min-width:992px) {
+            .event-card {
+                min-height: 320px;
+            }
+        }
+
+        @@media (max-width:991.98px) {
+            .event-card {
+                min-height: 300px;
+            }
+        }
+
+        /* 角標字重，易讀 */
+        .badge {
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+
+        /* Modal 內表格對齊（保留） */
         #participantsTableContainer table td,
-        #participantsTableContainer table th { vertical-align:middle; }
+        #participantsTableContainer table th {
+            vertical-align: middle;
+        }
     </style>
 }
 
+
+
 @section Scripts {
-<script>
-    let currentEventId = 0;
+    <script>
+        let currentEventId = 0;
 
-    // 開啟 Modal：從卡片帶 eventId & title，發出 AJAX 取得名單
-    document.addEventListener('click', function (e) {
-        const card = e.target.closest('.cardDetail');
-        if (!card) return;
+        // 開啟 Modal：支援點整張卡片（.cardDetail）或覆蓋連結（a.stretched-link）
+        document.addEventListener('click', function (e) {
+            const trigger = e.target.closest('.cardDetail, a.stretched-link');
+            if (!trigger) return;
 
-        currentEventId = parseInt(card.getAttribute('data-event-id')) || 0;
-        const title = card.getAttribute('data-event-title') || '參與者名單';
+            const card = trigger.classList.contains('cardDetail') ? trigger : trigger.closest('.cardDetail');
+            if (!card) return;
 
-        document.getElementById('participantsModalLabel').textContent = title;
-        document.getElementById('modalEventId').textContent = currentEventId;
+            currentEventId = Number(card.getAttribute('data-event-id')) || 0;
+            const title = card.getAttribute('data-event-title') || '參與者名單';
 
-        // 設定單一活動匯出連結
-        const csv = document.getElementById('btnExportCsv');
-        const xls = document.getElementById('btnExportExcel');
-        csv.setAttribute('href', `/Participants/ExportCsv?eventId=${currentEventId}`);
-        xls.setAttribute('href', `/Participants/ExportExcel?eventId=${currentEventId}`);
+            document.getElementById('participantsModalLabel').textContent = title;
+            document.getElementById('modalEventId').textContent = currentEventId;
 
-        loadParticipantsTable(currentEventId);
-    });
+            // 設定單一活動匯出連結
+            const csv = document.getElementById('btnExportCsv');
+            const xls = document.getElementById('btnExportExcel');
+            csv.setAttribute('href', `/Participants/ExportCsv?eventId=${currentEventId}`);
+            xls.setAttribute('href', `/Participants/ExportExcel?eventId=${currentEventId}`);
 
-    // 載入該活動的參與者表格（部分檢視）
-    async function loadParticipantsTable(eventId){
-        const container = document.getElementById('participantsTableContainer');
-        container.innerHTML = `
-            <div class="text-center text-muted py-5" id="tableLoading">
-                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                載入中…
-            </div>
-        `;
-        try {
-            const res = await fetch(`/Participants/ListByEvent?eventId=${eventId}`, { method:'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            const html = await res.text();
-            container.innerHTML = html;
-        } catch(err){
-            container.innerHTML = `<div class="alert alert-danger">載入失敗：${err}</div>`;
-        }
-    }
+            loadParticipantsTable(currentEventId);
+        });
 
-    // 批次刪除（Modal 內）
-    document.getElementById('btnBulkDelete').addEventListener('click', async function () {
-        if (!currentEventId) return;
+        // 載入該活動的參與者表格（部分檢視）
+        async function loadParticipantsTable(eventId){
+            const container = document.getElementById('participantsTableContainer');
+            container.innerHTML = `
+                <div class="text-center text-muted py-5" id="tableLoading">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    載入中…
+                </div>
+            `;
 
-        // 收集已勾選的參與者 id（支援 class=row-check 或 data-id）
-        const checks = Array.from(document.querySelectorAll('#participantsTableContainer input[type="checkbox"]'))
-            .filter(x => x.checked && (x.dataset.id || x.value));
-        const ids = checks.map(x => parseInt(x.dataset.id || x.value)).filter(n => !isNaN(n));
-
-        if (ids.length === 0) {
-            alert('請先勾選要刪除的項目。');
-            return;
-        }
-
-        if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？`)) return;
-
-        // 取 CSRF
-        const token = document.querySelector('#bulkForm input[name="__RequestVerificationToken"]').value;
-
-        try {
-            const form = new FormData();
-            form.append('__RequestVerificationToken', token);
-            form.append('eventId', currentEventId);
-            ids.forEach(id => form.append('ids', id.toString()));
-
-            const res = await fetch('/Participants/BulkDelete', { method:'POST', body: form });
-            const json = await res.json();
-
-            if (json.success) {
-                await loadParticipantsTable(currentEventId); // 重新載入表格
-            } else {
-                alert(json.message || '刪除失敗。');
+            try {
+                const res = await fetch(`/Participants/ListByEvent?eventId=${encodeURIComponent(eventId)}`, {
+                    method:'GET',
+                    headers:{ 'X-Requested-With':'XMLHttpRequest' },
+                    cache:'no-store'
+                });
+                if(!res.ok) throw new Error('HTTP ' + res.status);
+                const html = await res.text();
+                container.innerHTML = html;
+            } catch(err){
+                container.innerHTML = `<div class="alert alert-danger">載入失敗：${err.message || err}</div>`;
             }
-        } catch(err){
-            alert('刪除失敗：' + err);
         }
-    });
-</script>
+
+        // 批次刪除（Modal 內）
+        document.getElementById('btnBulkDelete').addEventListener('click', async function () {
+            if (!currentEventId) return;
+
+            const checks = Array.from(document.querySelectorAll('#participantsTableContainer input[type="checkbox"]'))
+                .filter(x => x.checked && (x.dataset.id || x.value));
+            const ids = checks.map(x => parseInt(x.dataset.id || x.value)).filter(n => !isNaN(n));
+
+            if (ids.length === 0) { alert('請先勾選要刪除的項目。'); return; }
+            if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？`)) return;
+
+            const token = document.querySelector('#bulkForm input[name="__RequestVerificationToken"]').value;
+
+            try {
+                const form = new FormData();
+                form.append('__RequestVerificationToken', token);
+                form.append('eventId', currentEventId);
+                ids.forEach(id => form.append('ids', id.toString()));
+
+                const res = await fetch('/Participants/BulkDelete', { method:'POST', body: form });
+                const json = await res.json();
+
+                if (json.success) {
+                    await loadParticipantsTable(currentEventId);
+                } else {
+                    alert(json.message || '刪除失敗。');
+                }
+            } catch(err){
+                alert('刪除失敗：' + err);
+            }
+        });
+    </script>
 }
+

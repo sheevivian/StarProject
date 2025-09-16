@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using StarProject.Data;
 using StarProject.Models;
 using StarProject.Services;
+using OfficeOpenXml;
+
 
 
 namespace StarProject
@@ -12,6 +14,7 @@ namespace StarProject
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
+			ExcelPackage.License.SetNonCommercialOrganization("StarProject Dev Team");
 
 			// Add services to the container.
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")

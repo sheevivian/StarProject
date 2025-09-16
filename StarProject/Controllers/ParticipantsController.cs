@@ -326,7 +326,7 @@ namespace StarProject.Controllers
 		[HttpGet]
 		public async Task<IActionResult> ExportExcel(int? eventId)
 		{
-			ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+			
 
 			var q = _context.Participants
 				.Include(p => p.UsersNoNavigation)

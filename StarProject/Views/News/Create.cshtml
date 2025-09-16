@@ -250,7 +250,10 @@
             fileList.forEach(obj => {
                 dataTransfer.items.add(obj.file);
             });
-            imageFilesInput.files = dataTransfer.files;
+            if(fileList.length>0{
+                imageFilesInput.files = dataTransfer.files;
+            }
+            
         }
 
         // 拖曳排序

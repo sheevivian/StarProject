@@ -268,7 +268,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.DeptNo).HasColumnName("Dept_No");
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.EmpCode).HasMaxLength(50);
-            entity.Property(e => e.ForceChangePassword).HasDefaultValue(true);
             entity.Property(e => e.HireDate).HasColumnType("datetime");
             entity.Property(e => e.IdNumber).HasMaxLength(50);
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
@@ -516,9 +515,9 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<OrderItem>(entity =>
         {
-            entity.HasKey(e => e.ListId);
-
-            entity.ToTable("OrderItem");
+            entity
+                .HasNoKey()
+                .ToTable("OrderItem");
 
             entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CouponCode).HasMaxLength(50);
@@ -529,18 +528,8 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.OrderNo)
                 .HasMaxLength(10)
                 .HasColumnName("Order_No");
-            entity.Property(e => e.ProductNo).HasColumnName("Product_No");
-            entity.Property(e => e.TicketNo).HasColumnName("Ticket_No");
             entity.Property(e => e.Type).HasMaxLength(30);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
-
-            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.OrderItems)
-                .HasForeignKey(d => d.ProductNo)
-                .HasConstraintName("FK_OrderItem_Product");
-
-            entity.HasOne(d => d.TicketNoNavigation).WithMany(p => p.OrderItems)
-                .HasForeignKey(d => d.TicketNo)
-                .HasConstraintName("FK_OrderItem_Ticket");
         });
 
         modelBuilder.Entity<OrderMaster>(entity =>
@@ -658,7 +647,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A894F4EA10");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8070DBC6B");
 
             entity.ToTable("ProCategory");
 
@@ -768,7 +757,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8E817D2EB");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A897872B61");
 
             entity.ToTable("ProductStock");
 
@@ -776,11 +765,6 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Note).HasMaxLength(50);
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
             entity.Property(e => e.Type).HasMaxLength(10);
-
-            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductStocks)
-                .HasForeignKey(d => d.ProductNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ProductStock_ProductNo");
         });
 
         modelBuilder.Entity<Promotion>(entity =>
@@ -881,7 +865,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8E5BD171D");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8774F13C0");
 
             entity.ToTable("TicCategory");
 

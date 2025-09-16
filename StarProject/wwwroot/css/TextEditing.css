@@ -1,3 +1,4 @@
+
 @font-face {
     font-family: 'ChironGoRoundTC';
     src: url('../fonts/ChironGoRoundTC-Regular.ttf') format('truetype');
@@ -11,17 +12,17 @@
     }
 }
 
-/* ÂĞ»\ CKEditor ¹w³]¦r«¬ */
+/* è¦†è“‹ CKEditor é è¨­å­—å‹ */
 :root {
     --ck-content-font-family: 'ChironGoRoundTC', sans-serif;
-    --ck-content-font-size: 16px; /* ¥i¥H¨Ì»İ¨D½Õ¾ã */
-    --ck-content-font-color: #000; /* «O«ù¶Â¦â */
-    --ck-content-line-height: 1.6; /* ¦æ°ªµÎ¾A */
+    --ck-content-font-size: 16px; /* å¯ä»¥ä¾éœ€æ±‚èª¿æ•´ */
+    --ck-content-font-color: #000; /* ä¿æŒé»‘è‰² */
+    --ck-content-line-height: 1.6; /* è¡Œé«˜èˆ’é© */
 }
 
 .text-distance {
-    letter-spacing: 5px; /* ¥¿­È¡G¦r¥À¶¡¶ZÅÜ¤j¡A­t­È¡GÅÜ¤p */
-    text-align: center; /* ¤å¦r¸m¤¤ */
+    letter-spacing: 5px; /* æ­£å€¼ï¼šå­—æ¯é–“è·è®Šå¤§ï¼Œè² å€¼ï¼šè®Šå° */
+    text-align: center; /* æ–‡å­—ç½®ä¸­ */
 }
 
 
@@ -30,7 +31,7 @@
 }
 
 .ck-editor__editable {
-    min-height: 350px; /* ½s¿è°Ï³Ì¤p°ª«× */
+    min-height: 350px; /* ç·¨è¼¯å€æœ€å°é«˜åº¦ */
 }
 
 figcaption {

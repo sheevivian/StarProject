@@ -11,10 +11,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace StarProject.Controllers
 {
     public class CompanyNotifiesController : Controller
     {
+
 		private const int pageNumber = 10;
 
 		private readonly StarProjectContext _context;

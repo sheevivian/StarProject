@@ -1,0 +1,507 @@
+﻿@using StarProject.ViewModels
+@model IEnumerable<ProductStockSumViewModel>
+
+@{
+	ViewData["Title"] = "商品庫存管理";
+}
+<head>
+	<link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+
+<main class="flex-fill position-relative">
+	<!-- 標題+新增 -->
+	<div class="d-flex align-items-center mb-3">
+		<h1 class="fw-bold flex-grow-1 mb-0">商品庫存管理</h1>
+		<a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
+	</div>
+
+	<!-- CSRF Token -->
+	<form id="deleteForm">
+		@Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+	</form>
+
+    <!-- 搜尋框+每頁筆數 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input">
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
+
+				<ul class="dropdown-menu p-2" style="width:180px">
+					<!-- 商品分類 -->
+					<li>
+						<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+							- 商品分類
+						</button>
+					</li>
+					<!-- 商品分類內容 -->
+					<li>
+						<div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+							<div class="p-2">
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="卡片書籤" id="cat1">
+									<label class="form-check-label" for="cat1">
+										卡片書籤
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="服包飾品" id="cat2">
+									<label class="form-check-label" for="cat2">
+										服包飾品
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="益智桌遊" id="cat3">
+									<label class="form-check-label" for="cat3">
+										益智桌遊
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="地球儀" id="cat4">
+									<label class="form-check-label" for="cat4">
+										地球儀
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="生活雜貨" id="cat5">
+									<label class="form-check-label" for="cat5">
+										生活雜貨
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="書籍刊物" id="cat6">
+									<label class="form-check-label" for="cat6">
+										書籍刊物
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="餐廚用品" id="cat7">
+									<label class="form-check-label" for="cat7">
+										餐廚用品
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="交通卡" id="cat8">
+									<label class="form-check-label" for="cat8">
+										交通卡
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="設計文具" id="cat9">
+									<label class="form-check-label" for="cat9">
+										設計文具
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="望遠鏡" id="cat10">
+									<label class="form-check-label" for="cat10">
+										望遠鏡
+									</label>
+								</div>
+							</div>
+						</div>
+					</li>
+
+					<!-- 庫存數量 -->
+					<li>
+						<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseQuantity" aria-expanded="false">
+							- 庫存數量
+						</button>
+					</li>
+					<!-- 庫存數量內容 -->
+					<li>
+						<div class="collapse mb-2 ps-1 fs14px" id="collapseQuantity">
+							<div class="p-2">
+								<div>
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="quanLowerLab">
+										<label class="form-check-label" for="quanLower">
+											庫存低於<output for="quanLower" id="quanLowerVal" aria-hidden="true" class="ms-1"></output>
+											<input type="range" class="form-range" min="0" max="100" value="50" id="quanLower">
+										</label>
+									</div>
+								</div>
+								<div>
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="quanHigherLab">
+										<label class="form-check-label" for="quanHigher">
+											庫存高於<output for="quanHigher" id="quanHigherVal" aria-hidden="true" class="ms-1"></output>
+											<input type="range" class="form-range" min="0" max="100" value="50" id="quanHigher">
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+					</li>
+
+					<li><hr class="dropdown-divider"></li>
+
+					<!-- 完成+清除 -->
+					<li class="d-flex gap-1">
+						<button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+							完成
+						</button>
+						<button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+							清除
+						</button>
+					</li>
+				</ul>
+            </div>
+
+            <div style="width:150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option selected value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
+        <span id="selectedFiltersText" class="text-secondary"></span>
+    </div>
+
+
+    <!-- 列表 -->
+    <div class="table-rounded position-relative mt-3">
+        <table class="table">
+            <!-- 欄位 -->
+			<thead>
+				<tr>
+					<th style="padding-left: 10px">
+						@Html.DisplayNameFor(model => model.ProductNo)
+					</th>
+					<th style="width:430px">
+						@Html.DisplayNameFor(model => model.ProductName)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.ProCategoryName)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.SumQuantity)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.UpdateDate)
+					</th>
+					<th style="width:116px">
+					</th>
+				</tr>
+			</thead>
+			<!-- 內容 -->
+			<tbody id="tableBody">
+				@await Html.PartialAsync("_ProductStockRows", Model)
+			</tbody>
+		</table>
+        <!-- 分頁 -->
+        <div id="pagination">
+			@await Html.PartialAsync("_ProductStockPagination", Model)
+        </div>
+
+        <!-- 異動紀錄 -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDetail">
+            <div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
+				<h3 class="offcanvas-title fw-bolder">異動紀錄</h3>
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
+                </div>
+            </div>
+            <div class="offcanvas-body">
+				<p class="m-0 mb-1 mx-1"><strong>商品編號：</strong><span id="offcanvasNo"></span></p>
+				<p class="mx-1"><strong>商品名稱：</strong><span id="offcanvasName"></span></p>
+				<div class="table-rounded p-3">
+					<table class="table border border-bottom-0 shadow-sm">
+						<thead>
+							<tr>
+								<th style="padding-left: 10px">異動類型</th>
+								<th>異動數量</th>
+								<th>異動時間</th>
+							</tr>
+						</thead>
+						<tbody id="logTableBody">
+							<!-- 用JS塞ProductStock -->
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+	// This is an example script, please modify as needed
+	const rangeInputLow = document.getElementById('quanLower');
+	const rangeOutputLow = document.getElementById('quanLowerVal');
+
+	// Set initial value
+	rangeOutputLow.textContent = rangeInputLow.value;
+
+	rangeInputLow.addEventListener('input', function() {
+	  rangeOutputLow.textContent = this.value;
+	});
+</script>
+<script>
+	// This is an example script, please modify as needed
+	const rangeInputHigh = document.getElementById('quanHigher');
+	const rangeOutputHigh = document.getElementById('quanHigherVal');
+
+	// Set initial value
+	rangeOutputHigh.textContent = rangeInputHigh.value;
+
+	rangeInputHigh.addEventListener('input', function() {
+	  rangeOutputHigh.textContent = this.value;
+	});
+</script>
+
+<script>
+	let pageNumber = parseInt($('#pageSizeSelect').val()) || 20; // 預設每頁數量
+
+	$(function () {
+		var baseAddress = "https://localhost:7111";
+
+		// 點搜尋按鈕
+		$('#btnSearch').on("click", () => {
+			console.log($('#searchInput').val());
+			refreshProStockTable(1);
+			updateSelectedFilters()
+		});
+
+		// 也可以輸入框 keyup 即時觸發
+		$('#searchInput').on("keyup", () => {
+			console.log($('#searchInput').val());
+			refreshProStockTable(1);
+			updateSelectedFilters()
+		});
+
+		$('#filterFinsh').click(function () {
+			updateFilterCount();
+			updateSelectedFilters()
+
+			//讀取目前進階條件
+			let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+			
+			let quantityLowerVal = null;
+			let quantityHigherVal = null;
+			
+			if($('#quanLowerLab').is(':checked')){
+				quantityLowerVal = $('#quanLower').val();
+			}
+			if($('#quanLowerLab').is(':checked')){
+				quantityHigherVal = $('#quanHigher').val();
+			}
+
+			let filters = { categories, quantityLowerVal, quantityHigherVal };
+
+			refreshProStockTable(1, filters);
+
+			// 找到最接近的 dropdown-toggle
+			var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
+
+			// 取得 bootstrap dropdown instance
+			var dropdown = bootstrap.Dropdown.getInstance(toggleBtn);
+
+			// 沒有的話就新建
+			if (!dropdown) dropdown = new bootstrap.Dropdown(toggleBtn);
+
+			// 呼叫官方的 hide 方法來關閉
+			dropdown.hide();
+		});
+
+
+		// 搜尋清除按鈕
+		document.querySelector(".btn-outline-search").addEventListener("click", function () {
+			document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+			document.getElementById("quanLower").value = "50";
+			document.getElementById("quanHigher").value = "50";
+			document.getElementById("searchInput").value = "";
+			updateSelectedFilters();
+			updateFilterCount()
+			refreshProStockTable(1);
+		});
+
+
+		// 更新篩選顯示文字
+		function updateSelectedFilters() {
+			let selected = [];
+
+			// 商品分類
+			let categories = $("#collapseCategory input:checked").map(function () { return $(this).next("label").text(); }).get();
+			if (categories.length) selected.push("<strong>分類：</strong>" + categories.join(", "));
+
+			// 庫存數量小於或大於
+			let quantityLowerVal = null;
+			let quantityHigherVal = null;
+
+			if ($('#quanLowerLab').is(':checked') && $('#quanHigherLab').is(':checked')) {
+				selected.push("<strong>庫存量：</strong>低於 " + $('#quanLower').val() +
+							  " 或大於 " + $('#quanHigher').val());
+			} else if ($('#quanLowerLab').is(':checked')) {
+				selected.push("<strong>庫存量：</strong>低於 " + $('#quanLower').val());
+			} else if ($('#quanHigherLab').is(':checked')) {
+				selected.push("<strong>庫存量：</strong>大於 " + $('#quanHigher').val());
+			}
+
+
+			// 顯示或隱藏 div
+			if (selected.length) {
+				$("#selectedFiltersDiv").show();
+				$("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
+			} else {
+				$("#selectedFiltersDiv").hide();
+				$("#selectedFiltersText").html("");
+			}
+		}
+
+		function updateFilterCount() {
+			let count = 0;
+
+			// 物品分類
+			if ($("#collapseCategory input:checked").length > 0) count++;
+
+			// 庫存數量
+			if ($("#collapseQuantity input:checked").length > 0) count++;
+
+			// 更新右上角 tooltip
+			if (count > 0) {
+				$("#filterCount").show();
+				$("#filterCount").text(`${count}`);
+			} else {
+				$("#filterCount").hide();
+			}
+		}
+
+		// 分頁按鈕
+		$(".pagination").on("click", ".pagination .page-link", function (e) {
+			e.preventDefault();
+			let page = $(this).data("page");
+			refreshProStockTable(page);
+		});
+
+		// Offcanvas 詳細資料
+		$(document).on('click', '.btn-detail', function () {
+			var btn = $(this);
+
+			const productNo = btn.data('no');
+			const productName = btn.data('name');
+
+			$('#offcanvasNo').text(productNo);
+			$('#offcanvasName').text(productName);
+
+			// 清空之前的紀錄
+			$('#logTableBody').empty();
+
+			$.ajax({
+				url: '/ProductStock/GetLogs', // Controller 的路徑
+				type: 'GET',
+				data: { productNo : productNo },
+				success: function (logs) {
+					console.log(logs);
+					if (logs.length === 0) {
+						$('#logTableBody').append('<tr><td colspan="3">沒有異動紀錄</td></tr>');
+					} else {
+						logs.forEach(log => {
+							// 判斷 note 是否有值
+							let noteAttr = '';
+							if (log.note && log.note.trim() !== '') {
+								noteAttr = `data-bs-toggle="tooltip" data-bs-offset="0,0" title="${log.note}"`;
+							}
+							$('#logTableBody').append(`
+								<tr ${noteAttr}">
+									<td>${log.changeType}</td>
+									<td>${log.changeQuantity}</td>
+									<td>${log.date}</td>
+								</tr>
+							`);
+						});
+						// 🔹這裡重新初始化 tooltip
+						var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+						tooltipTriggerList.map(function (tooltipTriggerEl) {
+							return new bootstrap.Tooltip(tooltipTriggerEl);
+						});
+					}
+				},
+				error: function () {
+					alert('讀取紀錄失敗');
+				}
+			});
+
+			// 打開 Offcanvas
+			var offcanvasEl = document.getElementById('offcanvasDetail');
+			var offcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+			offcanvas.show();
+		});
+
+		// 當 select 改變時
+		$('#pageSizeSelect').on('change', function () {
+			pageNumber = parseInt($(this).val()); // 更新 pageNumber
+			console.log("pageNumber 更新為:", pageNumber);
+
+			refreshProStockTable(1);
+		});
+
+	});
+
+	// 【功能】統一刷新列表
+	async function refreshProStockTable(page = 1, filters = {}) {
+		try {
+
+			filters.Page = page;
+			filters.PageSize = pageNumber;
+			filters.keyword = $('#searchInput').val();
+			filters.Categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+			filters.QuantityLowerVal = $('#quanLowerLab').is(':checked') ? $('#quanLower').val() : null;
+			filters.QuantityHigherVal = $('#quanHigherLab').is(':checked') ? $('#quanHigher').val(): null;
+
+			// 取得 CSRF Token
+			filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
+
+			let response = await $.ajax({
+				url: '/ProductStock/SearchSelect', // 或 DeleteConfirmed 也可以共用
+				type: 'POST',
+				data: JSON.stringify(filters),
+				contentType: "application/json"
+			});
+
+			// 如果本頁沒有資料且頁數大於 1，自動回前一頁
+			if (response.tableHtml.trim() === "" && page > 1) {
+				return await refreshProStockTable(page - 1, filters);
+			}
+
+			// 更新 tableBody
+			$("#tableBody").html(response.tableHtml);
+
+			// 更新 pagination
+			$("#pagination").html(response.paginationHtml);
+
+			// 更新分頁顯示
+			$('#paginationInfo').text(page);
+
+			$('#selectNum').hide();
+
+		} catch (err) {
+			alert("更新列表失敗：" + err.responseText || err.statusText);
+		}
+	}
+</script>

@@ -9,8 +9,6 @@ public partial class LostInfo
 
     public string Name { get; set; } = null!;
 
-    public string Category { get; set; } = null!;
-
     public string Desc { get; set; } = null!;
 
     public string Image { get; set; } = null!;
@@ -24,4 +22,6 @@ public partial class LostInfo
     public string? OwnerName { get; set; }
 
     public string? OwnerPhone { get; set; }
+
+    public string Category { get; set; } = null!;
 }

@@ -9,6 +9,8 @@ public partial class Emp
 
     public string Name { get; set; } = null!;
 
+    public int RoleNo { get; set; }
+
     public int DeptNo { get; set; }
 
     public DateTime HireDate { get; set; }
@@ -20,8 +22,6 @@ public partial class Emp
     public string EmpCode { get; set; } = null!;
 
     public bool Status { get; set; }
-
-    public int RoleNo { get; set; }
 
     public bool ForceChangePassword { get; set; }
 

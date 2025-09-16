@@ -4,6 +4,7 @@ namespace StarProject.MetaData
 {
 	internal class CompanyNotifyMetadata
 	{
+
 		[Display(Name = "標題")]
 		[Required(ErrorMessage = "請輸入標題")]
         [StringLength(50, ErrorMessage = "標題過長，請修正")]
@@ -17,6 +18,7 @@ namespace StarProject.MetaData
 		public string Category { get; set; } = null!;
 
 		[Display(Name = "發布日期")]
+
 		[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
 		public DateTime PublishDate { get; set; }
 	}

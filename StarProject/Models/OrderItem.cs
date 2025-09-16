@@ -5,7 +5,13 @@ namespace StarProject.Models;
 
 public partial class OrderItem
 {
+    public int ListId { get; set; }
+
     public string OrderNo { get; set; } = null!;
+
+    public int? ProductNo { get; set; }
+
+    public int? TicketNo { get; set; }
 
     public string Name { get; set; } = null!;
 

@@ -79,6 +79,7 @@ $(function () {
 		});
 	})
 
+
 	// 點搜尋按鈕
 	$('#btnSearch').on("click", () => {
 		console.log($('#searchInput').val());
@@ -269,7 +270,6 @@ $(function () {
 			// 刪除後刷新列表
 			refreshTable(page);
 
-
 			// 關閉 Offcanvas
 			var offcanvasEl = document.getElementById('offcanvasDetail');
 			var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
@@ -287,7 +287,6 @@ $(function () {
 	$('#pageSizeSelect').on('change', function () {
 		pageNumber = parseInt($(this).val()); // 更新 pageNumber
 		console.log("pageNumber 更新為:", pageNumber);
-
 		refreshTable(1);
 	});
 

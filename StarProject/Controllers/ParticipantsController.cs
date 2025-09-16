@@ -49,6 +49,7 @@ namespace StarProject.Controllers
 					Category = e.Category,
 					Title = e.Title,
 					StartDate = e.StartDate,
+					Status = e.Status,
 					Location = e.Location,
 					CoverImageUrl = e.Image,
 					MaxParticipants = e.MaxParticipants,

@@ -1,5 +1,6 @@
 ﻿@model StarProject.ViewModels.ParticipantsIndexVm
 @using StarProject.ViewModels
+@using System.Linq
 
 @{
     ViewData["Title"] = "報名管理";
@@ -10,6 +11,9 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h1 class="fw-bold text-white">報名管理</h1>
     <div class="d-flex gap-2">
+        <a class="btn btn-warning text-dark" asp-controller="Participants" asp-action="Create">
+            <i class="fi fi-sr-alien"></i> 新增
+        </a>
         <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportExcel">匯出全部 Excel</a>
         <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportCsv">匯出全部 CSV</a>
     </div>
@@ -17,7 +21,6 @@
 
 <hr />
 
-<!-- 卡片網格-->
 <!-- 卡片網格-->
 <section class="wrapper">
     <div class="container">
@@ -50,15 +53,38 @@
                         bg = Url.Content(normalized);
                     }
 
-                    // 狀態角標樣式：報名中=黃、已結束=灰、已取消=紅（可依實際字串調整）
-                    var status = (e.Status ?? "").Trim();
-                    string badgeClass = status switch
+                    // ===== 狀態 → 右下角 icon + 文字（報名中=藍、已結束=灰、已取消=紅）=====
+                    var rawStatus = (e.Status ?? "").Trim();
+                    var norm = rawStatus.ToLowerInvariant();
+
+                    string[] openKeys = new[] { "報名中", "開放報名", "open", "進行中", "ongoing", "進行" };
+                    string[] endKeys = new[] { "已結束", "結束", "已截止", "截止", "closed", "ended", "end", "完結" };
+                    string[] cancelKeys = new[] { "已取消", "取消", "cancel", "canceled", "cancelled" };
+
+                    bool isCancelled = cancelKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
+                    bool isEnded = !isCancelled && endKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
+                    bool isOpen = !isCancelled && !isEnded && openKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
+
+                    // fallback：若完全判不到，就用中性灰（避免誤標為開放）
+                    string statusLabel, pillClass, statusIcon;
+                    if (isCancelled)
                     {
-                        "報名中" => "bg-warning text-dark",
-                        "已結束" => "bg-secondary",
-                        "已取消" => "bg-danger",
-                        _ => "bg-secondary"
-                    };
+                        statusLabel = "已取消"; pillClass = "pill-cancelled"; statusIcon = "bi bi-x-circle-fill";
+                    }
+                    else if (isEnded)
+                    {
+                        statusLabel = "已結束"; pillClass = "pill-ended"; statusIcon = "bi bi-check-circle-fill";
+                    }
+                    else if (isOpen)
+                    {
+                        statusLabel = "報名中"; pillClass = "pill-open"; statusIcon = "bi bi-play-fill";
+                    }
+                    else
+                    {
+                        statusLabel = string.IsNullOrEmpty(rawStatus) ? "狀態未設定" : rawStatus;
+                        pillClass = "pill-ended";    // 中性灰
+                        statusIcon = "bi bi-info-circle-fill";
+                    }
 
                     <div class="col">
                         <div class="card h-100 event-card position-relative shadow-sm cardDetail"
@@ -68,12 +94,6 @@
                              data-bs-target="#participantsModal"
                              role="button"
                              aria-label="檢視 @e.Title 的報名名單">
-
-                            <!-- 狀態角標 -->
-                            <span class="badge position-absolute top-0 start-0 m-2 px-2 py-1 @badgeClass"
-                                  style="z-index:2; border-radius:.5rem;">
-                                @status
-                            </span>
 
                             <!-- 上：固定比例的封面（16:9），圖片一致裁切 -->
                             <div class="card-thumb" style="background-image:url('@bg');" aria-label="@e.Title"></div>
@@ -92,7 +112,13 @@
                                     <small>@e.CurrentCount / @e.MaxParticipants 人</small>
                                 </div>
 
-                                <!-- 點整張卡片可開啟名單 Modal -->
+                                <!-- 右下角狀態膠囊（不擋點擊） -->
+                                <div class="status-pill @pillClass">
+                                    <i class="@statusIcon"></i>
+                                    <span class="ms-1">@statusLabel</span>
+                                </div>
+
+                                <!-- 覆蓋整張可點 -->
                                 <a class="stretched-link" href="javascript:void(0)"></a>
                             </div>
                         </div>
@@ -161,14 +187,14 @@
             margin: 2rem 0;
         }
 
-        /* 視覺層次：白底卡片＋陰影 */
+        /* 視覺層次：白底卡片＋陰影（建立堆疊脈絡以放置狀態膠囊與 stretched-link） */
         .event-card {
             border: none;
             border-radius: 16px;
             overflow: hidden;
             background: #fff;
             transition: transform .25s ease, box-shadow .25s ease;
-            position: relative; /* 建立堆疊脈絡，角標可定位 */
+            position: relative;
         }
 
             .event-card:hover {
@@ -185,8 +211,9 @@
             background-repeat: no-repeat;
         }
 
-        /* 下半：內容層次清楚、左對齊 */
+        /* 下半：內容層次清楚、左對齊（並作為狀態膠囊的定位容器） */
         .card-body {
+            position: relative;
             padding: 14px 16px 16px 16px;
         }
 
@@ -194,16 +221,49 @@
             line-height: 1.25;
         }
 
-        /* 角標一定浮在最上、而且不擋點擊 */
+        /* 讓狀態膠囊浮在 stretched-link 之上，但不吃點擊 */
         .event-card .stretched-link::after {
             z-index: 1;
         }
-        /* Bootstrap 預設是 0，明確壓在底層 */
-        .event-card .badge {
-            z-index: 3;
+
+        .status-pill {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: .85rem;
+            font-weight: 700;
+            z-index: 2;
             pointer-events: none;
+            background: rgba(255,255,255,.9);
+            color: #222;
+            box-shadow: 0 2px 6px rgba(0,0,0,.08);
         }
-        /* 角標永遠在最上，且不吃點擊 */
+
+            .status-pill .bi {
+                font-size: 1rem;
+                line-height: 1;
+            }
+
+        /* 狀態色系：開=藍、結束=灰、取消=紅 */
+        .pill-open {
+            background: rgba(13,110,253,.95);
+            color: #fff;
+        }
+        /* Bootstrap primary 藍 */
+        .pill-ended {
+            background: rgba(222,226,230,.95);
+            color: #333;
+        }
+        /* secondary 淺灰 */
+        .pill-cancelled {
+            background: rgba(220,53,69,.95);
+            color: #fff;
+        }
+        /* danger 紅 */
 
         /* RWD 高度微調（四欄時仍清爽） */
         @@media (min-width:992px) {
@@ -218,12 +278,6 @@
             }
         }
 
-        /* 角標字重，易讀 */
-        .badge {
-            font-weight: 700;
-            letter-spacing: .3px;
-        }
-
         /* Modal 內表格對齊（保留） */
         #participantsTableContainer table td,
         #participantsTableContainer table th {
@@ -231,8 +285,6 @@
         }
     </style>
 }
-
-
 
 @section Scripts {
     <script>
@@ -261,6 +313,40 @@
             loadParticipantsTable(currentEventId);
         });
 
+        // 給表格「一次性」掛上全選/反選的委派（動態載入也可用）
+        function wireSelectAllOnce(){
+            const container = document.getElementById('participantsTableContainer');
+            if (container.dataset.selectAllWired === '1') return;
+
+            container.addEventListener('change', function(e){
+                const t = e.target;
+                // 1) 偵測 header 全選：支援多種常見寫法
+                if (t.matches('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]')){
+                    const checked = t.checked;
+                    container.querySelectorAll('tbody input[type="checkbox"]').forEach(cb=>{
+                        if (!cb.matches('[data-check-all], #checkAll, .js-check-all')) cb.checked = checked;
+                    });
+                    t.indeterminate = false;
+                    return;
+                }
+
+                // 2) 當任一列 checkbox 改變時，更新 header 的全選狀態
+                if (t.matches('tbody input[type="checkbox"]')){
+                    const rows = Array.from(container.querySelectorAll('tbody input[type="checkbox"]'))
+                        .filter(cb => !cb.matches('[data-check-all], #checkAll, .js-check-all'));
+                    const header = container.querySelector('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]');
+                    if (header){
+                        const allChecked = rows.length>0 && rows.every(cb => cb.checked);
+                        const someChecked = rows.some(cb => cb.checked);
+                        header.checked = allChecked;
+                        header.indeterminate = !allChecked && someChecked;
+                    }
+                }
+            });
+
+            container.dataset.selectAllWired = '1';
+        }
+
         // 載入該活動的參與者表格（部分檢視）
         async function loadParticipantsTable(eventId){
             const container = document.getElementById('participantsTableContainer');
@@ -280,6 +366,9 @@
                 if(!res.ok) throw new Error('HTTP ' + res.status);
                 const html = await res.text();
                 container.innerHTML = html;
+
+                // 每次載入完表格後，確保「全選委派」已掛上（僅掛一次）
+                wireSelectAllOnce();
             } catch(err){
                 container.innerHTML = `<div class="alert alert-danger">載入失敗：${err.message || err}</div>`;
             }
@@ -289,9 +378,10 @@
         document.getElementById('btnBulkDelete').addEventListener('click', async function () {
             if (!currentEventId) return;
 
+            // 收集已勾選的參與者 id（支援 data-id 或 value）
             const checks = Array.from(document.querySelectorAll('#participantsTableContainer input[type="checkbox"]'))
                 .filter(x => x.checked && (x.dataset.id || x.value));
-            const ids = checks.map(x => parseInt(x.dataset.id || x.value)).filter(n => !isNaN(n));
+            const ids = checks.map(x => Number(x.dataset.id || x.value)).filter(n => !isNaN(n));
 
             if (ids.length === 0) { alert('請先勾選要刪除的項目。'); return; }
             if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？`)) return;
@@ -308,7 +398,7 @@
                 const json = await res.json();
 
                 if (json.success) {
-                    await loadParticipantsTable(currentEventId);
+                    await loadParticipantsTable(currentEventId); // 重新載入表格
                 } else {
                     alert(json.message || '刪除失敗。');
                 }
@@ -318,4 +408,3 @@
         });
     </script>
 }
-

@@ -11,6 +11,8 @@ public partial class StarProjectContext : DbContext
     {
     }
 
+    public virtual DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
     public virtual DbSet<Cart> Carts { get; set; }
@@ -40,6 +42,10 @@ public partial class StarProjectContext : DbContext
     public virtual DbSet<Knowledge> Knowledges { get; set; }
 
     public virtual DbSet<KnowledgeContent> KnowledgeContents { get; set; }
+
+    public virtual DbSet<LeaveApplication> LeaveApplications { get; set; }
+
+    public virtual DbSet<LeaveType> LeaveTypes { get; set; }
 
     public virtual DbSet<LoginLog> LoginLogs { get; set; }
 
@@ -105,6 +111,20 @@ public partial class StarProjectContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AttendanceRecord>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.Property(e => e.EmpNo)
+                .HasMaxLength(50)
+                .HasColumnName("Emp_No");
+
+            entity.HasOne(d => d.EmpNoNavigation).WithMany(p => p.AttendanceRecords)
+                .HasForeignKey(d => d.EmpNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AttendanceRecordds_Emps");
+        });
+
         modelBuilder.Entity<AuditLog>(entity =>
         {
             entity.HasKey(e => e.No);
@@ -394,6 +414,36 @@ public partial class StarProjectContext : DbContext
                 .HasForeignKey(d => d.KnowledgeNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_KnowledgeContent_Knowledge");
+        });
+
+        modelBuilder.Entity<LeaveApplication>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.Property(e => e.EmpNo)
+                .HasMaxLength(50)
+                .HasColumnName("Emp_No");
+            entity.Property(e => e.Reason).HasMaxLength(500);
+            entity.Property(e => e.Status).HasMaxLength(20);
+            entity.Property(e => e.TotalDays).HasColumnType("decimal(3, 1)");
+
+            entity.HasOne(d => d.EmpNoNavigation).WithMany(p => p.LeaveApplications)
+                .HasForeignKey(d => d.EmpNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_LeaveApplications_Emps");
+
+            entity.HasOne(d => d.LeaveType).WithMany(p => p.LeaveApplications)
+                .HasForeignKey(d => d.LeaveTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_LeaveApplications_LeaveTypes");
+        });
+
+        modelBuilder.Entity<LeaveType>(entity =>
+        {
+            entity.HasKey(e => e.No);
+
+            entity.Property(e => e.TypeCode).HasMaxLength(20);
+            entity.Property(e => e.TypeName).HasMaxLength(50);
         });
 
         modelBuilder.Entity<LoginLog>(entity =>
@@ -838,6 +888,10 @@ public partial class StarProjectContext : DbContext
         {
             entity.HasKey(e => e.No);
 
+            entity.Property(e => e.CoNe).HasColumnName("CoNE");
+            entity.Property(e => e.CoNlist).HasColumnName("CoNList");
+            entity.Property(e => e.Cs).HasColumnName("CS");
+            entity.Property(e => e.Oa).HasColumnName("OA");
             entity.Property(e => e.RoleName).HasMaxLength(50);
         });
 

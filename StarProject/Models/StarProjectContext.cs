@@ -637,44 +637,49 @@ public partial class StarProjectContext : DbContext
                 .HasConstraintName("FK_OrderEdit_Order");
         });
 
-        modelBuilder.Entity<Participant>(entity =>
-        {
-            entity.HasKey(e => e.No);
+		modelBuilder.Entity<Participant>(entity =>
+		{
+			entity.HasKey(e => e.No);
 
-            entity.ToTable("Participant");
+			entity.ToTable("Participant");
 
-            entity.HasIndex(e => e.Code, "UQ_Participant_Code").IsUnique();
+			entity.HasIndex(e => e.Code, "UQ_Participant_Code").IsUnique();
 
-            entity.Property(e => e.Code).HasMaxLength(7);
-            entity.Property(e => e.EventNo).HasColumnName("Event_No");
-            entity.Property(e => e.PaymentNo)
-                .HasMaxLength(50)
-                .HasColumnName("Payment_No");
-            entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .HasColumnName("status");
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-            entity.Property(e => e.UsersNo)
-                .HasMaxLength(50)
-                .HasColumnName("Users_No");
+			entity.Property(e => e.Code).HasMaxLength(7);
+			entity.Property(e => e.EventNo).HasColumnName("Event_No");
+			entity.Property(e => e.PaymentNo)
+				.HasMaxLength(50)
+				.HasColumnName("Payment_No");
+			entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
+			entity.Property(e => e.Status)
+				.HasMaxLength(50)
+				.HasColumnName("status");
+			entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+			entity.Property(e => e.UsersNo)
+				.HasMaxLength(50)
+				.HasColumnName("Users_No");
 
-            entity.HasOne(d => d.EventNoNavigation).WithMany(p => p.Participants)
-                .HasForeignKey(d => d.EventNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Participant_Event");
+			entity.HasOne(d => d.EventNoNavigation)
+				.WithMany(p => p.Participants)
+				.HasForeignKey(d => d.EventNo)
+				.OnDelete(DeleteBehavior.Cascade) 
+				.HasConstraintName("FK_Participant_Event");
 
-            entity.HasOne(d => d.PaymentNoNavigation).WithMany(p => p.Participants)
-                .HasForeignKey(d => d.PaymentNo)
-                .HasConstraintName("FK_Participant_PaymentTransaction");
+			entity.HasOne(d => d.PaymentNoNavigation)
+				.WithMany(p => p.Participants)
+				.HasForeignKey(d => d.PaymentNo)
+				.OnDelete(DeleteBehavior.Restrict) 
+				.HasConstraintName("FK_Participant_PaymentTransaction");
 
-            entity.HasOne(d => d.UsersNoNavigation).WithMany(p => p.Participants)
-                .HasForeignKey(d => d.UsersNo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Participant_Users");
-        });
+			entity.HasOne(d => d.UsersNoNavigation)
+				.WithMany(p => p.Participants)
+				.HasForeignKey(d => d.UsersNo)
+				.OnDelete(DeleteBehavior.Restrict) 
+				.HasConstraintName("FK_Participant_Users");
+		});
 
-        modelBuilder.Entity<PaymentTransaction>(entity =>
+
+		modelBuilder.Entity<PaymentTransaction>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK__PaymentT__3214EC27F6F5A3F0");
 

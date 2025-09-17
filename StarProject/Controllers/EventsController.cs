@@ -375,15 +375,73 @@ namespace StarProject.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteMultiple([FromForm] int[] ids)
 		{
-			if (ids == null || ids.Length == 0) return Ok();
-			var events = await _context.Events.Where(e => ids.Contains(e.No)).ToListAsync();
-			if (events.Any())
+			if (ids == null || ids.Length == 0)
+				return Ok(new { deleted = 0, message = "未選取任何資料" });
+
+			// 以交易確保一致性
+			using var tx = await _context.Database.BeginTransactionAsync();
+			try
 			{
+				// 取出要刪的活動
+				var events = await _context.Events
+					.Where(e => ids.Contains(e.No))
+					.ToListAsync();
+
+				if (events.Count == 0)
+					return Ok(new { deleted = 0, message = "找不到對應的活動" });
+
+				// ==== 先刪相依資料（若你的專案有下列表，依實際名稱調整）====
+				// Participants
+				if (_context.Participants != null)
+				{
+					var participants = _context.Participants.Where(p => ids.Contains(p.EventNo));
+					_context.Participants.RemoveRange(participants);
+				}
+
+				// Schedules
+				if (_context.Schedules != null)
+				{
+					var schedules = _context.Schedules.Where(s => ids.Contains(s.EventNo));
+					_context.Schedules.RemoveRange(schedules);
+				}
+
+				// EventNotif（排程/通知紀錄）
+				// 將 _context.EventNotif 改為 _context.EventNotifs
+				if (_context.EventNotifs != null)
+				{
+					var notifs = _context.EventNotifs.Where(n => ids.Contains(n.EventNo));
+					_context.EventNotifs.RemoveRange(notifs);
+				}
+				if (_context.EventNotifs != null)
+				{
+					var notifs = _context.EventNotifs.Where(n => ids.Contains(n.EventNo));
+					_context.EventNotifs.RemoveRange(notifs);
+				}
+
+
+
+				// 最後刪主表 Events
 				_context.Events.RemoveRange(events);
-				await _context.SaveChangesAsync();
+
+				var affected = await _context.SaveChangesAsync();
+				await tx.CommitAsync();
+
+				// 回覆刪掉了幾筆活動（不是受影響總列數）
+				return Ok(new { deleted = events.Count, message = $"已刪除 {events.Count} 筆活動" });
 			}
-			return Ok();
+			catch (DbUpdateException dbEx)
+			{
+				await tx.RollbackAsync();
+				// 常見：外鍵限制導致無法刪除
+				return StatusCode(409, "刪除失敗：存在相依資料（報名/排程/通知/金流等），請先移除相依資料或啟用級聯刪除。");
+			}
+			catch (Exception ex)
+			{
+				await tx.RollbackAsync();
+				return StatusCode(500, $"刪除失敗：{ex.Message}");
+			}
 		}
+
 
 		// =================== 進階搜尋（清單頁） ==================
 		// 使用你的 SearchFilterVM（含 keyword/Categories/Statuses/(Locations)/DateFrom/DateTo/Page/PageSize）

@@ -87,8 +87,6 @@ namespace StarProject.Controllers
 					(e.DeptNoNavigation != null && e.DeptNoNavigation.DeptName.Contains(kw)) ||
 					(e.DeptNoNavigation != null && e.DeptNoNavigation.DeptCode.Contains(kw)) ||
 					(e.RoleNoNavigation != null && e.RoleNoNavigation.RoleName.Contains(kw)) ||
-					// **[修復後]**
-					// 現在改為使用 List<string>.Contains()，這可以被 EF Core 翻譯成 SQL 的 IN 語句
 					(e.RoleNoNavigation != null && matchingRoleCodes.Contains(e.RoleNoNavigation.RoleName)) ||
 					(e.DeptNoNavigation != null && matchingDeptCodes.Contains(e.DeptNoNavigation.DeptCode))
 				);
@@ -466,6 +464,7 @@ namespace StarProject.Controllers
 			return empCode;
 		}
 
+		// GET: Emps/Edit/5
 		[Permission("emp")]
 		public async Task<IActionResult> Edit(string id)
 		{
@@ -491,7 +490,10 @@ namespace StarProject.Controllers
 				BirthDate = emp.BirthDate
 			};
 
-			LoadDropdowns(viewModel); // 載入下拉式選單
+			// ✅ 和 Create 一樣，載入下拉式選單
+			LoadDropdowns(viewModel);
+			System.Diagnostics.Debug.WriteLine($"ViewModel.DeptNo = {viewModel.DeptNo}, ViewModel.RoleNo = {viewModel.RoleNo}");
+
 			return View(viewModel);
 		}
 
@@ -509,35 +511,41 @@ namespace StarProject.Controllers
 
 			if (!ModelState.IsValid)
 			{
+				// ❗先重新載入下拉選單
+				LoadDropdowns(viewModel);
+
+				// 除錯用：檢查下拉選單是否成功載入
+				System.Diagnostics.Debug.WriteLine("Depts is null? " + (viewModel.Depts == null));
+				System.Diagnostics.Debug.WriteLine("Roles is null? " + (viewModel.Roles == null));
+
+				// 列出驗證錯誤
 				System.Diagnostics.Debug.WriteLine("ModelState驗證失敗:");
 				foreach (var error in ModelState)
 				{
 					System.Diagnostics.Debug.WriteLine($"欄位: {error.Key}, 錯誤: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
 				}
 
-				LoadDropdowns(viewModel); // 驗證失敗時，重新載入下拉式選單
 				return View(viewModel);
 			}
 
+
 			try
 			{
-				// 從資料庫取得原始員工資料
 				var existingEmp = await _context.Emps.FindAsync(id);
 				if (existingEmp == null)
 					return NotFound();
 
-				// 只更新允許修改的欄位
-				existingEmp.Name = viewModel.Name;
+				// 更新欄位
+				existingEmp.Name = viewModel.Name?.Trim();
 				existingEmp.RoleNo = viewModel.RoleNo;
 				existingEmp.DeptNo = viewModel.DeptNo;
 				existingEmp.HireDate = viewModel.HireDate;
 				existingEmp.Status = viewModel.Status;
-				existingEmp.Email = viewModel.Email;
-				existingEmp.Phone = viewModel.Phone;
-				existingEmp.IdNumber = viewModel.IdNumber;
+				existingEmp.Email = viewModel.Email?.Trim();
+				existingEmp.Phone = viewModel.Phone?.Trim();
+				existingEmp.IdNumber = viewModel.IdNumber?.Trim().ToUpper();
 				existingEmp.BirthDate = viewModel.BirthDate;
 
-				// 保存變更
 				await _context.SaveChangesAsync();
 
 				System.Diagnostics.Debug.WriteLine("員工資料更新成功，準備跳轉到 Index");
@@ -556,10 +564,11 @@ namespace StarProject.Controllers
 				ModelState.AddModelError("", $"更新員工時發生錯誤：{ex.Message}");
 			}
 
-			// 如果到這裡，表示有錯誤，重新顯示表單
-			LoadDropdowns(viewModel); // 驗證失敗時，重新載入下拉式選單
+			// ❗有錯誤時也別忘了載入選單
+			LoadDropdowns(viewModel);
 			return View(viewModel);
 		}
+
 
 		[Permission("emp")]
 		// GET: Emps/Delete/5
@@ -676,9 +685,33 @@ namespace StarProject.Controllers
 		// 建立一個私有方法來載入編輯頁面的下拉式選單資料
 		private void LoadDropdowns(EditEmpViewModel viewModel)
 		{
-			viewModel.Depts = new SelectList(_context.Depts, "No", "DeptDescription", viewModel.DeptNo);
-			viewModel.Roles = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+			// 部門下拉選單：直接用 DeptDescription 當顯示文字
+			viewModel.Depts = new SelectList(
+				_context.Depts
+					.Select(d => new
+					{
+						No = d.No,
+						DisplayName = d.DeptDescription
+					}),
+				"No",
+				"DisplayName",
+				viewModel.DeptNo
+			);
+
+			// 職位下拉選單：用 RoleDisplayMap 轉換
+			viewModel.Roles = new SelectList(
+				_context.Roles
+					.Select(r => new
+					{
+						No = r.No,
+						DisplayName = RoleHelper.GetRoleDisplayName(r.RoleName)
+					}),
+				"No",
+				"DisplayName",
+				viewModel.RoleNo
+			);
 		}
+
 		private bool EmpExists(string id)
 		{
 			return _context.Emps.Any(e => e.No == id);

@@ -282,7 +282,6 @@
             </div>
         </div>
     </div>
-
     <div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
         <span id="selectedFiltersText" class="text-secondary"></span>
     </div>
@@ -335,52 +334,33 @@
             </div>
 
             <!-- 詳細內容 -->
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDetail">
-                <div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
-                    <h3 class="offcanvas-title fw-bolder">員工詳細資料</h3>
-                    <div class="d-flex justify-content-end align-items-center gap-2">
-                        <a id="offcanvasEditBtn" class="btn btn-edit br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
-                        <a id="offcanvasDetailsBtn" class="btn btn-info br20px"><i class="fa-solid fa-eye"></i>查看</a>
-                        <button type="button" class="btn btn-outline-delect br20px" id="offcanvasDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>刪除</button>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-
-                    <!-- 確認刪除彈窗 -->
-                    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true" data-bs-backdrop="false">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    確定要刪除這位員工嗎？
-                                </div>
-                                <div class="modal-footer">
-                                    <!-- 真正的刪除表單 (動態改 action) -->
-                                    <form id="deleteOne" asp-action="Delete" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
-                                    </form>
-                                    <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
-                                </div>
+            <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header justify-content-between d-flex align-items-center pt-3 pb-2">
+                            <h3 class="modal-title fw-bolder" id="detailModalLabel">員工詳細資料</h3>
+                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                <a id="modalEditBtn" class="btn btn-edit br20px" style="background-color: #2B4C8C;"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+                                <button type="button" class="btn btn-outline-delect br20px" id="modalDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>離職</button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="offcanvas-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card mb-3">
-                                <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0"><i class="fas fa-user"></i> 基本資料</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p><strong>姓名：</strong><span id="offcanvasName"></span></p>
-                                    <p><strong>員工編號：</strong><span class="badge bg-secondary" id="offcanvasEmpCode"></span></p>
-                                    <p><strong>部門：</strong><span id="offcanvasDepartment"></span></p>
-                                    <p><strong>職位：</strong><span id="offcanvasRole"></span></p>
-                                    <p><strong>入職日期：</strong><span id="offcanvasHireDate"></span></p>
-                                    <p><strong>狀態：</strong><span id="offcanvasStatus"></span></p>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card mb-3">
+                                        <div class="card-header text-white" style="background-color: #2B4C8C;">
+                                            <h5 class="mb-0"><i class="fas fa-user"></i> 基本資料</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p><strong>姓名：</strong><span id="modalName"></span></p>
+                                            <p><strong>員工編號：</strong><span id="modalEmpCode"></span></p>
+                                            <p><strong>部門：</strong><span id="modalDepartment"></span></p>
+                                            <p><strong>職位：</strong><span id="modalRole"></span></p>
+                                            <p><strong>入職日期：</strong><span id="modalHireDate"></span></p>
+                                            <p><strong>狀態：</strong><span id="modalStatus"></span></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -392,7 +372,7 @@
             <div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center selectColor">
                 <span id="selectNum" style="display:none" class="fw-bold fs18px me-2">已選取0項</span>
 
-                <button type="button" class="btn p-0 selectColor fs18px" id="delectAll" data-bs-toggle="modal" data-bs-target="#deleteAllModal" style="display:none">
+                <button type="button" class="btn p-0 selectColor fs18px" id="delectAll" data-bs-toggle="" data-bs-target="#deleteAllModal" style="display:none">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
@@ -402,14 +382,14 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
+                            <h5 class="modal-title" id="deleteAllModalLabel">確認離職</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            確定要刪除已選取的所有員工嗎？
+                            確定已選取員工離職嗎？
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定刪除</button>
+                            <button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定離職</button>
                             <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
                         </div>
                     </div>

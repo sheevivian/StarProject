@@ -66,23 +66,34 @@ namespace StarProject.Controllers
 				.Include(e => e.RoleNoNavigation)
 				.AsQueryable();
 
-			// 關鍵字搜尋
 			if (!string.IsNullOrWhiteSpace(request.Keyword))
 			{
 				var kw = request.Keyword.Trim();
+
+				var matchingRoleCodes = RoleHelper.RoleDisplayMap
+										.Where(pair => pair.Value.Contains(kw))
+										.Select(pair => pair.Key)
+										.ToList();
+
+				// 先在記憶體中找到所有匹配中文名稱的部門代碼
+				var matchingDeptCodes = RoleHelper.DepartmentDisplayMap
+												.Where(pair => pair.Value.Contains(kw))
+												.Select(pair => pair.Key)
+												.ToList();
+
 				query = query.Where(e =>
 					e.Name.Contains(kw) ||
 					e.EmpCode.Contains(kw) ||
 					(e.DeptNoNavigation != null && e.DeptNoNavigation.DeptName.Contains(kw)) ||
 					(e.DeptNoNavigation != null && e.DeptNoNavigation.DeptCode.Contains(kw)) ||
 					(e.RoleNoNavigation != null && e.RoleNoNavigation.RoleName.Contains(kw)) ||
-					// 新增：也要搜尋職位的中文顯示名稱
-					(e.RoleNoNavigation != null && RoleHelper.RoleDisplayMap.ContainsKey(e.RoleNoNavigation.RoleName) &&
-					 RoleHelper.RoleDisplayMap[e.RoleNoNavigation.RoleName].Contains(kw)) ||
-					// 新增：也要搜尋部門的中文顯示名稱  
-					(e.DeptNoNavigation != null && RoleHelper.DepartmentDisplayMap.ContainsKey(e.DeptNoNavigation.DeptCode) &&
-					 RoleHelper.DepartmentDisplayMap[e.DeptNoNavigation.DeptCode].Contains(kw)));
+					// **[修復後]**
+					// 現在改為使用 List<string>.Contains()，這可以被 EF Core 翻譯成 SQL 的 IN 語句
+					(e.RoleNoNavigation != null && matchingRoleCodes.Contains(e.RoleNoNavigation.RoleName)) ||
+					(e.DeptNoNavigation != null && matchingDeptCodes.Contains(e.DeptNoNavigation.DeptCode))
+				);
 			}
+
 
 			// 部門篩選 - 使用 DeptCode 
 			if (request.Departments != null && request.Departments.Any())
@@ -403,8 +414,6 @@ namespace StarProject.Controllers
 				.Select(s => s[random.Next(s.Length)]).ToArray());
 
 			return password;
-			// 或者使用固定密碼
-			// return "Abc12345";
 		}
 
 		// 改進的生成員工編號方法

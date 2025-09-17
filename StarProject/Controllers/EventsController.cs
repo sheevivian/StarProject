@@ -12,11 +12,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Data.SqlTypes;
 
 namespace StarProject.Controllers
 {
 	public class EventsController : Controller
 	{
+		private static readonly DateTime SqlMin = SqlDateTime.MinValue.Value;
 		private const int DefaultPageSize = 10;
 
 		private readonly StarProjectContext _context;
@@ -178,14 +180,14 @@ namespace StarProject.Controllers
 				if (string.Equals(PublishMode, "now", StringComparison.OrdinalIgnoreCase))
 				{
 					schedule.ReleaseDate = nowMin;
-					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
+					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : SqlMin;
 					schedule.Executed = true;
 				}
 				else
 				{
 					var rel = ReleaseDate.HasValue ? TrimToMinute(ReleaseDate.Value) : nowMin;
 					schedule.ReleaseDate = rel;
-					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
+					schedule.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : SqlMin;
 					schedule.Executed = rel <= nowMin;
 				}
 
@@ -239,7 +241,7 @@ namespace StarProject.Controllers
 
 			var s = await _context.Schedules.AsNoTracking().FirstOrDefaultAsync(x => x.EventNo == entity.No);
 			ViewBag.ScheduleReleaseDate = s?.ReleaseDate.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
-			ViewBag.ScheduleExpirationDate = (s != null && s.ExpirationDate > DateTime.MinValue)
+			ViewBag.ScheduleExpirationDate = (s != null && s.ExpirationDate > SqlMin)
 				? s.ExpirationDate.ToString("yyyy-MM-ddTHH\\:mm")
 				: "";
 
@@ -313,14 +315,14 @@ namespace StarProject.Controllers
 				if (string.Equals(PublishMode, "now", StringComparison.OrdinalIgnoreCase))
 				{
 					s.ReleaseDate = nowMin;
-					s.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
+					s.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : SqlMin;
 					s.Executed = true;
 				}
 				else
 				{
 					var rel = ReleaseDate.HasValue ? TrimToMinute(ReleaseDate.Value) : nowMin;
 					s.ReleaseDate = rel;
-					s.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : DateTime.MinValue;
+					s.ExpirationDate = ExpirationDate.HasValue ? TrimToMinute(ExpirationDate.Value) : SqlMin;
 					s.Executed = rel <= nowMin;
 				}
 

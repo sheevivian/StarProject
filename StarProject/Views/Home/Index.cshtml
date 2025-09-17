@@ -1,8 +1,227 @@
 ﻿@{
     ViewData["Title"] = "星航基地後台系統";
 }
+<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    body {
+        /* background-color: #000; /* 黑色背景 */ */
+       /* /* background-image: url(https://cdn.pixabay.com/photo/2016/09/08/20/52/starry-sky-1655503_1280.jpg) */
+         
+    }
+    </style>
+
+
+
+    <!-- 第一列圖表 -->
+<div class="container-fluid p-4">
+    <div class="row g-8">
+        <!-- 左側：商品 & 票券分析 -->
+        <div class="col-md-6">
+            
+                <div class="cardsetting">
+                    <h5 class="card-title text-center">商品營收分析</h5>
+                    <div id="productChart" style="height:340px;"></div>
+                <h5 class="card-title text-center">票券營收分析</h5>
+                    <div id="ticketChart" style="height:340px; margin-top:10px;"></div>
+                </div>
+
+           
+        </div>
+
+        <!-- 右側：KPI + 活動報名 -->
+        <div class="col-md-6">
+            <div class="row g-4">
+                <div class="col-6">
+                    <div class="card shadow-sm text-center p-3 card-red text-light">
+                        <i class="bi bi-box2-heart fs-1"></i>
+                        <h5 class="card-title mt-2">庫存預警</h5>
+                        <p class="card-text"> 5項商品低庫存</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card shadow-sm text-center p-3 card-darkblue text-light">
+                        <i class="bi bi-cart-check fs-1"></i>
+                        <h5 class="card-title mt-2">本月訪客數</h5>
+                        <p class="card-text">1200人</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card shadow-sm text-center p-3 card-yellow text-light">
+                        <i class="bi bi-cash-coin fs-1"></i>
+                        <h5 class="card-title mt-2">累計營收</h5>
+                        <p class="card-text">$15,000</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card shadow-sm text-center p-3 card-blue text-light">
+                        <i class="bi bi-people fs-1"></i>
+                        <h5 class="card-title mt-2">新增會員數</h5>
+                        <p class="card-text">20人</p>
+                    </div>
+                </div>
+            </div>
+
+            
+            <!-- 活動報名柱狀圖 -->
+            <div class="col-12 mt-4">
+                
+                    <div class="cardsetting">
+                        <h5 class="card-title text-center">活動參與統計</h5>
+                        <div id="categoryChart" style="height:335px;"></div>
+                       
+                      
+                    </div>
+                
+            </div>
+
+   
+        </div>
+    </div>
 </div>
+    
+ 
+  
+<!-- javascript-->
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ECharts CDN -->
+
+
+
+<script>
+          
+
+        // 商品
+        var productChart = echarts.init(document.getElementById('productChart'));
+        $.getJSON('/Chart/GetCategoryNestedData', function (res) {
+            const blueColors = [ '#200d7d','#23458b','#0008ff','#1f87d6','#2bc1f3','#0ddfe3','#7cb7cb','#bbebf7',];
+
+            res.counts.forEach((item, index) => {
+                item.itemStyle = { color: blueColors[index % blueColors.length] };
+            });
+
+            res.revenues.forEach((item, index) => {
+                item.itemStyle = { color: blueColors[index % blueColors.length] };
+            });
+
+            var option = {
+                tooltip: { trigger: 'item' },
+                             legend: {
+        top: '90%',   // ✅ 這邊就是放在 option 裡面
+        left: 'center'},
+                series: [
+                    {
+                        name: '營收金額',
+                        type: 'pie',
+                        radius: [0, '40%'],
+                        label: { position: 'inside' },
+                        data: res.revenues
+                    },
+
+                    {
+                        name: '銷售筆數',
+                        type: 'pie',
+                        radius: ['55%', '70%'],
+                        label: { position: 'outside' },
+                        data: res.counts
+                    }
+                ]
+            };
+            productChart.setOption(option);
+        });
+
+        // 票券
+        var ticketChart = echarts.init(document.getElementById('ticketChart'));
+        $.getJSON('/Chart/GetTicketCategoryData', function (res) {
+            const redColors = ['#4F0202','#7A0101','#FF0505','#F25C5C','#FC9292','#F2B1B1','#FADEDE','#DBC5C5'];
+
+            res.counts.forEach((item, index) => {
+                item.itemStyle = { color: redColors[index % redColors.length] };
+            });
+            res.revenues.forEach((item, index) => {
+                item.itemStyle = { color: redColors[index % redColors.length] };
+            });
+
+            var option = {
+                tooltip: { trigger: 'item' },
+                
+                  legend: {
+        top: '90%',   // ✅ 這邊就是放在 option 裡面
+        left: 'center'},
+
+                series: [
+                    {
+                        name: '銷售筆數',
+                        type: 'pie',
+                        radius: ['50%', '70%'],
+                        label: { position: 'outside' },
+                        data: res.counts
+                    },
+                    {
+                        name: '營收金額',
+                        type: 'pie',
+                        radius: ['0%', '40%'],
+                        label: { position: 'inside' },
+                        data: res.revenues
+                    }
+                ]
+            };
+            ticketChart.setOption(option);
+        });
+
+            var chartDom = document.getElementById('categoryChart');
+    var myChart = echarts.init(chartDom);
+
+    fetch('/Chart/GetCategoryStats')
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                chartDom.innerHTML = "沒有資料";
+                return;
+            }
+
+            let categories = data.map(d => d.category);
+            let counts = data.map(d => d.participantCount);
+              const colors = ['#3453a2', '#75c8f9', '#499b8a', '#82d38d', '#f1c232', '#b9635d', '#811313', '#F44336'];
+            myChart.setOption({
+                
+    tooltip: {},
+    grid: {
+        left: '10px',   // 左邊距離
+        right: '10px',  // 右邊距離
+        top: '30px',    // 上邊距離
+        bottom: '30px', // 下邊距離
+        containLabel: true // 確保軸標籤顯示
+    },
+    xAxis: {
+        type: 'category',
+        data: categories,
+        axisLabel: {
+            interval: 0, // 每個都顯示
+            rotate: 30   // 適度旋轉防重疊
+        }
+    },
+    yAxis: { type: 'value' },
+        series: [{
+        name: '參與人數',
+        type: 'bar',
+        data: counts.map((c, i) => ({
+            value: c,
+            itemStyle: { color: colors[i % colors.length] }, // 每個柱子不同顏色
+            label: { show: true, position: 'top', formatter: '{c}' } // 顯示數字
+        }))
+    }]
+            });
+        });
+
+
+     
+
+
+
+
+
+    </script>

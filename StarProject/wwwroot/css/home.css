@@ -47,6 +47,7 @@
 body {
     background-color: #f5f5f5;
     font-family: font1;
+    min-height: 100vh; /* 至少要滿版 */
 }
 
 main {
@@ -143,6 +144,15 @@ main {
 
 }
 
+<<<<<<< HEAD
+.dropdown-item:hover {
+    background-color: #eaecf4;
+}
+=======
+
+
+>>>>>>> MM0916
+
 /* 小鈴鐺通知樣式 */
 .badge {
     display: inline-block;
@@ -171,7 +181,7 @@ main {
     padding: 0.5rem 1rem;
     margin: 0 0.5rem;
     display: block;
-    color: #3a3b45;
+    color: #3a3b45 !important;
     text-decoration: none;
     border-radius: 0.35rem;
     white-space: nowrap;
@@ -186,7 +196,7 @@ main {
     background-color: #041E40;
 }
 
-/* sidebar 標題 */
+/* sidebar 標題 */ 
 .sidebar .sidebar-brand {
     height: 80px;
     text-decoration: none;
@@ -370,7 +380,7 @@ main {
     padding: 0.5rem 1rem;
     margin: 0 0.5rem;
     display: block;
-    color: #3a3b45;
+    color: #3a3b45 !important;
     text-decoration: none;
     border-radius: 0.35rem;
     white-space: nowrap;

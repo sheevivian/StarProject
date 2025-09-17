@@ -1,0 +1,288 @@
+﻿@model IEnumerable<StarProject.Models.LostInfo>
+@Html.AntiForgeryToken()
+
+@{
+    ViewData["Title"] = "遺失物列表";
+}
+<head>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+
+<main class="flex-fill position-relative">
+	<!-- 標題+新增 -->
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">遺失物列表</h1>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
+    </div>
+
+	<!-- CSRF Token -->
+	<form id="deleteForm">
+		@Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+	</form>
+	
+	<!-- 搜尋框+每頁筆數 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input" placeholder="請輸入關鍵字（名稱、分類、領取狀態）">
+		<button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+		<div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
+                    <!-- 物品分類 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+                            - 物品分類
+                        </button>
+                    </li>
+                    <!-- 物品分類內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="一般物品" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+                                        一般物品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="電子產品" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+                                        電子產品
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="證件" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+                                        證件
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="金融票證" id="cat4">
+                                    <label class="form-check-label" for="cat4">
+                                        金融票證
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="其他" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        其他
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 領取狀態 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseCategory">
+                            - 領取狀態
+                        </button>
+                    </li>
+                    <!-- 領取狀態內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="待領取" id="status1">
+                                    <label class="form-check-label" for="status1">
+                                        待領取
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="已領取" id="status1">
+                                    <label class="form-check-label" for="status1">
+                                        已領取
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 拾獲日期 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
+                            - 拾獲日期
+                        </button>
+                    </li>
+                    <!-- 拾獲日期內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+                            <div class="p-2">
+                                <div class="mb-2">
+                                    <label for="dateFrom" class="form-label">起始日期</label>
+                                    <input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div>
+                                    <label for="dateTo" class="form-label">結束日期</label>
+                                    <input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- 完成+清除 -->
+                    <li class="d-flex gap-1">
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+                            完成
+                        </button>
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+                            清除
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="width:150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option selected value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
+		</div>
+        
+		
+	</div>
+
+	<div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
+		<span id="selectedFiltersText" class="text-secondary"></span>
+	</div>
+
+	<!-- 列表 -->
+	<div class="table-rounded position-relative mt-3">
+		<table class="table">
+			<!-- 欄位 -->
+			<thead>
+				<tr>
+					<th style="width:50px">
+						<input class="form-check-input ms-4" type="checkbox" value="" id="checkAll" data-bs-toggle="tooltip" data-bs-placement="bottom"
+							   data-bs-title="全選" data-bs-trigger="hover">
+					</th>
+					<th style="width:346px">
+						@Html.DisplayNameFor(model => model.Name)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.Category)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.Status)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.FoundDate)
+					</th>
+					<th>
+						@Html.DisplayNameFor(model => model.CreatedDate)
+					</th>
+					<th style="width:116px">
+						
+					</th>
+				</tr>
+			</thead>
+
+			<!-- 內容 -->
+			<tbody id="tableBody">
+                @await Html.PartialAsync("_LostInfoRows", Model)
+			</tbody>
+		</table>
+
+		<!-- 分頁 -->
+        <div id="pagination">
+			@await Html.PartialAsync("_Pagination", Model)
+		</div>
+        
+
+		<!-- 詳細內容 -->
+		<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDetail">
+			<div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
+				<h3 class="offcanvas-title fw-bolder">詳細內容</h3>
+				<div class="d-flex justify-content-end align-items-center gap-2">
+					<a id="offcanvasEditBtn" class="btn btn-edit br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+
+					<button type="button" class="btn btn-outline-delect br20px" id="offcanvasDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>刪除</button>
+					<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
+				</div>
+
+				<!-- 確認刪除彈窗 -->
+				<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true" data-bs-backdrop="false">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+							</div>
+							<div class="modal-body">
+								確定要刪除這筆資料嗎？
+							</div>
+							<div class="modal-footer">
+								<!-- 真正的刪除表單 (動態改 action) -->
+								<form id="deleteOne" asp-action="Delete" method="post" class="d-inline">
+									<button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
+								</form>
+								<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="offcanvas-body">
+				<div class="img550px rounded mb-3"><img id="offcanvasImage" src="" alt="物品照片" class="rounded" /></div>
+				<p><strong>物品名稱：</strong><span id="offcanvasName"></span></p>
+				<p><strong>描述：</strong><span id="offcanvasDesc"></span></p>
+				<p><strong>拾獲日期：</strong><span id="offcanvasfounddate"></span></p>
+				<p><strong>發布日期：</strong><span id="offcanvasCreatedDate"></span></p>
+				<hr>
+				<p><strong>狀態：</strong><span id="offcanvasStatus"></span></p>
+				<p id="ownerNameWrapper" style="display:none;"><strong>擁有者姓名：</strong><span id="offcanvasOwnerName"></span></p>
+				<p id="ownerPhoneWrapper" style="display:none;"><strong>擁有者電話：</strong><span id="offcanvasOwnerPhone"></span></p>
+			</div>
+		</div>
+
+		<!-- 全選垃圾桶及文字 -->
+		<div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center selectColor">
+			<span id="selectNum" style="display:none" class="fw-bold fs18px me-2">已選取0項</span>
+			
+			<button type="button" class="btn p-0 selectColor fs18px" id="delectAll" data-bs-toggle="modal" data-bs-target="#deleteAllModal" style="display:none">
+				<i class="fa-solid fa-trash-can"></i>
+			</button>
+		</div>
+
+		<!-- 全選刪除彈窗 -->
+		<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						確定要刪除已選取的所有項目嗎？
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定刪除</button>
+						<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+
+</main>
+
+@section Scripts {
+    <script src="~/js/lostinfoindex.min.js"></script>
+}

@@ -1,0 +1,50 @@
+﻿@model IEnumerable<StarProject.Models.StarMap>
+
+@foreach (var item in Model)
+{
+    <div class="col rounded-lg">
+        <div class="card h-100 position-relative shadow cardDetail rounded-4">
+            <!-- Checkbox 右上角，但留一點距離 -->
+            <input type="checkbox"
+                   class="form-check-input position-absolute big-checkbox checkbox"
+                   style="top: 10px; right: 15px;"
+                   value="@item.No" />
+
+            <!-- 固定圖片大小 -->
+            <div class="card-img-container">
+                <img src="@Html.DisplayFor(modelItem => item.Image)" class="card-img-top" alt="景點照片">
+            </div>
+
+            <!-- flex-column 讓內容上下排列 -->
+            <div class="card-body d-flex flex-column">
+                <h4 class="card-title fw-bold">@Html.DisplayFor(modelItem => item.Name)</h4>
+
+                <!-- 限制描述文字只顯示兩行 -->
+                <span class="card-text text-truncate-2 mb-2">
+                    @Html.DisplayFor(modelItem => item.Desc)
+                </span>
+
+                <!-- 地址固定在最下面 -->
+                <span class="card-text text-secondary fs12px mt-auto">
+                    @Html.DisplayFor(modelItem => item.Address)
+                </span>
+
+                <button type="button"
+                        class="btn btn-color btn-sm rounded-pill mt-2 btn-detail"
+                        data-id="@item.No"
+                        data-name="@item.Name"
+                        data-desc="@item.Desc"
+                        data-image="@item.Image"
+                        data-address="@item.Address"
+                        data-lat="@item.MapLatitude"
+                        data-lng="@item.MapLongitude"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalDetail">
+                    詳細內容
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+

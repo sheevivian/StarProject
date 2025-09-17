@@ -34,4 +34,6 @@ public partial class Event
     public string? Image { get; set; }
 
     public virtual ICollection<Participant> Participants { get; set; } = new List<Participant>();
+
+    public virtual Schedule? Schedule { get; set; }
 }

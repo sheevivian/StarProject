@@ -7,11 +7,19 @@ public partial class PromotionRule
 {
     public int PromotionNo { get; set; }
 
-    public string? Rule { get; set; }
+    public string RuleType { get; set; } = null!;
 
-    public string? Action { get; set; }
+    public int? ConditionAmount { get; set; }
 
-    public string? Scope { get; set; }
+    public decimal? DiscountValue { get; set; }
+
+    public string TargetCategory { get; set; } = null!;
+
+    public string Description { get; set; } = null!;
+
+    public string? ConditionType { get; set; }
+
+    public string? MemberLevel { get; set; }
 
     public virtual Promotion PromotionNoNavigation { get; set; } = null!;
 }

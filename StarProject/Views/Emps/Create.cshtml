@@ -1,0 +1,196 @@
+﻿@model StarProject.ViewModels.CreateEmpViewModel
+
+@{
+    ViewData["Title"] = "新增員工";
+}
+
+<h1>新增員工</h1>
+
+<!-- 顯示ModelState錯誤 -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <h4>表單驗證錯誤：</h4>
+        <ul>
+            @foreach (var modelError in ViewData.ModelState)
+            {
+                foreach (var error in modelError.Value.Errors)
+                {
+                    <li><strong>@modelError.Key:</strong> @error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
+
+<!-- 顯示ViewBag資料狀態 -->
+<div class="alert alert-info">
+    <strong>除錯資訊：</strong>
+    <p>部門選項數量: @(ViewBag.DeptNo != null ? ((SelectList)ViewBag.DeptNo).Count() : 0)</p>
+    <p>職位選項數量: @(ViewBag.RoleNo != null ? ((SelectList)ViewBag.RoleNo).Count() : 0)</p>
+</div>
+
+<form asp-action="Create" method="post" id="empForm">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="form-label">姓名 <span class="text-danger">*</span></label>
+                <input asp-for="Name" class="form-control" placeholder="請輸入員工姓名" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" type="email" class="form-control" placeholder="example@company.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="DeptNo" class="form-label">部門 <span class="text-danger">*</span></label>
+                <select asp-for="DeptNo" class="form-control" asp-items="ViewBag.DeptNo">
+                    <option value="">請選擇部門</option>
+                </select>
+                <span asp-validation-for="DeptNo" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="RoleNo" class="form-label">職位 <span class="text-danger">*</span></label>
+                <select asp-for="RoleNo" class="form-control" asp-items="ViewBag.RoleNo">
+                    <option value="">請選擇職位</option>
+                </select>
+                <span asp-validation-for="RoleNo" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="HireDate" class="form-label">到職日期 <span class="text-danger">*</span></label>
+                <input asp-for="HireDate" type="date" class="form-control" />
+                <span asp-validation-for="HireDate" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="Phone" class="form-label">電話</label>
+                <input asp-for="Phone" class="form-control" placeholder="請輸入聯絡電話" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="IdNumber" class="form-label">身分證字號</label>
+                <input asp-for="IdNumber" class="form-control" placeholder="請輸入身分證字號" maxlength="10" />
+                <span asp-validation-for="IdNumber" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label asp-for="BirthDate" class="form-label">生日</label>
+                <input asp-for="BirthDate" type="date" class="form-control" />
+                <span asp-validation-for="BirthDate" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary btn-lg" onclick="return validateAndSubmit()">
+            新增員工
+        </button>
+        <a asp-action="Index" class="btn btn-secondary btn-lg ml-2">返回列表</a>
+    </div>
+</form>
+
+<!-- 成功訊息 -->
+@if (TempData["NewEmpCode"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-3">
+        <strong>新員工建立成功！</strong><br>
+        <strong>員工編號：</strong>@TempData["NewEmpCode"]<br>
+        <strong>預設密碼：</strong>@TempData["TempPassword"]
+        @if (TempData["EmailSent"] != null)
+        {
+            <br>
+    
+            <span class="text-success">登入通知已成功發送至員工信箱</span>
+        }
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    </div>
+}
+
+@if (TempData["EmailError"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show mt-3">
+        @TempData["EmailError"]
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // 設置今天為預設到職日期
+        document.addEventListener('DOMContentLoaded', function() {
+            var hireDateInput = document.querySelector('input[name="HireDate"]');
+            if (hireDateInput && !hireDateInput.value) {
+                var today = new Date().toISOString().split('T')[0];
+                hireDateInput.value = today;
+            }
+        });
+
+        function validateAndSubmit() {
+            var form = document.getElementById('empForm');
+            var name = document.querySelector('input[name="Name"]').value.trim();
+            var deptNo = document.querySelector('select[name="DeptNo"]').value;
+            var roleNo = document.querySelector('select[name="RoleNo"]').value;
+            var hireDate = document.querySelector('input[name="HireDate"]').value;
+
+            console.log('表單驗證開始...');
+            console.log('姓名:', name);
+            console.log('部門:', deptNo);
+            console.log('職位:', roleNo);
+            console.log('到職日:', hireDate);
+
+            var errors = [];
+
+            if (!name) errors.push('請填寫姓名');
+            if (!deptNo) errors.push('請選擇部門');
+            if (!roleNo) errors.push('請選擇職位');
+            if (!hireDate) errors.push('請選擇到職日期');
+
+            if (errors.length > 0) {
+                alert('請修正以下問題：\n' + errors.join('\n'));
+                return false;
+            }
+
+            console.log('表單驗證通過，準備提交...');
+            return true;
+        }
+
+        // 監聽表單提交事件
+        document.getElementById('empForm').addEventListener('submit', function(e) {
+            console.log('表單提交事件觸發');
+            console.log('Action:', this.action);
+            console.log('Method:', this.method);
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

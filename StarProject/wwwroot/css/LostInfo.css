@@ -1,0 +1,179 @@
+﻿* {
+    padding: 0;
+    margin: 0;
+}
+
+img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* cover = 等比縮放填滿框架，多的裁掉 */
+}
+
+.img550px {
+    width: 550px; /* 固定寬度 */
+    height: 550px; /* 固定高度 */
+    overflow: hidden; /* 超出的部分裁掉 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ddd; /* 可選，看框線 */
+}
+
+.offcanvas {
+    --bs-offcanvas-width: 600px;
+    --bs-offcanvas-padding-x: 1rem;
+    --bs-offcanvas-padding-y: 0rem;
+}
+
+.form-check-input {
+    border: var(--bs-border-width) solid gray;
+}
+
+.table > thead > tr > th {
+    font-size: 18px !important;
+    color: #FFFFFF;
+    background-color: #2B4C8C;
+    letter-spacing: 0.2rem;
+}
+
+.table > tbody > tr.active > td {
+    background-color: rgba(223, 245, 255, 0.521) !important;
+}
+
+.table > tbody > tr > td {
+    border-color: #D5D8DB !important; /* 比較深的灰 */
+}
+
+.search:hover {
+    background-color: rgba(253, 246, 222, 0.897);
+}
+
+.table tbody tr:hover td {
+    background-color: #F4F1FF !important;
+}
+
+
+.table-rounded {
+    border-radius: 10px;
+    overflow: hidden; /* 裁切 table 超出的邊框 */
+}
+
+.table {
+    border-collapse: separate !important; /* 取消 collapse */
+    border-spacing: 0; /* 避免格線中斷 */
+    border-radius: 20px; /* 四個角都有圓角 */
+    overflow: hidden; /* 超出的隱藏 */
+    vertical-align: middle; /* 上下置中，可選 */
+}
+
+.fs18px {
+    font-size: 18px;
+    letter-spacing: 0.1rem;
+}
+
+.btn-color {
+    border: 1px solid gray;
+    /* background-color: #DCC7B0; */
+    /* color:#FFFFFF */
+    border-radius: 15px;
+}
+
+    .btn-color:hover {
+        /* border: 1px solid black; */
+        background-color: #bbe3f3;
+        /* color:#FFFFFF */
+    }
+
+.selectColor {
+    color: #EFF7FE;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.dropdown-item:hover {
+    background-color: #eaecf4;
+}
+
+.fs14px {
+    font-size: 14px;
+}
+
+.br20px {
+    border-radius: 20px;
+}
+
+.btn-search {
+    --bs-btn-bg: rgb(250, 208, 72);
+    --bs-btn-border-color: rgb(250, 208, 72);
+    --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+    --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+    --bs-btn-focus-shadow-rgb: 217, 164, 6;
+    --bs-btn-active-bg: #ffcd39;
+    --bs-btn-active-border-color: #ffc720;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.btn-outline-search {
+    --bs-btn-color: #ffc107;
+    --bs-btn-border-color: #ffc107;
+    --bs-btn-hover-color: #ffc107;
+    --bs-btn-hover-bg: rgba(253, 246, 222, 0.897);
+    --bs-btn-hover-border-color: #ffc107;
+    --bs-btn-focus-shadow-rgb: 255, 193, 7;
+    --bs-btn-active-color: #ffc107;
+    --bs-btn-active-border-color: #ffc107;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-gradient: none;
+}
+
+.no-btn-style {
+    padding: 6px 14px 6px 14px;
+    background-color: var(--bs-tertiary-bg); /* input-group-text 預設背景 */
+    border: 1px solid var(--bs-border-color); /* 保持邊框 */
+    border-radius: 0 0.375rem 0.375rem 0; /* 右側圓角 */
+    color: inherit;
+    box-shadow: none;
+    height: 100%; /* 對齊 input 高度 */
+}
+
+.filterCount {
+    display: flex; /* 使用 flex 方便垂直置中 */
+    align-items: center;
+    justify-content: center;
+    width: 24px; /* 固定寬度 */
+    height: 24px; /* 固定高度 */
+    font-size: 14px;
+    font-weight: 600;
+    background-color: rgb(250, 208, 72);
+    border-radius: 50%; /* 完全圓形 */
+    display: none; /* 預設隱藏，沒有篩選條件時不顯示 */
+}
+
+.btn-outline-delect {
+    --bs-btn-color: #DC3545;
+    --bs-btn-border-color: #DC3545;
+    --bs-btn-hover-color: #DC3545;
+    --bs-btn-hover-bg: #f8e6e9;
+    --bs-btn-hover-border-color: #DC3545;
+    --bs-btn-focus-shadow-rgb: 255, 193, 7;
+    --bs-btn-active-color: #DC3545;
+    --bs-btn-active-border-color: #DC3545;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-gradient: none;
+}
+
+.btn-edit {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #0d6efd;
+    --bs-btn-border-color: #0d6efd;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #2B4C8C;
+    --bs-btn-hover-border-color: #0a58ca;
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #0a58ca;
+    --bs-btn-active-border-color: #0a53be;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}

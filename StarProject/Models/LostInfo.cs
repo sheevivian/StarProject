@@ -9,6 +9,8 @@ public partial class LostInfo
 
     public string Name { get; set; } = null!;
 
+    public string Category { get; set; } = null!;
+
     public string Desc { get; set; } = null!;
 
     public string Image { get; set; } = null!;

@@ -1,16 +1,8 @@
 ﻿@using StarProject.DTOs.PromotionDTOs
-@model IEnumerable<PromotionListDto>
-@{
-    ViewData["Title"] = "優惠券管理";
-}
+@model IEnumerable<PromotionAnalysisDto> // ✅ 修正：型別與 Controller.Index 一致
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-circle-check me-2"></i>
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+@{
+    ViewData["Title"] = "優惠券成效分析";
 }
 
 <head>
@@ -19,21 +11,18 @@
 
 <main class="flex-fill position-relative">
     <div class="d-flex align-items-center mb-3">
-        <h1 class="fw-bold flex-grow-1 mb-0">優惠券列表</h1>
-        <a asp-controller="Promotion" asp-action="Create" class="btn btn-search fw-bold">
-            <i class="fa-solid fa-plus"></i> 新增
-        </a>
+        <h1 class="fw-bold flex-grow-1 mb-0">優惠券成效分析</h1>
     </div>
 
+    <!-- 搜尋 + 每頁筆數 -->
     <div class="input-group input-group-lg">
-        <input id="searchInput" type="text" class="form-control" placeholder="請輸入關鍵字（名稱、代碼、類別）">
+        <input id="searchInput" type="text" class="form-control" placeholder="請輸入優惠名稱或類別">
         <button type="button" class="input-group-text search" id="btnSearch">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
 
         <div class="d-flex gap-3">
             <div style="width:150px">
-                <!-- ✅ 修改：變更每頁筆數時重載第 1 頁 -->
                 <select class="form-select form-select-lg" id="pageSizeSelect" onchange="loadData(1)">
                     <option selected value="10">每頁10筆</option>
                     <option value="15">每頁15筆</option>
@@ -49,56 +38,44 @@
             <thead>
                 <tr>
                     <th>編號</th>
-                    <th>優惠名稱</th>
-                    <th>優惠代碼</th>
-                    <th>類別</th>
+                    <th>名稱</th>
+                    <th>分類</th>
+                    <th>狀態</th>
                     <th>開始日期</th>
                     <th>結束日期</th>
-                    <th>狀態</th>
-                    <th style="width:116px"></th>
+                    <th>限定次數</th>
+                    <th>實際使用</th>
+                    <th>使用人數</th>
+                    <th>使用率 (%)</th>
                 </tr>
             </thead>
-            <tbody id="tableBody"><!-- ✅ 首屏不渲染資料，由 JS 載入 --></tbody>
+            <tbody id="tableBody"><!-- ✅ 首屏不渲染，由 JS 載入 --></tbody>
         </table>
 
-        <!-- ✅ 修改：改用你的 _PromotionPagination partial 的輸出容器 -->
+        <!-- ✅ 修改：與 Shared/_Pagination 匹配的容器 -->
         <div id="paginationContainer" class="mt-3"></div>
-        <!-- 🔎 原本是 nav > ul#pagination，為避免重複包 nav，改成單一容器由 partial 直接填入 -->
     </div>
 </main>
 
 @section Scripts {
     <script>
-        // 成功訊息 5 秒後自動消失
-        document.addEventListener('DOMContentLoaded', function() {
-            var alertElement = document.querySelector('.alert-success');
-            if (alertElement) {
-                setTimeout(function() {
-                    var bsAlert = new bootstrap.Alert(alertElement);
-                    bsAlert.close();
-                }, 5000);
-            }
-        });
-        
         async function loadData(page) {
             const pageSize = document.getElementById("pageSizeSelect").value;
             const search = document.getElementById("searchInput").value;
 
             const qs = new URLSearchParams({ page, pageSize, search });
-            const res = await fetch(`/Promotion/GetPagedData?${qs.toString()}`);
+            const res = await fetch(`/PromotionAnalysis/GetPagedData?${qs.toString()}`);
             if (!res.ok) {
                 console.error("Fetch failed", res.status);
                 return;
             }
             const result = await res.json();
 
-            // ✅ 套用資料列
             document.getElementById("tableBody").innerHTML = result.rows;
-            // ✅ 改為把 server render 的 _PromotionPagination 填入這個容器
-            document.getElementById("paginationContainer").innerHTML = result.pagination;
+            document.getElementById("paginationContainer").innerHTML = result.pagination; // ✅ 由 partial 輸出填入
         }
 
-        // ✅ _PromotionPagination 會呼叫這個函式名稱
+        // ✅ 修改：Shared/_Pagination.cshtml 內用的是 refreshTable(page)
         function refreshTable(page) {
             loadData(page);
         }

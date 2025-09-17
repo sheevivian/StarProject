@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StarProject.Models;
 
 public partial class PromotionRule
 {
-    public int PromotionNo { get; set; }
+    [Key]  // 🔴 重要：加入主鍵標記
+    [ForeignKey("PromotionNoNavigation")]  // 🔴 指定外鍵關聯
+    public int Promotion_No { get; set; }
 
     public string RuleType { get; set; } = null!;
 

@@ -796,7 +796,7 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.MemberLevel).HasMaxLength(50);
-            entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
+            entity.Property(e => e.Promotion_No).HasColumnName("Promotion_No");
             entity.Property(e => e.RuleType)
                 .HasMaxLength(50)
                 .HasDefaultValue("Percentage");
@@ -805,7 +805,7 @@ public partial class StarProjectContext : DbContext
                 .HasDefaultValue("ALL");
 
             entity.HasOne(d => d.PromotionNoNavigation).WithMany()
-                .HasForeignKey(d => d.PromotionNo)
+                .HasForeignKey(d => d.Promotion_No)
                 .HasConstraintName("FK_PromotionRule_PromotionNo");
         });
 

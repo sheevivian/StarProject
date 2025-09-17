@@ -148,8 +148,12 @@
             height: 100%;
         }
 
+        html {
+            scrollbar-gutter: stable both-edges;
+        }
+
         .filterCount {
-            display: none;
+            display: inline-flex;
             width: 24px;
             height: 24px;
             font-size: 14px;
@@ -158,6 +162,11 @@
             border-radius: 50%;
             align-items: center;
             justify-content: center;
+        }
+
+        .input-group .dropdown .dropdown-menu {
+            right: 0;
+            left: auto;
         }
 
         .input-group {
@@ -203,7 +212,7 @@
             cursor: zoom-in;
         }
 
-       .offcanvas-body img.offcanvas-img {
+        .offcanvas-body img.offcanvas-img {
             max-width: 50%;
             height: auto;
             border-radius: 12px;
@@ -229,14 +238,30 @@
             pointer-events: none;
         }
 
-        #global-image-preview img {
-            width: 100%;
-            height: auto;
-            display: block;
+            #global-image-preview img {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+
+        .preview-img {
+            display: none !important;
         }
 
-        .preview-img{display: none !important;}
-        .thumbnail-container:hover .preview-img{display:none !important;}
+        .thumbnail-container:hover .preview-img {
+            display: none !important;
+        }
+
+        /* 外框線 */
+    .table-bordered-gray {
+        border: 1px solid gray !important;
+    }
+
+
+    /* 控制整體寬度 */
+    .custom-table-width {
+        max-width: 1200px;   /* 你可以調整成 1000px、1100px */
+        margin: auto;        /* 置中 */
     </style>
 </head>
 
@@ -264,7 +289,7 @@
         <button type="button" class="text-danger input-group-text btn-outline-delect" id="btnClearKeyword" title="清除輸入">×</button>
 
         <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="所有活動" data-bs-trigger="hover">
-         所有活動
+            所有活動
         </button>
 
         <!-- 進階篩選 -->
@@ -273,10 +298,10 @@
                     type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside"
                     data-bs-display="static" id="advancedFilter">
                 <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="進階篩選" data-bs-trigger="hover"></i>
-                <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">0</span>
+                <span class="filterCount d-none position-absolute top-0 start-100 translate-middle" id="filterCount">0</span>
             </button>
 
-            <ul class="dropdown-menu p-2" style="width:220px">
+            <ul class="dropdown-menu dropdown-menu-end p-2" style="width:220px">
                 <!-- 活動種類 -->
                 <li><button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory">- 活動種類</button></li>
                 <li>
@@ -310,8 +335,8 @@
                 <li>
                     <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
                         <div class="p-2">
-                            <div class="mb-2"><label for="dateFrom" class="form-label">起始日期</label><input type="date" id="dateFrom" class="form-control"></div>
-                            <div><label for="dateTo" class="form-label">結束日期</label><input type="date" id="dateTo" class="form-control"></div>
+                            <div class="mb-2"><label for="dateFrom" class="form-label">起始日期</label><input type="date" id="dateFrom" class="form-control" lang="en-US"></div>
+                            <div><label for="dateTo" class="form-label">結束日期</label><input type="date" id="dateTo" class="form-control" lang="en-US"></div>
                         </div>
                     </div>
                 </li>
@@ -427,24 +452,24 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title fw-bold" id="scheduledModalLabel">排程中的活動</h4>
+                    <h4 clas s="modal-title fw-bold" id="scheduledModalLabel">排程中的活動</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
                 </div>
                 <div class="modal-body">
                     <div id="scheduledEmpty" class="text-secondary" style="display:none;">目前沒有排程中的活動。</div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                    <div class="custom-table-width">
+                        <table class="table table-hover align-middle mb-0 table-bordered-gray">
+                            <thead class="table-light text-center">
                                 <tr>
-                                    <th style="width:86px">圖片</th>
+                                    <th style="width:120px">圖片</th>
                                     <th>活動名稱</th>
                                     <th style="width:140px">活動種類</th>
                                     <th style="width:160px">發布時間</th>
                                     <th style="width:120px">目前狀態</th>
-                                    <th style="width:220px">操作</th>
+                                    <th style="width:180px">操作</th>
                                 </tr>
                             </thead>
-                            <tbody id="scheduledTbody">
+                            <tbody id="scheduledTbody" class="align-content-center">
                                 <!-- 由 JS 動態塞入 -->
                             </tbody>
                         </table>
@@ -464,39 +489,32 @@
         (function fixDropdownJump() {
           var toggle = document.getElementById('advancedFilter');
           if (!toggle) return;
+
           var inst = bootstrap.Dropdown.getInstance(toggle);
           if (inst) inst.dispose();
+
           new bootstrap.Dropdown(toggle, {
-            popperConfig: function (defaultCfg) {
-              return {
-                ...defaultCfg,
-                strategy: 'fixed',
-                modifiers: [
-                  { name: 'offset', options: { offset: [0, 8] } },
-                  { name: 'preventOverflow', options: { boundary: 'viewport' } },
-                  { name: 'computeStyles', options: { adaptive: false } }
-                ]
-              };
-            }
+            popperConfig: {
+              strategy: 'fixed',
+              modifiers: [
+                { name: 'offset', options: { offset: [0, 8] } },
+                { name: 'preventOverflow', options: { boundary: document.body } },
+                { name: 'computeStyles', options: { adaptive: false } }
+              ]
+            },
+            autoClose: 'outside'
           });
         })();
 
+        // ====== 全域參數 ======
         var pageNumber = 10;
 
-        // 純換頁
+        // 目前套用中的篩選條件（與後端 VM 欄位名一致）
+        let currentFilters = { categories: [], statuses: [], dateFrom: '', dateTo: '', keyword: '' };
+
+        // ====== 換頁（統一用 SearchSelect） ======
         function loadPage(page) {
-          $.get('/Events/GetEvents', { page: page, pageSize: pageNumber }, function (result) {
-            $('#tableBody').html(result);
-            $('#tableBody .preview-img').remove(); // 清除舊預覽節點（保險）
-            $.post('/Events/SearchSelect', JSON.stringify({ page: page, pageSize: pageNumber }), function (p) {
-              if (p && p.paginationHtml) $('#pagination').html(p.paginationHtml);
-            }, 'json').fail(function(){});
-            $('#paginationInfo').text(`${page}`);
-            $('#pagination li').removeClass('active');
-            $(`.pagination .page-link[data-page='${page}']`).closest("li").addClass('active');
-            $('#checkAll').prop('checked', false);
-            $('#deleteAllBtn, #selectNum').hide();
-          });
+          refreshEventsTable(page, currentFilters);
         }
 
         $(function () {
@@ -548,7 +566,7 @@
               traditional: true,
               success: function () {
                 let page = parseInt($('#paginationInfo').text()) || 1;
-                refreshEventsTable(page);
+                refreshEventsTable(page, currentFilters);
                 $('#deleteAllBtn, #selectNum').hide();
                 $('#checkAll').prop('checked', false);
               },
@@ -556,13 +574,22 @@
             });
           });
 
-          // 搜尋與即時輸入
-          $('#btnSearch').on('click', doSearch);
-          $('#searchInput').on('keyup', doSearch);
+          // 搜尋與即時輸入（統一用 SearchSelect）
+          $('#btnSearch').on('click', function(){
+            collectFilters();                 // 會同步寫回 currentFilters
+            refreshEventsTable(1, currentFilters);
+          });
+          $('#searchInput').on('keyup', function(){
+            collectFilters();
+            refreshEventsTable(1, currentFilters);
+          });
 
           // 進階篩選 完成
           $('#filterFinsh').click(function () {
-            updateFilterCount(); updateSelectedFilters(); doSearch();
+            collectFilters();                 // 更新 currentFilters
+            updateFilterCount();
+            updateSelectedFilters();
+            refreshEventsTable(1, currentFilters);
             const toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
             (bootstrap.Dropdown.getInstance(toggleBtn) || new bootstrap.Dropdown(toggleBtn)).hide();
           });
@@ -573,8 +600,10 @@
             const $menu = $(this).closest('.dropdown-menu');
             $menu.find('input[type=checkbox]:checked').prop('checked', false);
             $menu.find('#dateFrom, #dateTo').val('');
+            collectFilters();                 // 變回空條件（保留 keyword）
             updateSelectedFilters();
             updateFilterCount();
+            refreshEventsTable(1, currentFilters);
             const toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
             (bootstrap.Dropdown.getInstance(toggleBtn) || new bootstrap.Dropdown(toggleBtn)).hide();
           });
@@ -591,50 +620,12 @@
             });
           }
 
-          // 分頁代理
+          // 分頁代理（統一呼叫 loadPage -> refreshEventsTable）
           $(".pagination").on("click", ".page-link", function (e) {
             e.preventDefault();
-            let page = $(this).data("page");
+            let page = Number($(this).data("page")) || 1;
             loadPage(page);
           });
-
-                // 1) 讀取網址上的 ?status=...
-        const urlParams = new URLSearchParams(window.location.search);
-        const statusFromUrl = urlParams.get('status') || '';
-        const keywordFromInput = () => $('#keyword').val() || ''; // 有搜尋框才會用到
-
-        // 2) AJAX 重新載入 _EventRows
-        function refreshEventsTable(page) {
-          $.ajax({
-            url: '/Events/GetEvents',
-            type: 'GET',
-            data: {
-              page: page || 1,
-              pageSize: @ViewBag.PageSize ?? 10,
-              status: statusFromUrl,          // ★ 關鍵：帶回目前狀態
-              keyword: keywordFromInput()
-            },
-            success: function (html) {
-              // 假設你的 _EventRows 只渲染 <tbody> 內容
-              $('#eventsContainer').html(html);
-            }
-          });
-        }
-
-        // 3) 監聽分頁連結（_EventRows 內部會重新產生分頁按鈕）
-        //   - 若你的分頁按鈕有 data-page 屬性就優先用，否則從 href 的 ?page= 解析
-        $(document).on('click', '#eventsContainer .page-link', function (e) {
-          e.preventDefault();
-          const $a = $(this);
-          let page = $a.data('page');
-          if (!page) {
-            const href = $a.attr('href') || '';
-            const p = new URLSearchParams(href.split('?')[1] || '').get('page');
-            page = parseInt(p || '1', 10);
-          }
-          if (!page || isNaN(page)) page = 1;
-          refreshEventsTable(page);
-        });
 
           // Offcanvas 詳細
           $(document).on('click', '.btn-detail', function () {
@@ -666,76 +657,70 @@
             bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasDetail')).show();
           });
 
+          // ===== 檢視排程中的活動（Modal） =====
+          (function scheduledModalFeature(){
+            const $modal = $('#scheduledModal');
+            const $tbody = $('#scheduledTbody');
+            const $empty = $('#scheduledEmpty');
+            const $badge = $('#scheduledBadge');
 
-                  // ===== 檢視排程中的活動（Modal） =====
-        (function scheduledModalFeature(){
-          const $modal = $('#scheduledModal');
-          const $tbody = $('#scheduledTbody');
-          const $empty = $('#scheduledEmpty');
-          const $badge = $('#scheduledBadge');
-
-          function fmt(dtStr){
-            if(!dtStr) return '';
-            const d = new Date(dtStr);
-            if (isNaN(d)) return dtStr; // 後端已是字串就原樣
-            const pad = (n)=>String(n).padStart(2,'0');
-            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-          }
-
-          function htmlRow(x){
-            const img = x.image || '/img/logo.png';
-            const exp = (!x.expirationDate || x.expirationDate === '0001-01-01T00:00:00') ? '—' : fmt(x.expirationDate);
-            const feeOps = `
-              <a class="btn btn-sm btn-primary br20px me-1" href="/Events/Edit/${x.no}">
-                <i class="fa-solid fa-pen-to-square"></i> 編輯
-              </a>;
-            return `
-              <tr>
-                <td>
-                  <div class="thumbnail-container">
-                    <img src="${img}" class="thumb-img" alt="img" style="width:64px;height:64px;object-fit:cover;border-radius:8px">
-                  </div>
-                </td>
-                <td class="fw-semibold">${x.title ?? ''}</td>
-                <td>${x.category ?? ''}</td>
-                <td>${fmt(x.releaseDate)}</td>
-                <td>${x.status ?? ''}</td>
-                <td>${feeOps}</td>
-              </tr>`;
-          }
-
-          async function refreshBadge(){
-            try{
-              const res = await $.get('/Events/GetScheduledCount');
-              const n = res?.count ?? 0;
-              if(n>0){ $badge.text(n).show(); } else { $badge.hide(); }
-            }catch(_){ $badge.hide(); }
-          }
-
-          async function loadScheduled(){
-            $tbody.empty();
-            $empty.hide();
-            try{
-              const list = await $.get('/Events/GetScheduled');
-              if(!list || list.length===0){
-                $empty.show();
-                return;
-              }
-              $tbody.html(list.map(htmlRow).join(''));
-            }catch(err){
-              $empty.text('載入失敗：' + (err.responseText || err.statusText || err.message)).show();
+            function fmt(dtStr){
+              if(!dtStr) return '';
+              const d = new Date(dtStr);
+              if (isNaN(d)) return dtStr;
+              const pad = (n)=>String(n).padStart(2,'0');
+              return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
             }
-          }
 
-          // 開窗時載入一次
-          $modal.on('show.bs.modal', loadScheduled);
+            function htmlRow(x){
+              const img = x.image || '/img/logo.png';
+              const exp = (!x.expirationDate || x.expirationDate === '0001-01-01T00:00:00') ? '—' : fmt(x.expirationDate);
+              const feeOps = `
+                <a class="btn btn-sm btn-primary br20px me-1" href="/Events/Edit/${x.no}">
+                  <i class="fa-solid fa-pen-to-square"></i> 編輯
+                </a>`;
+              return `
+                <tr>
+                  <td>
+                    <div class="thumbnail-container">
+                      <img src="${img}" class="thumb-img" alt="img" style="width:64px;height:64px;object-fit:cover;border-radius:8px">
+                    </div>
+                  </td>
+                  <td class="fw-semibold">${x.title ?? ''}</td>
+                  <td>${x.category ?? ''}</td>
+                  <td>${fmt(x.releaseDate)}</td>
+                  <td>${x.status ?? ''}</td>
+                  <td>${feeOps}</td>
+                </tr>`;
+            }
 
-          // 頁面載入與每 90 秒更新一下徽章（可自行調整/移除）
-          $(refreshBadge);
-          setInterval(refreshBadge, 90000);
-        })();
+            async function refreshBadge(){
+              try{
+                const res = await $.get('/Events/GetScheduledCount');
+                const n = res?.count ?? 0;
+                if(n>0){ $badge.text(n).show(); } else { $badge.hide(); }
+              }catch(_){ $badge.hide(); }
+            }
 
+            async function loadScheduled(){
+              $tbody.empty();
+              $empty.hide();
+              try{
+                const list = await $.get('/Events/GetScheduled');
+                if(!list || list.length===0){
+                  $empty.show();
+                  return;
+                }
+                $tbody.html(list.map(htmlRow).join(''));
+              }catch(err){
+                $empty.text('載入失敗：' + (err.responseText || err.statusText || err.message)).show();
+              }
+            }
 
+            $modal.on('show.bs.modal', loadScheduled);
+            $(refreshBadge);
+            setInterval(refreshBadge, 90000);
+          })();
 
           // 單筆刪除
           $(document).on('click', '#deleteOnebtn', async function (e) {
@@ -746,7 +731,7 @@
             try {
               await $.ajax({ url: '/Events/Delete', type: 'POST', data: { id: id, __RequestVerificationToken: getToken() } });
               let page = parseInt($('#paginationInfo').text()) || 1;
-              refreshEventsTable(page);
+              refreshEventsTable(page, currentFilters);
               let oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDetail'));
               if (oc) oc.hide();
               $('#deleteModal').modal('hide');
@@ -762,35 +747,8 @@
             let keyword    = $("#searchInput").val();
             let df = $("#dateFrom").val();
             let dt = $("#dateTo").val();
-            return { categories, statuses, dateFrom: df, dateTo: dt, keyword, page: 1, pageSize: pageNumber };
-          }
-
-          async function doSearch() {
-            let filters = collectFilters();
-            try {
-              let response = await $.ajax({
-                url: '/Events/SearchSelect',
-                type: 'POST',
-                data: JSON.stringify(filters),
-                contentType: "application/json; charset=utf-8"
-              });
-
-              if (typeof response === 'string') {
-                $('#tableBody').html(response);
-                $('#tableBody .preview-img').remove();
-              } else if (response.tableHtml) {
-                $('#tableBody').html(response.tableHtml);
-                $('#tableBody .preview-img').remove();
-                if (response.paginationHtml) $('#pagination').html(response.paginationHtml);
-              }
-
-              $('#checkAll').prop('checked', false);
-              $('#deleteAllBtn, #selectNum').hide();
-              $('#paginationInfo').text('1');
-
-            } catch (err) {
-              alert('搜尋失敗：' + (err.responseText || err.statusText || err.message));
-            }
+            currentFilters = { categories, statuses, dateFrom: df, dateTo: dt, keyword };
+            return currentFilters;
           }
 
           function updateSelectedFilters() {
@@ -808,19 +766,25 @@
           function updateFilterCount() {
             let count = 0;
             if ($("#collapseCategory input:checked").length > 0) count++;
-            if ($("#collapseStatus input:checked").length > 0) count++;
+            if ($("#collapseStatus input:checked").length   > 0) count++;
             if ($("#dateFrom").val() || $("#dateTo").val()) count++;
-            if (count > 0) { $("#filterCount").show().text(`${count}`); } else { $("#filterCount").hide(); }
+
+            const $badge = $("#filterCount");
+            if (count > 0) {
+              $badge.text(count).removeClass('d-none');
+            } else {
+              $badge.addClass('d-none');
+            }
           }
 
-          // 刷新（保留你的 API 介面）
-          async function refreshEventsTable(page = 1, filters = {}) {
+          // 刷新（統一走 SearchSelect）
+          async function refreshEventsTable(page = 1, filters = currentFilters) {
             try {
-              filters.page = page; filters.pageSize = pageNumber;
+              const payload = { ...filters, page: page, pageSize: pageNumber };
               let response = await $.ajax({
                 url: '/Events/SearchSelect',
                 type: 'POST',
-                data: JSON.stringify(filters),
+                data: JSON.stringify(payload),
                 contentType: "application/json; charset=utf-8"
               });
               if (typeof response === 'string') {
@@ -832,11 +796,14 @@
                 if (response.paginationHtml) $("#pagination").html(response.paginationHtml);
               }
               $('#paginationInfo').text(page);
+              $('#checkAll').prop('checked', false);
+              $('#deleteAllBtn, #selectNum').hide();
             } catch (err) {
-              alert("更新列表失敗：" + (err.responseText || err.statusText));
+              alert("更新列表失敗：" + (err.responseText || err.statusText || err.message));
             }
           }
 
+          // 對外可呼叫
           window.refreshEventsTable = refreshEventsTable;
         });
 

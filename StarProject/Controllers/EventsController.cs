@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SqlTypes;
 
+
 namespace StarProject.Controllers
 {
 	public class EventsController : Controller
@@ -113,7 +114,7 @@ namespace StarProject.Controllers
 		}
 
 		// =================== 活動清單 (List + 分頁) ==================
-		[HttpGet]
+		
 		[HttpGet]
 		public async Task<IActionResult> List(string? status, string? keyword, int page = 1, int pageSize = DefaultPageSize)
 		{
@@ -133,7 +134,7 @@ namespace StarProject.Controllers
 			return View(events);
 		}
 		// AJAX 分頁：只回傳 rows（_EventRows）
-		[HttpGet]
+		
 		[HttpGet]
 		public async Task<IActionResult> GetEvents(string? status, string? keyword, int page = 1, int pageSize = DefaultPageSize)
 		{
@@ -504,11 +505,7 @@ namespace StarProject.Controllers
 					var notifs = _context.EventNotifs.Where(n => ids.Contains(n.EventNo));
 					_context.EventNotifs.RemoveRange(notifs);
 				}
-				if (_context.EventNotifs != null)
-				{
-					var notifs = _context.EventNotifs.Where(n => ids.Contains(n.EventNo));
-					_context.EventNotifs.RemoveRange(notifs);
-				}
+				
 
 
 
@@ -546,17 +543,13 @@ namespace StarProject.Controllers
 			int page = filters.Page > 0 ? filters.Page : 1;
 			int pageSize = filters.PageSize > 0 ? filters.PageSize : DefaultPageSize;
 
-			// 先做「只取可見活動」
 			var q = _context.Events.AsNoTracking()
 				.Where(e =>
 					!_context.Schedules.Any(s => s.EventNo == e.No && s.Executed == false && s.ReleaseDate > DateTime.Now) &&
 					!_context.Schedules.Any(s => s.EventNo == e.No && s.ExpirationDate != SqlMin && s.ExpirationDate <= DateTime.Now)
 				);
 
-			// 你的原有條件照掛
-			q = q.OrderByDescending(e => e.StartDate)
-				 .ThenByDescending(e => e.CreatedTime);
-
+			// 關鍵字
 			if (!string.IsNullOrWhiteSpace(filters.keyword))
 			{
 				var kw = filters.keyword.Trim();
@@ -567,17 +560,33 @@ namespace StarProject.Controllers
 					(e.Desc != null && e.Desc.Contains(kw)));
 			}
 
+			// 種類/狀態
 			if (filters.Categories?.Any() == true)
 				q = q.Where(e => filters.Categories.Contains(e.Category));
 
 			if (filters.Statuses?.Any() == true)
 				q = q.Where(e => filters.Statuses.Contains(e.Status));
 
-			if (!string.IsNullOrWhiteSpace(filters.DateFrom) && DateTime.TryParse(filters.DateFrom, out var from))
-				q = q.Where(e => e.StartDate >= from.Date);
+			// 日期區間（用固定格式解析，避免文化差異；DateFrom 含當日 00:00）
+			var ci = System.Globalization.CultureInfo.InvariantCulture;
+			if (!string.IsNullOrWhiteSpace(filters.DateFrom) &&
+				DateTime.TryParseExact(filters.DateFrom, "yyyy-MM-dd", ci,
+					System.Globalization.DateTimeStyles.None, out var from))
+			{
+				q = q.Where(e => e.StartDate >= from);
+			}
 
-			if (!string.IsNullOrWhiteSpace(filters.DateTo) && DateTime.TryParse(filters.DateTo, out var to))
-				q = q.Where(e => e.StartDate <= to.Date.AddDays(1).AddTicks(-1));
+			if (!string.IsNullOrWhiteSpace(filters.DateTo) &&
+				DateTime.TryParseExact(filters.DateTo, "yyyy-MM-dd", ci,
+					System.Globalization.DateTimeStyles.None, out var to))
+			{
+				var end = to.Date.AddDays(1).AddTicks(-1); // 當天 23:59:59.9999999
+				q = q.Where(e => e.StartDate <= end);
+			}
+
+			// ✅ 最後再排序，確保分頁是在正確集合上做
+			q = q.OrderByDescending(e => e.StartDate)
+				 .ThenByDescending(e => e.CreatedTime);
 
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(q, page, pageSize);
 
@@ -591,6 +600,7 @@ namespace StarProject.Controllers
 
 			return Json(new { tableHtml, paginationHtml });
 		}
+
 
 
 		// =================== 報名管理 ==================

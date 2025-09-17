@@ -189,6 +189,16 @@ namespace StarProject.Controllers
 			{
 				await _context.SaveChangesAsync();
 
+				try
+				{
+					if (IsSuccessStatus(entity.Status))
+					{
+						var (ok, reason) = await SendSignupEmailAndRecordAsync(entity.No);
+						// 可選：若 !ok 可記log，但不要擋建立流程
+					}
+				}
+				catch { /* swallow or log */ }
+
 				// AJAX 則回 JSON；非 AJAX 照舊 redirect
 				if (IsAjax(Request))
 					return Json(new { success = true, message = "建立成功" });
@@ -276,17 +286,21 @@ namespace StarProject.Controllers
             var existing = await _context.Participants.FirstOrDefaultAsync(p => p.No == id);
             if (existing == null) return NotFound();
 
-            existing.Status = participant.Status;
+			var oldStatus = existing.Status; // 先記下舊狀態
+
+			existing.Status = participant.Status;
             existing.PaymentNo = participant.PaymentNo;
             existing.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
-            // ✅ 狀態改成成功 → 仍用 _email
-            if (IsSuccessStatus(existing.Status))
-                await SendSignupEmailAndRecordAsync(existing.No);
+			// ✅ 狀態改成成功 → 仍用 _email
+			if (!IsSuccessStatus(oldStatus) && IsSuccessStatus(existing.Status))
+			{
+				await SendSignupEmailAndRecordAsync(existing.No);
+			}
 
-            return Json(new { success = true });
+			return Json(new { success = true });
 		}
 
 

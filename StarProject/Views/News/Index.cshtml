@@ -360,32 +360,29 @@
         let pageNumber = parseInt($('#pageSizeSelect').val()) || 10; // 預設每頁數量
 
         $(function () {
-            
-            //詳細內容
-            $(document).ready(function () {
-                // 點擊卡片打開 modal
-                $('.card-clickable').on('click', function () {
-                    // 取 data-* 屬性
-                    const title = $(this).data('title');
-                    const content = $(this).data('content');
-                    const createdDate = $(this).data('createddate');
-                    const publishDate = $(this).data('publishdate');
-                    const newsId = $(this).data('news-id');
 
-                    // 填入 modal
-                    $('#newsModal .modal-title').text(title);
-                    $('#detailContent').html(content);
-                    $('#detailCreatedDate').text(createdDate);
-                    $('#detailPublishDate').text(publishDate);
+            // 用 document 或指定容器代理
+            $(document).on('click', '.card-clickable', function () {
+                // 取 data-* 屬性
+                const title = $(this).data('title');
+                const content = $(this).data('content');
+                const createdDate = $(this).data('createddate');
+                const publishDate = $(this).data('publishdate');
+                const newsId = $(this).data('news-id');
 
-                    // 編輯 / 刪除按鈕
-                    $('#modelEditBtn').attr('href', '/News/Edit/' + newsId);
-                    $('#modelDeleteBtn').data('id', newsId);
+                // 填入 modal
+                $('#newsModal .modal-title').text(title);
+                $('#detailContent').html(content);
+                $('#detailCreatedDate').text(createdDate);
+                $('#detailPublishDate').text(publishDate);
 
-                    // 打開 modal
-                    const myModal = new bootstrap.Modal(document.getElementById('newsModal'));
-                    myModal.show();
-                });
+                // 編輯 / 刪除按鈕
+                $('#modelEditBtn').attr('href', '/News/Edit/' + newsId);
+                $('#modelDeleteBtn').data('id', newsId);
+
+                // 打開 modal
+                const myModal = new bootstrap.Modal(document.getElementById('newsModal'));
+                myModal.show();
             });
 
             // checkbox 勾選

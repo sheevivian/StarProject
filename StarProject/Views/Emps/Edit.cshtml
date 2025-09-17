@@ -23,7 +23,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="RoleNo" class="control-label"></label>
-                <select asp-for="RoleNo" class="form-control" asp-items="ViewBag.RoleNo">
+                <select asp-for="RoleNo" class="form-control" asp-items="@Model.Roles">
                     <option value="">-- 請選擇角色 --</option>
                 </select>
                 <span asp-validation-for="RoleNo" class="text-danger"></span>
@@ -31,7 +31,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="DeptNo" class="control-label"></label>
-                <select asp-for="DeptNo" class="form-control" asp-items="ViewBag.DeptNo">
+                <select asp-for="DeptNo" class="form-control" asp-items="@Model.Depts">
                     <option value="">-- 請選擇部門 --</option>
                 </select>
                 <span asp-validation-for="DeptNo" class="text-danger"></span>

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StarProject.Attributes;
-using StarProject.DTOs;
+using StarProject.DTOs.RoleDTOs;
 using StarProject.Models;
 
 namespace StarProject.Controllers

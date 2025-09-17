@@ -11,6 +11,8 @@ using StarProject.Services;
 using StarProject.Models;
 using StarProject.ViewModels;
 using StarProject.Attributes;
+using StarProject.Helpers;
+using StarProject.DTOs.RoleDTOs;
 using System.IO;
 
 namespace StarProject.Controllers
@@ -39,7 +41,6 @@ namespace StarProject.Controllers
 
 		// 查看員工清單 - 需要員工管理或用戶管理權限
 		[Permission("emp", "user")]
-		// GET: Emps
 		public async Task<IActionResult> Index()
 		{
 			var emps = await _context.Emps
@@ -53,6 +54,8 @@ namespace StarProject.Controllers
 			ViewBag.Page = 1;
 			ViewBag.PageSize = 10;
 			ViewBag.TotalPages = (int)Math.Ceiling((double)ViewBag.Total / ViewBag.PageSize);
+			// 加入 RoleHelper 到 ViewBag 供 View 使用
+			ViewBag.RoleHelper = typeof(RoleHelper);
 
 			return View(emps);
 		}
@@ -67,7 +70,8 @@ namespace StarProject.Controllers
 				.Include(e => e.RoleNoNavigation)
 				.AsQueryable();
 
-			// 關鍵字
+			// 修改 SearchEmps 方法中的搜尋邏輯
+			// 關鍵字搜尋 - 根據你的實際欄位名稱
 			if (!string.IsNullOrWhiteSpace(request.Keyword))
 			{
 				var kw = request.Keyword.Trim();
@@ -75,20 +79,25 @@ namespace StarProject.Controllers
 					e.Name.Contains(kw) ||
 					e.EmpCode.Contains(kw) ||
 					e.DeptNoNavigation.DeptName.Contains(kw) ||
+					e.DeptNoNavigation.DeptCode.Contains(kw) ||
 					e.RoleNoNavigation.RoleName.Contains(kw));
 			}
 
-			// 部門
+			// 部門篩選 - 使用 DeptCode 
 			if (request.Departments != null && request.Departments.Any())
 			{
-				query = query.Where(e => request.Departments.Contains(e.DeptNoNavigation.DeptName));
+				query = query.Where(e => request.Departments.Contains(e.DeptNoNavigation.DeptCode));
 			}
 
-			// 職位
+			// 職位篩選 - 這裡比較複雜，因為你的資料庫沒有 RoleCode
+			// 方案1: 如果前端傳來的是 RoleCode (RS, EX 等)
 			if (request.Roles != null && request.Roles.Any())
 			{
-				query = query.Where(e => request.Roles.Contains(e.RoleNoNavigation.RoleName));
+				// 將 RoleCode 轉換為 RoleName 來查詢
+				var roleNames = request.Roles.Select(code => RoleHelper.GetRoleDisplayName(code)).ToList();
+				query = query.Where(e => roleNames.Contains(e.RoleNoNavigation.RoleName));
 			}
+
 
 			// 狀態
 			if (request.Statuses != null && request.Statuses.Any())
@@ -160,14 +169,12 @@ namespace StarProject.Controllers
 		// GET: Emps/Create
 		public IActionResult Create()
 		{
-			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName");
-			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName");
-
 			var viewModel = new CreateEmpViewModel
 			{
 				HireDate = DateTime.Today
 			};
 
+			LoadDropdowns(viewModel); // 載入下拉式選單
 			return View(viewModel);
 		}
 
@@ -187,8 +194,7 @@ namespace StarProject.Controllers
 			// 檢查ModelState
 			if (!ModelState.IsValid)
 			{
-				ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", viewModel.DeptNo);
-				ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+				LoadDropdowns(viewModel); // 驗證失敗時，重新載入下拉式選單
 				return View(viewModel);
 			}
 
@@ -250,8 +256,7 @@ namespace StarProject.Controllers
 				ModelState.AddModelError("", $"建立員工時發生錯誤：{ex.Message}");
 			}
 
-			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", viewModel.DeptNo);
-			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+			LoadDropdowns(viewModel);
 			return View(viewModel);
 		}
 
@@ -295,8 +300,7 @@ namespace StarProject.Controllers
 				BirthDate = emp.BirthDate
 			};
 
-			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", emp.DeptNo);
-			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", emp.RoleNo);
+			LoadDropdowns(viewModel); // 載入下拉式選單
 			return View(viewModel);
 		}
 
@@ -320,9 +324,7 @@ namespace StarProject.Controllers
 					System.Diagnostics.Debug.WriteLine($"欄位: {error.Key}, 錯誤: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
 				}
 
-				// 重新載入下拉選單資料
-				ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", viewModel.DeptNo);
-				ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+				LoadDropdowns(viewModel); // 驗證失敗時，重新載入下拉式選單
 				return View(viewModel);
 			}
 
@@ -364,8 +366,7 @@ namespace StarProject.Controllers
 			}
 
 			// 如果到這裡，表示有錯誤，重新顯示表單
-			ViewData["DeptNo"] = new SelectList(_context.Depts, "No", "DeptName", viewModel.DeptNo);
-			ViewData["RoleNo"] = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+			LoadDropdowns(viewModel); // 驗證失敗時，重新載入下拉式選單
 			return View(viewModel);
 		}
 
@@ -466,6 +467,19 @@ namespace StarProject.Controllers
 			}
 		}
 
+		// 建立一個私有方法來載入下拉式選單資料
+		private void LoadDropdowns(CreateEmpViewModel viewModel)
+		{
+			viewModel.Depts = new SelectList(_context.Depts, "No", "DeptDescription", viewModel.DeptNo);
+			viewModel.Roles = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+		}
+
+		// 建立一個私有方法來載入編輯頁面的下拉式選單資料
+		private void LoadDropdowns(EditEmpViewModel viewModel)
+		{
+			viewModel.Depts = new SelectList(_context.Depts, "No", "DeptDescription", viewModel.DeptNo);
+			viewModel.Roles = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+		}
 		private bool EmpExists(string id)
 		{
 			return _context.Emps.Any(e => e.No == id);

@@ -23,12 +23,6 @@
     </div>
 }
 
-<!-- 顯示ViewBag資料狀態 -->
-<div class="alert alert-info">
-    <strong>除錯資訊：</strong>
-    <p>部門選項數量: @(ViewBag.DeptNo != null ? ((SelectList)ViewBag.DeptNo).Count() : 0)</p>
-    <p>職位選項數量: @(ViewBag.RoleNo != null ? ((SelectList)ViewBag.RoleNo).Count() : 0)</p>
-</div>
 
 <form asp-action="Create" method="post" id="empForm">
     <div asp-validation-summary="All" class="text-danger"></div>
@@ -54,7 +48,7 @@
         <div class="col-md-6">
             <div class="form-group mb-3">
                 <label asp-for="DeptNo" class="form-label">部門 <span class="text-danger">*</span></label>
-                <select asp-for="DeptNo" class="form-control" asp-items="ViewBag.DeptNo">
+                <select asp-for="DeptNo" class="form-control" asp-items="@Model.Depts">
                     <option value="">請選擇部門</option>
                 </select>
                 <span asp-validation-for="DeptNo" class="text-danger"></span>
@@ -63,7 +57,7 @@
         <div class="col-md-6">
             <div class="form-group mb-3">
                 <label asp-for="RoleNo" class="form-label">職位 <span class="text-danger">*</span></label>
-                <select asp-for="RoleNo" class="form-control" asp-items="ViewBag.RoleNo">
+                <select asp-for="RoleNo" class="form-control" asp-items="@Model.Roles">
                     <option value="">請選擇職位</option>
                 </select>
                 <span asp-validation-for="RoleNo" class="text-danger"></span>

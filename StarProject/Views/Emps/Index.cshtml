@@ -78,6 +78,7 @@
 
                 <ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
                     <!-- 部門 -->
+                    <!-- 部門篩選器 -->
                     <li>
                         <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDepartment" aria-expanded="false" aria-controls="collapseDepartment">
                             - 部門
@@ -90,50 +91,50 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="RS" id="dept1">
                                     <label class="form-check-label" for="dept1">
-                                        天文研究
+                                        天文研究部
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="EX" id="dept2">
                                     <label class="form-check-label" for="dept2">
-                                        展覽規劃
+                                        展覽企劃部
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="MK" id="dept3">
                                     <label class="form-check-label" for="dept3">
-                                        行銷宣傳
+                                        行銷推廣部
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="IT" id="dept4">
                                     <label class="form-check-label" for="dept4">
-                                        資訊系統
+                                        資訊技術部
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="HR" id="dept5">
                                     <label class="form-check-label" for="dept5">
-                                        行政管理
+                                        人力資源部
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="FN" id="dept6">
                                     <label class="form-check-label" for="dept6">
-                                        財務會計
+                                        財務會計部
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="VS" id="dept7">
                                     <label class="form-check-label" for="dept7">
-                                        導覽票務
+                                        導覽服務部
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </li>
 
-                    <!-- 職位 -->
+                    <!-- 職位篩選器 -->
                     <li>
                         <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseRole" aria-expanded="false" aria-controls="collapseRole">
                             - 職位
@@ -146,49 +147,57 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="RS" id="role1">
                                     <label class="form-check-label" for="role1">
-                                        天文研究
+                                        <strong>研究人員</strong>
+                                        <small class="text-muted d-block">天文相關研究工作</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="EX" id="role2">
                                     <label class="form-check-label" for="role2">
-                                        展覽規劃
+                                        <strong>策展人員</strong>
+                                        <small class="text-muted d-block">展覽規劃與執行</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="MK" id="role3">
                                     <label class="form-check-label" for="role3">
-                                        行銷宣傳
+                                        <strong>行銷人員</strong>
+                                        <small class="text-muted d-block">宣傳推廣活動</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="IT" id="role4">
                                     <label class="form-check-label" for="role4">
-                                        資訊系統
+                                        <strong>技術人員</strong>
+                                        <small class="text-muted d-block">系統維護開發</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="HR" id="role5">
                                     <label class="form-check-label" for="role5">
-                                        行政管理
+                                        <strong>人資人員</strong>
+                                        <small class="text-muted d-block">人事行政管理</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="FN" id="role6">
                                     <label class="form-check-label" for="role6">
-                                        財務會計
+                                        <strong>財務人員</strong>
+                                        <small class="text-muted d-block">會計財務業務</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="VS" id="role7">
                                     <label class="form-check-label" for="role7">
-                                        導覽票務
+                                        <strong>服務人員</strong>
+                                        <small class="text-muted d-block">導覽票務服務</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="MG" id="role8">
                                     <label class="form-check-label" for="role8">
-                                        管理職
+                                        <strong>管理人員</strong>
+                                        <small class="text-muted d-block">擁有完整管理權限</small>
                                     </label>
                                 </div>
                             </div>
@@ -284,22 +293,22 @@
                             <input class="form-check-input ms-4" type="checkbox" value="" id="checkAll" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                    data-bs-title="全選" data-bs-trigger="hover">
                         </th>
-                        <th style="width:200px">
+                        <th style="width:160px">
                             @Html.DisplayNameFor(model => model.Name)
                         </th>
-                        <th style="width:150px">
+                        <th style="width:120px">
                             @Html.DisplayNameFor(model => model.EmpCode)
                         </th>
-                        <th>
+                        <th style="width:140px">
                             部門
                         </th>
-                        <th>
+                        <th style="width:200px">
                             職位
                         </th>
-                        <th>
+                        <th style="width:140px">
                             @Html.DisplayNameFor(model => model.HireDate)
                         </th>
-                        <th>
+                        <th style="width:80px">
                             @Html.DisplayNameFor(model => model.Status)
                         </th>
                         <th style="width:116px">

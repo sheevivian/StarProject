@@ -14,14 +14,12 @@ namespace StarProject.ViewModels
 		[Required(ErrorMessage = "部門為必填欄位")]
 		[Display(Name = "部門")]
 		public int DeptNo { get; set; }
-
-		public SelectList Depts { get; set; }
-
+		public SelectList? Depts { get; set; }
 
 		[Required(ErrorMessage = "職位為必填欄位")]
 		[Display(Name = "職位")]
 		public int RoleNo { get; set; }
-		public SelectList Roles { get; set; } // 職位下拉選單
+		public SelectList? Roles { get; set; }
 
 		[Required(ErrorMessage = "到職日期為必填欄位")]
 		[DataType(DataType.Date)]

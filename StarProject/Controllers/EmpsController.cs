@@ -216,7 +216,6 @@ namespace StarProject.Controllers
 			return View(emp);
 		}
 
-		// 建立員工 - 只有員工管理權限可以
 		[Permission("emp")]
 		// GET: Emps/Create
 		public IActionResult Create()
@@ -225,7 +224,6 @@ namespace StarProject.Controllers
 			{
 				HireDate = DateTime.Today
 			};
-
 			LoadDropdowns(viewModel); // 載入下拉式選單
 			return View(viewModel);
 		}
@@ -236,11 +234,62 @@ namespace StarProject.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create(CreateEmpViewModel viewModel)
 		{
-			// 臨時調試：檢查 EmailService 是否正確注入
+			// 加入調試輸出
+
+			System.Diagnostics.Debug.WriteLine($"=== Create Action 開始 ===");
+			System.Diagnostics.Debug.WriteLine($"Name: '{viewModel.Name}'");
+			System.Diagnostics.Debug.WriteLine($"DeptNo: {viewModel.DeptNo}");
+			System.Diagnostics.Debug.WriteLine($"RoleNo: {viewModel.RoleNo}");
+			System.Diagnostics.Debug.WriteLine($"Email: '{viewModel.Email}'");
+			System.Diagnostics.Debug.WriteLine($"HireDate: {viewModel.HireDate}");
+
+			// 驗證EmailService注入
 			if (_emailService == null)
 			{
-				TempData["EmailError"] = "EmailService 未正確注入";
-				return RedirectToAction(nameof(Index));
+				ModelState.AddModelError("", "系統配置錯誤，請聯繫管理員");
+				LoadDropdowns(viewModel);
+				return View(viewModel);
+			}
+
+			// 自定義驗證：檢查Email唯一性
+			if (!string.IsNullOrEmpty(viewModel.Email))
+			{
+				var existingEmailEmp = await _context.Emps
+					.FirstOrDefaultAsync(e => e.Email == viewModel.Email && e.Status == true);
+				if (existingEmailEmp != null)
+				{
+					ModelState.AddModelError("Email", "此Email已被使用");
+				}
+			}
+
+			// 自定義驗證：檢查身分證字號唯一性
+			if (!string.IsNullOrEmpty(viewModel.IdNumber))
+			{
+				var existingIdEmp = await _context.Emps
+					.FirstOrDefaultAsync(e => e.IdNumber == viewModel.IdNumber && e.Status == true);
+				if (existingIdEmp != null)
+				{
+					ModelState.AddModelError("IdNumber", "此身分證字號已被使用");
+				}
+			}
+
+			// 驗證到職日期不可早於今天
+			if (viewModel.HireDate < DateTime.Today)
+			{
+				ModelState.AddModelError("HireDate", "到職日期不可早於今天");
+			}
+
+			// 驗證生日（如果有填寫）
+			if (viewModel.BirthDate.HasValue)
+			{
+				if (viewModel.BirthDate.Value > DateTime.Today)
+				{
+					ModelState.AddModelError("BirthDate", "生日不可晚於今天");
+				}
+				else if (viewModel.BirthDate.Value < DateTime.Today.AddYears(-100))
+				{
+					ModelState.AddModelError("BirthDate", "請輸入合理的生日日期");
+				}
 			}
 
 			// 檢查ModelState
@@ -250,70 +299,116 @@ namespace StarProject.Controllers
 				return View(viewModel);
 			}
 
+			// 使用資料庫交易確保資料一致性
+			using var transaction = await _context.Database.BeginTransactionAsync();
 			try
 			{
+				// 生成員工編號（在交易內執行以避免併發問題）
+				var empCode = await GenerateEmpCodeAsync(viewModel.DeptNo);
+
+				// 檢查生成的員工編號是否已存在（雙重確認）
+				var existingEmp = await _context.Emps
+					.FirstOrDefaultAsync(e => e.EmpCode == empCode);
+				if (existingEmp != null)
+				{
+					// 如果存在，重新生成
+					empCode = await GenerateEmpCodeAsync(viewModel.DeptNo, true);
+				}
+
 				// 建立新的Emp物件
 				var emp = new Emp
 				{
 					No = Guid.NewGuid().ToString(),
-					Name = viewModel.Name,
+					EmpCode = empCode,
+					Name = viewModel.Name?.Trim(),
 					DeptNo = viewModel.DeptNo,
 					RoleNo = viewModel.RoleNo,
 					HireDate = viewModel.HireDate,
-					Email = viewModel.Email,
-					Phone = viewModel.Phone,
-					IdNumber = viewModel.IdNumber,
+					Email = viewModel.Email?.Trim(),
+					Phone = viewModel.Phone?.Trim(),
+					IdNumber = viewModel.IdNumber?.Trim().ToUpper(),
 					BirthDate = viewModel.BirthDate,
 					Status = true,
 					ForceChangePassword = true
 				};
 
-				// 生成員工編號
-				emp.EmpCode = await GenerateEmpCodeAsync(emp.DeptNo);
-
 				// 生成預設密碼及雜湊
-				string defaultPassword = "Abc12345";
+				string defaultPassword = GenerateDefaultPassword();
 				(emp.PasswordHash, emp.PasswordSalt) = PasswordHelper.HashPassword(defaultPassword);
 
 				// 存入資料庫
 				_context.Emps.Add(emp);
 				await _context.SaveChangesAsync();
 
-				// 發送歡迎郵件
-				if (!string.IsNullOrEmpty(emp.Email))
-				{
-					try
-					{
-						await _emailService.SendWelcomeEmailAsync(emp.Email, emp.Name, emp.EmpCode, defaultPassword, emp.HireDate);
-						TempData["EmailSent"] = true;
-					}
-					catch (Exception ex)
-					{
-						TempData["EmailError"] = $"Email發送失敗：{ex.Message}";
-					}
-				}
-				else
-				{
-					TempData["EmailNotSent"] = "未填寫Email，跳過發送通知";
-				}
+				// 提交交易
+				await transaction.CommitAsync();
 
-				// HR 可以看到剛生成的員工編號
+				// 非同步發送歡迎郵件（不影響主流程）
+				_ = Task.Run(async () =>
+				{
+					if (!string.IsNullOrEmpty(emp.Email))
+					{
+						try
+						{
+							await _emailService.SendWelcomeEmailAsync(
+								emp.Email,
+								emp.Name,
+								emp.EmpCode,
+								defaultPassword,
+								emp.HireDate);
+
+							// 記錄郵件發送成功（可選）
+							TempData["EmailSent"] = true;
+						}
+						catch (Exception emailEx)
+						{
+							// 記錄郵件發送失敗但不中斷主流程
+							TempData["EmailError"] = $"員工創建成功，但Email發送失敗：{emailEx.Message}";
+							// 這裡可以加入日誌記錄
+						}
+					}
+					else
+					{
+						TempData["EmailNotSent"] = "未填寫Email，跳過發送通知";
+					}
+				});
+
+				// 設置成功訊息
 				TempData["NewEmpCode"] = emp.EmpCode;
 				TempData["TempPassword"] = defaultPassword;
+				TempData["SuccessMessage"] = "員工創建成功！";
 
 				return RedirectToAction(nameof(Index));
 			}
 			catch (Exception ex)
 			{
+				await transaction.RollbackAsync();
 				ModelState.AddModelError("", $"建立員工時發生錯誤：{ex.Message}");
+
+				// 記錄詳細錯誤（用於調試）
+				// _logger?.LogError(ex, "創建員工失敗: {ViewModelData}", JsonSerializer.Serialize(viewModel));
 			}
 
 			LoadDropdowns(viewModel);
 			return View(viewModel);
 		}
 
-		// 生成員工編號
-		private async Task<string> GenerateEmpCodeAsync(int deptNo)
+		// 生成預設密碼的方法
+		private string GenerateDefaultPassword()
+		{
+			// 可以改為更安全的隨機密碼生成
+			var random = new Random();
+			var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			var password = "Abc" + new string(Enumerable.Repeat(chars, 5)
+				.Select(s => s[random.Next(s.Length)]).ToArray());
+
+			return password;
+			// 或者使用固定密碼
+			// return "Abc12345";
+		}
+
+		// 改進的生成員工編號方法
+		private async Task<string> GenerateEmpCodeAsync(int deptNo, bool forceRegenerate = false)
 		{
 			var dept = await _context.Depts.FindAsync(deptNo);
 			if (dept == null)
@@ -321,9 +416,44 @@ namespace StarProject.Controllers
 
 			string deptCode = dept.DeptCode;
 
-			int count = await _context.Emps.CountAsync(e => e.DeptNo == deptNo);
+			// 使用更安全的計數方式
+			int count = await _context.Emps
+				.Where(e => e.DeptNo == deptNo)
+				.CountAsync();
+
+			if (forceRegenerate)
+			{
+				// 如果需要強制重新生成，找到最大的編號
+				var maxCode = await _context.Emps
+					.Where(e => e.EmpCode.StartsWith(deptCode))
+					.Select(e => e.EmpCode)
+					.ToListAsync();
+
+				if (maxCode.Any())
+				{
+					var maxNumber = maxCode
+						.Select(code =>
+						{
+							if (int.TryParse(code.Substring(deptCode.Length), out int num))
+								return num;
+							return 0;
+						})
+						.DefaultIfEmpty(0)
+						.Max();
+
+					count = maxNumber;
+				}
+			}
 
 			string empCode = $"{deptCode}{(count + 1):D3}";
+
+			// 確保生成的編號不重複
+			while (await _context.Emps.AnyAsync(e => e.EmpCode == empCode))
+			{
+				count++;
+				empCode = $"{deptCode}{(count + 1):D3}";
+			}
+
 			return empCode;
 		}
 
@@ -522,8 +652,16 @@ namespace StarProject.Controllers
 		// 建立一個私有方法來載入下拉式選單資料
 		private void LoadDropdowns(CreateEmpViewModel viewModel)
 		{
+			// 部門下拉選單 - 使用 No 作為 Value，DeptDescription 作為顯示文字
 			viewModel.Depts = new SelectList(_context.Depts, "No", "DeptDescription", viewModel.DeptNo);
+
+			// 職位下拉選單 - 使用 No 作為 Value，RoleName 作為 Text（供 RoleHelper 轉換用）
 			viewModel.Roles = new SelectList(_context.Roles, "No", "RoleName", viewModel.RoleNo);
+
+			// Debug 輸出，檢查資料是否正確載入
+			var deptCount = _context.Depts.Count();
+			var roleCount = _context.Roles.Count();
+			System.Diagnostics.Debug.WriteLine($"載入了 {deptCount} 個部門，{roleCount} 個職位");
 		}
 
 		// 建立一個私有方法來載入編輯頁面的下拉式選單資料

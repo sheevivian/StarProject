@@ -1,59 +1,660 @@
-﻿@model IEnumerable<StarProject.Models.News>
+﻿@model IEnumerable<StarProject.ViewModels.NewsVM>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "官網公告清單";
 }
 
-<h1>Index</h1>
+<head>
+    <style>
+        /* checkbox 層級最高，永遠在最上面 */
+        .checkbox {
+            z-index: 10;
+        }
+        /* 卡片容器 */
+        .card-hover {
+            position: relative;
+            overflow: hidden;
+        }
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Content)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PublishDate)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Content)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PublishDate)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.No">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.No">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.No">Delete</a>
-            </td>
-        </tr>
+        .card-hover {
+            cursor: pointer; /* 滑鼠移入變手指頭 */
+        }
+
+        /* 底部半透明標題欄 */
+        .card-hover .card-title-overlay {
+            position: absolute;
+            bottom: -250px; /* 初始位置在卡片外 */
+            left: 0;
+            width: 100%;
+            height: 250px;
+            background: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
+            color: white;
+            display: flex;
+            align-items: end;
+            justify-content: flex-start;
+            transition: bottom 0.3s ease; /* 動畫效果 */
+            font-weight: bold;
+            padding: 0 10px;
+            /* 上邊柔化漸變 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1));
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-size: 100% 100%;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1));
+            mask-repeat: no-repeat;
+            mask-size: 100% 100%;
+        }
+
+        /* 類型區塊：左上角 */
+        .card-category-overlay {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            background: #FFB84C;
+            padding: 5px 12px;
+            border-radius: 0 12px 12px 0; /* 右側圓角 */
+            font-size: 0.9rem;
+            font-weight: 500;
+            transform: translateX(-100%); /* 預設隱藏在左邊 */
+            transition: transform 0.4s ease; /* 動畫效果 */
+        }
+
+        /* 滑鼠移入顯示 */
+        .card-hover:hover .card-title-overlay {
+            bottom: 0; /* 往上滑入卡片內 */
+        }
+
+        .card-hover:hover .card-category-overlay {
+            transform: translateX(0); /* 從左滑入 */
+        }
+
+        /* 固定 modal 寬度 */
+        .modal-custom {
+            max-width: 900px; /* 固定最大寬度 */
+            width: 90%; /* 小螢幕可縮放 */
+        }
+
+        /* 垂直滾動，禁止水平滾動 */
+        .modal-custom .modal-body {
+            max-height: 70vh; /* 高度上限 70% 螢幕高度 */
+            overflow-y: auto; /* 高度超過才滾動 */
+            overflow-x: hidden; /* 禁止水平滾動 */
+        }
+
+        .modal-body {
+            word-break: break-word;
+            white-space: normal;
+            overflow-wrap: break-word; /* 可選，兼容性好 */
+        }
+
+        .big-checkbox {
+            transform: scale(1.5); /* 放大 1.5 倍 */
+            cursor: pointer;
+        }
+
+        .spanHeight {
+            height: 60px; /* 固定高度 (大約兩行字) */
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 限制顯示 2 行 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis; /* 超過的文字用 ... */
+            word-break: break-word; /* 長單字換行 */
+        }
+    </style>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+
+<main class="flex-fill position-relative">
+    <!-- 標題+新增 -->
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">官網公告清單</h1>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
+    </div>
+
+    <!-- CSRF Token -->
+    <form id="deleteForm">
+        @Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+    </form>
+
+    <!-- 搜尋框+每頁筆數 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input" placeholder="請輸入關鍵字（文章標題、類型）">
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
+                    <!-- 文章類型 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+                            - 文章類型
+                        </button>
+                    </li>
+                    <!-- 文章類型內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="最新消息" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+                                        最新消息
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="館區動態" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+                                        館區動態
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="展覽公告" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+                                        展覽公告
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="活動資訊" id="cat4">
+                                    <label class="form-check-label" for="cat4">
+                                        活動資訊
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="最新天象" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        最新天象
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="觀測公告" id="cat6">
+                                    <label class="form-check-label" for="cat6">
+                                        觀測公告
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="宇宙探索" id="cat7">
+                                    <label class="form-check-label" for="cat7">
+                                        宇宙探索
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="系統公告" id="cat8">
+                                    <label class="form-check-label" for="cat8">
+                                        系統公告
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="其他消息" id="cat9">
+                                    <label class="form-check-label" for="cat9">
+                                        其他消息
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 發布日期 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
+                            - 發布日期
+                        </button>
+                    </li>
+                    <!-- 發布日期內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+                            <div class="p-2">
+                                <div class="mb-2">
+                                    <label for="dateFrom" class="form-label">起始日期</label>
+                                    <input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div>
+                                    <label for="dateTo" class="form-label">結束日期</label>
+                                    <input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- 完成+清除 -->
+                    <li class="d-flex gap-1">
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+                            完成
+                        </button>
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+                            清除
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="width:150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option selected value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
+        <span id="selectedFiltersText" class="text-secondary"></span>
+    </div>
+
+    <!-- 全選 -->
+    <div class="mt-3 mb-1 d-flex align-items-center" style="height:38px">
+        <label for="checkAll" class="fw-bold fs-4 d-flex align-items-center" style="cursor:pointer;">
+            <input class="form-check-input m-0 me-2" type="checkbox" value="" id="checkAll"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="全選" data-bs-trigger="hover">
+            全選
+        </label>
+
+        <!-- 全選垃圾桶及文字 -->
+        <div class="ms-auto d-flex align-items-center">
+            <span id="selectNum" style="display:none" class="fw-bold fs-4 me-2">已選取0項</span>
+            <button type="button" class="btn p-0 fs-4" id="delectAll"
+                    data-bs-toggle="modal" data-bs-target="#deleteAllModal" style="display:none">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 內容 -->
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-3" id="newsCard">
+        @await Html.PartialAsync("_NewsRows", Model)
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="newsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-custom">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold fs-5">標題</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detailContent" class="mx-5"></div>
+                    <hr/>
+                    <div>
+                        <span class="fw-bolder">建立日期：</span>
+                        <span id="detailCreatedDate"></span>
+                    </div>
+                    <div>
+                        <span class="fw-bolder">發佈日期：</span>
+                        <span id="detailPublishDate"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="modelEditBtn" class="btn btn-edit br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+                    <button type="button" class="btn btn-outline-delect br20px" id="modelDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="">
+                        <i class="fa-solid fa-trash-can"></i>刪除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分頁 -->
+    <div id="pagination">
+        @await Html.PartialAsync("_Pagination", Model)
+    </div>
+
+    <!-- 確認刪除彈窗 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow bg-body-tertiary">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+                </div>
+                <div class="modal-body">
+                    確定要刪除這筆資料嗎？
+                </div>
+                <div class="modal-footer">
+                    <!-- 真正的刪除表單 (動態改 action) -->
+                    <form id="deleteOne" asp-action="Delete" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
+                    </form>
+                    <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全選刪除彈窗 -->
+    <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteAllModalLabel">確認刪除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    確定要刪除已選取的所有項目嗎？
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定刪除</button>
+                    <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        let pageNumber = parseInt($('#pageSizeSelect').val()) || 10; // 預設每頁數量
+
+        $(function () {
+            
+            //詳細內容
+            $(document).ready(function () {
+                // 點擊卡片打開 modal
+                $('.card-clickable').on('click', function () {
+                    // 取 data-* 屬性
+                    const title = $(this).data('title');
+                    const content = $(this).data('content');
+                    const createdDate = $(this).data('createddate');
+                    const publishDate = $(this).data('publishdate');
+                    const newsId = $(this).data('news-id');
+
+                    // 填入 modal
+                    $('#newsModal .modal-title').text(title);
+                    $('#detailContent').html(content);
+                    $('#detailCreatedDate').text(createdDate);
+                    $('#detailPublishDate').text(publishDate);
+
+                    // 編輯 / 刪除按鈕
+                    $('#modelEditBtn').attr('href', '/News/Edit/' + newsId);
+                    $('#modelDeleteBtn').data('id', newsId);
+
+                    // 打開 modal
+                    const myModal = new bootstrap.Modal(document.getElementById('newsModal'));
+                    myModal.show();
+                });
+            });
+
+            // checkbox 勾選
+            $(document).on('change', '.checkbox', function () {
+                console.log("checkbox clicked:", $(this).val());
+                let checked = $(this).prop('checked');
+
+                let count = $('.checkbox:checked').length;
+
+                if (count > 0) {
+                    $('#delectAll, #selectNum').show();
+                    $('#selectNum').text(`已選取${count}項`);
+                } else {
+                    $('#delectAll, #selectNum').hide();
+                }
+
+                if (checked) {
+                    $(this).closest('tr').addClass('active');
+                } else {
+                    $(this).closest('tr').removeClass('active');
+                }
+
+                $('#checkAll').prop('checked', $('.checkbox').length === $('.checkbox:checked').length);
+            });
+
+            // 全選
+            $('#checkAll').click(function () {
+
+                if ($(this).prop('checked')) {
+                    $('.checkbox').prop('checked', true);
+                    $('tbody tr').addClass('active');
+                    $('#delectAll, #selectNum').show();
+
+                    // 計算勾選數量
+                    let count = $('.checkbox:checked').length;
+
+                    if (count > 0) {
+                        $('#selectNum').text(`已選取${count}項`);
+                    }
+                }
+                else {
+                    $('.checkbox').prop('checked', false);
+                    $('tbody tr').removeClass('active');
+                    $('#delectAll, #selectNum').hide();
+                }
+            })
+
+            // 批次刪除
+            $('#delectAllYes').click(function () {
+                // 收集所有勾選的 checkbox 的 value (假設 value 存 id)
+                let ids = $('.checkbox:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (ids.length === 0) return; // 沒有選擇不動作
+
+                // ✅ 取得 CSRF token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '/News/DeleteMultiple', // 後端批次刪除 Action
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token, // CSRF 驗證
+                        ids: ids // 傳 id 陣列
+                    },
+                    traditional: true, // 陣列傳送格式
+                    success: function () {
+                        let page = parseInt($('#paginationInfo').text()) || 1; // 取得目前頁碼
+                        refreshTable(page);
+                        $('.checkbox:checked').closest('tr').remove();
+                        $('#delectAll, #selectNum').hide();
+                        $('#checkAll').prop('checked', false);
+                    },
+                    error: function () {
+                        alert("刪除失敗！");
+                    }
+                });
+            })
+
+            // 點搜尋按鈕
+            $('#btnSearch').on("click", () => {
+                refreshTable(1);
+                updateSelectedFilters()
+            });
+
+            // 也可以輸入框 keyup 即時觸發
+            $('#searchInput').on("keyup", () => {
+                refreshTable(1);
+                updateSelectedFilters()
+            });
+
+            $('#filterFinsh').click(function () {
+                updateFilterCount();
+                updateSelectedFilters()
+
+                refreshTable(1);
+
+                // 找到最接近的 dropdown-toggle
+                var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
+
+                // 取得 bootstrap dropdown instance
+                var dropdown = bootstrap.Dropdown.getInstance(toggleBtn);
+
+                // 沒有的話就新建
+                if (!dropdown) dropdown = new bootstrap.Dropdown(toggleBtn);
+
+                // 呼叫官方的 hide 方法來關閉
+                dropdown.hide();
+            });
+
+            // 搜尋清除按鈕
+            document.querySelector(".btn-outline-search").addEventListener("click", function () {
+                document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+                document.getElementById("dateFrom").value = "";
+                document.getElementById("dateTo").value = "";
+                document.getElementById("searchInput").value = "";
+                updateSelectedFilters();
+                updateFilterCount()
+                refreshTable(1);
+            });
+
+            // 日期區間邏輯
+            const dateFrom = document.getElementById("dateFrom");
+            const dateTo = document.getElementById("dateTo");
+
+            dateFrom.addEventListener("change", () => {
+                if (dateFrom.value) {
+                    dateTo.min = dateFrom.value; // 動態限制
+                    if (dateTo.value && dateTo.value < dateFrom.value) {
+                        dateTo.value = ""; // 自動清空不合法日期
+                    }
+                } else {
+                    dateTo.min = ""; // 移除限制
+                }
+            });
+
+            // 更新篩選顯示文字
+            function updateSelectedFilters() {
+                let selected = [];
+
+                // 公告類型
+                let categories = $("#collapseCategory input:checked").map(function () { return $(this).next("label").text(); }).get();
+                if (categories.length) selected.push("<strong>類型：</strong>" + categories.join(", "));
+
+                // 日期區間
+                let from = $("#dateFrom").val();
+                let to = $("#dateTo").val();
+                if (from || to) selected.push("<strong>日期：</strong>" + (from ? from : "不限") + " ~ " + (to ? to : "不限"));
+
+                // 顯示或隱藏 div
+                if (selected.length) {
+                    $("#selectedFiltersDiv").show();
+                    $("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
+                } else {
+                    $("#selectedFiltersDiv").hide();
+                    $("#selectedFiltersText").html("");
+                }
+            }
+
+            function updateFilterCount() {
+                let count = 0;
+
+                // 公告類型
+                if ($("#collapseCategory input:checked").length > 0) count++;
+
+                // 發布日期 (任意一個日期不空算1)
+                if ($("#dateFrom").val() || $("#dateTo").val()) count++;
+
+                // 更新右上角 tooltip
+                if (count > 0) {
+                    $("#filterCount").show();
+                    $("#filterCount").text(`${count}`);
+                } else {
+                    $("#filterCount").hide();
+                }
+            }
+
+            // 分頁按鈕
+            $(".pagination").on("click", ".pagination .page-link", function (e) {
+                e.preventDefault();
+                let page = $(this).data("page");
+                refreshTable(page);
+            });
+
+            //單一刪除分頁更新
+            $(document).on('click', '#deleteOnebtn', async function (e) {
+                e.preventDefault();
+
+                // 從按鈕 data-id 拿
+                let id = $('#modelDeleteBtn').data('id');
+                if (!id) return;
+
+                let token = $('input[name="__RequestVerificationToken"]').val();
+                let page = parseInt($('#paginationInfo').text()) || 1;
+
+                try {
+                    await $.ajax({
+                        url: '/News/Delete',  // 改成 Delete
+                        type: 'POST',
+                        data: { id: id, __RequestVerificationToken: token }
+                    });
+
+                    // 刪除後刷新列表
+                    refreshTable(page);
+
+
+                    // 關閉 Detail Modal
+                    $('#newsModal').modal('hide');
+
+                    // 關閉 Modal
+                    $('#deleteModal').modal('hide');
+
+                } catch (err) {
+                    alert("刪除失敗：" + (err.responseText || err.statusText));
+                }
+            });
+
+            // 當 select 改變時
+            $('#pageSizeSelect').on('change', function () {
+                pageNumber = parseInt($(this).val()); // 更新 pageNumber
+
+                refreshTable(1);
+            });
+
+        });
+
+        // 統一刷新列表
+        async function refreshTable(page = 1, filters = {}) {
+            try {
+
+                filters.Page = page;
+                filters.PageSize = pageNumber;
+                filters.keyword = $('#searchInput').val();
+                filters.Categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
+                filters.DateFrom = $("#dateFrom").val();
+                filters.DateTo = $("#dateTo").val();
+
+                // 取得 CSRF Token
+                filters.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
+
+                let response = await $.ajax({
+                    url: '/News/SearchSelect',
+                    type: 'POST',
+                    data: JSON.stringify(filters),
+                    contentType: "application/json"
+                });
+
+                // 如果本頁沒有資料且頁數大於 1，自動回前一頁
+                if (response.tableHtml.trim() === "" && page > 1) {
+                    return await refreshTable(page - 1, filters);
+                }
+
+                // 更新 newsCard
+                $("#newsCard").html(response.tableHtml);
+
+                // 更新 pagination
+                $("#pagination").html(response.paginationHtml);
+
+                // 更新分頁顯示
+                $('#paginationInfo').text(page);
+
+                $('#delectAll, #selectNum').hide();
+                $('#checkAll').prop('checked', false);
+
+            } catch (err) {
+                alert("更新列表失敗：" + err.responseText || err.statusText);
+            }
+        }
+    </script>
 }
-    </tbody>
-</table>
+

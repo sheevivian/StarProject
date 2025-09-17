@@ -123,7 +123,7 @@
                     <a asp-controller="Product" asp-action="DownloadTemplate" class="btn btn-outline-excel fw-bold fs-5 mb-3">
                         <i class="fa-solid fa-file-excel"></i>下載excel範本
                     </a>
-                    <form asp-controller="Product" asp-action="CreateMultiple" method="post" enctype="multipart/form-data">
+                    <form asp-controller="Product" asp-action="CreateMultiple" method="post" enctype="multipart/form-data" id="excelUploadForm">
                         <input type="file" class="form-control fs-5" name="excelFile">
                         <div class="form-group d-flex gap-2 mt-3">
                             <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5" for="excelFile">上傳匯入</button>
@@ -136,7 +136,70 @@
     </div>
 </div>
 
+<!-- 批次上傳圖片 -->
+<div class="modal fade" id="importResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">批次上傳商品圖片</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            </div>
+            <div class="modal-body fs-5">
+                <div id="importResultMessage"><!-- 動態塞訊息 --></div>
+                <a id="downloadLink" class="text-secondary">若未自動下載檔案請按此連結</a>
+                <form asp-controller="Product" asp-action="CreateImageMultiple" method="post" enctype="multipart/form-data" id="excelImageForm">
+                    <input type="file" class="form-control fs-5" name="excelFile">
+                    <div class="form-group d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5" for="excelFile">上傳匯入</button>
+                        <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(function () {
+            $('#excelUploadForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: '/Product/CreateMultiple', // 後端 AJAX action
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        if (res.success) {
+                            // 自動下載檔案
+                            window.location = res.downloadUrl;
+                            // 將訊息塞到Modal
+                            $('#importResultMessage').text(res.message);
+                            // 設定下載連結
+                            $('#downloadLink').attr('href', res.downloadUrl);
+                            // 顯示Modal
+                            var myModal = new bootstrap.Modal(document.getElementById('importResultModal'));
+                            myModal.show();
+                        } else {
+                            alert('匯入失敗：' + res.message);
+                        }
+                    },
+                    error: function () {
+                        alert('發生錯誤，請稍後再試');
+                    }
+                });
+            });
+        });
+    </script>
 }
 

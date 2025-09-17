@@ -205,6 +205,7 @@ namespace StarProject.Controllers
 						"ProductTemplate.xlsx");
 		}
 
+
 		// 新品上架-多筆(POST)
 		// POST: Product/CreateMultiple
 		[HttpPost]
@@ -254,9 +255,89 @@ namespace StarProject.Controllers
 				_context.Products.AddRange(products);
 				await _context.SaveChangesAsync();
 			}
-			TempData["Success"] = $"成功匯入 {products.Count} 筆資料";
+
+			// 產生Excel並暫存於 wwwroot/exceltemps
+			var fileName = $"ImportResult_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+			var savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "exceltemps", fileName);
+
+			var downloadWorkbook = new XSSFWorkbook();
+			var downloadSheet = downloadWorkbook.CreateSheet("匯入商品圖片");
+			var headerRow = downloadSheet.CreateRow(0);
+			headerRow.CreateCell(0).SetCellValue("商品編號");
+			headerRow.CreateCell(1).SetCellValue("圖片路徑");
+			headerRow.CreateCell(2).SetCellValue("圖片順序");
+
+			for (int i = 0; i < products.Count; i++)
+			{
+				var row = downloadSheet.CreateRow(i + 1);
+				row.CreateCell(0).SetCellValue(products[i].No);
+			}
+
+			using (var fs = new FileStream(savePath, FileMode.Create, FileAccess.Write))
+			{
+				downloadWorkbook.Write(fs, true);
+			}
+
+			// 回傳下載連結
+			var downloadUrl = Url.Content("~/exceltemps/" + fileName);
+			return Json(new { success = true, message = $"已成功建立{products.Count}筆商品檔案", downloadUrl });
+		}
+
+		// 新品上架-多筆上傳圖片(POST)
+		// POST: Product/CreateImageMultiple
+		[HttpPost]
+		public async Task<IActionResult> CreateImageMultiple(IFormFile excelFile)
+		{
+			if (excelFile == null || excelFile.Length == 0)
+			{
+				ModelState.AddModelError("", "請選擇檔案");
+				return View();
+			}
+
+			var productImages = new List<ProductImage>();
+
+			using (var stream = excelFile.OpenReadStream())
+			{
+				IWorkbook workbook;
+				if (Path.GetExtension(excelFile.FileName).ToLower() == ".xls")
+				{
+					workbook = new HSSFWorkbook(stream); // 2003 格式
+				}
+				else
+				{
+					workbook = new XSSFWorkbook(stream); // 2007+
+				}
+
+				var sheet = workbook.GetSheetAt(0); // 讀第一個工作表
+
+				string imgPath;
+
+				for (int row = 2; row <= sheet.LastRowNum; row++) // 從第 3 列開始 (第1列標題、第2列範例)
+				{
+					var currentRow = sheet.GetRow(row);
+					if (currentRow == null) continue;
+
+					imgPath = currentRow.GetCell(1)?.ToString();
+
+					var productImage = new ProductImage
+					{
+						ProductNo = int.TryParse(currentRow.GetCell(0)?.ToString(), out var productNo) ? productNo : 0,
+						Image = await ImgPathHelper.UploadToImgBB(imgPath),
+						ImgOrder = int.TryParse(currentRow.GetCell(2)?.ToString(), out var imgOd) ? imgOd : 0
+					};
+					productImages.Add(productImage);
+
+					var product = await _context.Products.FindAsync(productNo);
+					product.UpdateDate = DateTime.Now;
+				}
+				_context.ProductImages.AddRange(productImages);
+
+				await _context.SaveChangesAsync();
+			}
+			TempData["Success"] = $"成功匯入 {productImages.Count} 筆資料";
 			return RedirectToAction("Index");
 		}
+
 
 		// 編輯商品(GET)
 		// GET: Product/Edit/5

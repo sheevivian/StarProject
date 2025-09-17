@@ -232,35 +232,46 @@ function updateSelectCount() {
         $delectAll.hide();
     }
 }
-
 // 刷新員工表格
 function refreshEmpTable(page = 1) {
     // 收集搜尋參數
     const searchData = {
-        keyword: $('#searchInput').val(),
+        keyword: $('#searchInput').val()?.trim() || '',
         page: page,
-        pageSize: parseInt($('#pageSizeSelect').val()),
+        pageSize: parseInt($('#pageSizeSelect').val()) || 10,
         departments: [],
         roles: [],
         statuses: [],
-        dateFrom: $('#dateFrom').val(),
-        dateTo: $('#dateTo').val()
+        dateFrom: $('#dateFrom').val() || '',
+        dateTo: $('#dateTo').val() || ''
     };
 
-    // 收集部門篩選
+    // 收集部門篩選 - 確保取得正確的值
     $('#collapseDepartment .form-check-input:checked').each(function () {
-        searchData.departments.push($(this).val());
+        const value = $(this).val();
+        if (value && value.trim() !== '') {
+            searchData.departments.push(value.trim());
+        }
     });
 
-    // 收集職位篩選
+    // 收集職位篩選 - 確保取得正確的值  
     $('#collapseRole .form-check-input:checked').each(function () {
-        searchData.roles.push($(this).val());
+        const value = $(this).val();
+        if (value && value.trim() !== '') {
+            searchData.roles.push(value.trim());
+        }
     });
 
     // 收集狀態篩選
     $('#collapseStatus .form-check-input:checked').each(function () {
-        searchData.statuses.push($(this).val());
+        const value = $(this).val();
+        if (value && value.trim() !== '') {
+            searchData.statuses.push(value.trim());
+        }
     });
+
+    // Debug: 輸出搜尋參數
+    console.log('搜尋參數:', searchData);
 
     // 顯示載入中
     showLoading();
@@ -287,11 +298,29 @@ function refreshEmpTable(page = 1) {
         },
         success: function (response) {
             try {
+                console.log('後端回應:', response);
+
+                if (response.success === false) {
+                    alert(response.message || '搜尋失敗');
+                    return;
+                }
+
                 // 更新表格內容
-                $('#tableBody').html(response.empRows);
+                if (response.empRows) {
+                    $('#tableBody').html(response.empRows);
+                } else {
+                    $('#tableBody').html('<tr><td colspan="8" class="text-center py-4">沒有找到符合條件的資料</td></tr>');
+                }
 
                 // 更新分頁
-                $('#pagination').html(response.pagination);
+                if (response.pagination) {
+                    $('#pagination').html(response.pagination);
+                }
+
+                // 更新分頁資訊
+                if (response.totalCount !== undefined) {
+                    $('#paginationInfo').text(response.currentPage || page);
+                }
 
                 // 重置選取狀態
                 $('#checkAll').prop('checked', false).prop('indeterminate', false);
@@ -302,6 +331,7 @@ function refreshEmpTable(page = 1) {
 
             } catch (error) {
                 console.error('處理響應時發生錯誤:', error);
+                console.error('原始回應:', response);
                 alert('資料處理失敗');
             } finally {
                 hideLoading();
@@ -309,18 +339,134 @@ function refreshEmpTable(page = 1) {
         },
         error: function (xhr, status, error) {
             console.error('搜尋失敗:', error);
-            console.error('Response:', xhr.responseText);
+            console.error('HTTP Status:', xhr.status);
+            console.error('Response Text:', xhr.responseText);
+
             hideLoading();
 
             let errorMessage = '搜尋失敗，請稍後再試';
+
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse && errorResponse.message) {
+                    errorMessage = errorResponse.message;
+                }
+            } catch (e) {
+                // 無法解析 JSON，使用預設錯誤訊息
+            }
+
             if (xhr.status === 400) {
                 errorMessage = '請求參數錯誤';
+            } else if (xhr.status === 403) {
+                errorMessage = '沒有權限執行此操作';
             } else if (xhr.status === 500) {
                 errorMessage = '伺服器內部錯誤';
             }
+
             alert(errorMessage);
         }
     });
+}
+
+// 更新篩選計數 - 修復計數邏輯
+function updateFilterCount() {
+    let count = 0;
+
+    // 計算部門篩選 - 確保選擇器正確
+    const deptChecked = $('#collapseDepartment .form-check-input:checked');
+    console.log('部門篩選數量:', deptChecked.length);
+    count += deptChecked.length;
+
+    // 計算職位篩選
+    const roleChecked = $('#collapseRole .form-check-input:checked');
+    console.log('職位篩選數量:', roleChecked.length);
+    count += roleChecked.length;
+
+    // 計算在職狀態篩選
+    const statusChecked = $('#collapseStatus .form-check-input:checked');
+    console.log('狀態篩選數量:', statusChecked.length);
+    count += statusChecked.length;
+
+    // 計算日期篩選
+    const dateFrom = $('#dateFrom').val();
+    const dateTo = $('#dateTo').val();
+    if (dateFrom || dateTo) {
+        count += 1;
+    }
+
+    console.log('總篩選條件數量:', count);
+
+    const $filterCount = $('#filterCount');
+    if (count > 0) {
+        $filterCount.text(count).show();
+        updateSelectedFiltersText();
+    } else {
+        $filterCount.hide();
+        $('#selectedFiltersDiv').hide();
+    }
+}
+
+// 更新已選篩選條件文字 - 修復取值邏輯
+function updateSelectedFiltersText() {
+    const filters = [];
+
+    // 部門篩選
+    const selectedDepts = [];
+    $('#collapseDepartment .form-check-input:checked').each(function () {
+        const label = $(this).closest('.form-check').find('label').text().trim();
+        if (label) {
+            selectedDepts.push(label);
+        }
+    });
+    if (selectedDepts.length > 0) {
+        filters.push(`部門: ${selectedDepts.join(', ')}`);
+    }
+
+    // 職位篩選
+    const selectedRoles = [];
+    $('#collapseRole .form-check-input:checked').each(function () {
+        const label = $(this).closest('.form-check').find('label').text().trim();
+        if (label) {
+            selectedRoles.push(label);
+        }
+    });
+    if (selectedRoles.length > 0) {
+        filters.push(`職位: ${selectedRoles.join(', ')}`);
+    }
+
+    // 在職狀態篩選
+    const selectedStatus = [];
+    $('#collapseStatus .form-check-input:checked').each(function () {
+        const label = $(this).closest('.form-check').find('label').text().trim();
+        if (label) {
+            selectedStatus.push(label);
+        }
+    });
+    if (selectedStatus.length > 0) {
+        filters.push(`狀態: ${selectedStatus.join(', ')}`);
+    }
+
+    // 日期篩選
+    const dateFrom = $('#dateFrom').val();
+    const dateTo = $('#dateTo').val();
+    if (dateFrom || dateTo) {
+        let dateText = '入職日期: ';
+        if (dateFrom && dateTo) {
+            dateText += `${dateFrom} ~ ${dateTo}`;
+        } else if (dateFrom) {
+            dateText += `${dateFrom} 之後`;
+        } else if (dateTo) {
+            dateText += `${dateTo} 之前`;
+        }
+        filters.push(dateText);
+    }
+
+    if (filters.length > 0) {
+        $('#selectedFiltersText').text(`已套用篩選: ${filters.join(' | ')}`);
+        $('#selectedFiltersDiv').show();
+    } else {
+        $('#selectedFiltersDiv').hide();
+    }
 }
 
 // 刪除選取的員工

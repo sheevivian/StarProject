@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using StarProject.DTOs.EmpsDTOs;
@@ -12,8 +10,6 @@ using StarProject.Models;
 using StarProject.ViewModels;
 using StarProject.Attributes;
 using StarProject.Helpers;
-using StarProject.DTOs.RoleDTOs;
-using System.IO;
 
 namespace StarProject.Controllers
 {
@@ -70,81 +66,137 @@ namespace StarProject.Controllers
 				.Include(e => e.RoleNoNavigation)
 				.AsQueryable();
 
-			// 修改 SearchEmps 方法中的搜尋邏輯
-			// 關鍵字搜尋 - 根據你的實際欄位名稱
+			// 關鍵字搜尋
 			if (!string.IsNullOrWhiteSpace(request.Keyword))
 			{
 				var kw = request.Keyword.Trim();
 				query = query.Where(e =>
 					e.Name.Contains(kw) ||
 					e.EmpCode.Contains(kw) ||
-					e.DeptNoNavigation.DeptName.Contains(kw) ||
-					e.DeptNoNavigation.DeptCode.Contains(kw) ||
-					e.RoleNoNavigation.RoleName.Contains(kw));
+					(e.DeptNoNavigation != null && e.DeptNoNavigation.DeptName.Contains(kw)) ||
+					(e.DeptNoNavigation != null && e.DeptNoNavigation.DeptCode.Contains(kw)) ||
+					(e.RoleNoNavigation != null && e.RoleNoNavigation.RoleName.Contains(kw)) ||
+					// 新增：也要搜尋職位的中文顯示名稱
+					(e.RoleNoNavigation != null && RoleHelper.RoleDisplayMap.ContainsKey(e.RoleNoNavigation.RoleName) &&
+					 RoleHelper.RoleDisplayMap[e.RoleNoNavigation.RoleName].Contains(kw)) ||
+					// 新增：也要搜尋部門的中文顯示名稱  
+					(e.DeptNoNavigation != null && RoleHelper.DepartmentDisplayMap.ContainsKey(e.DeptNoNavigation.DeptCode) &&
+					 RoleHelper.DepartmentDisplayMap[e.DeptNoNavigation.DeptCode].Contains(kw)));
 			}
 
 			// 部門篩選 - 使用 DeptCode 
 			if (request.Departments != null && request.Departments.Any())
 			{
-				query = query.Where(e => request.Departments.Contains(e.DeptNoNavigation.DeptCode));
+				query = query.Where(e => e.DeptNoNavigation != null && request.Departments.Contains(e.DeptNoNavigation.DeptCode));
 			}
 
-			// 職位篩選 - 這裡比較複雜，因為你的資料庫沒有 RoleCode
-			// 方案1: 如果前端傳來的是 RoleCode (RS, EX 等)
+			// 職位篩選 - 修復：直接使用職位代碼查詢
 			if (request.Roles != null && request.Roles.Any())
 			{
-				// 將 RoleCode 轉換為 RoleName 來查詢
-				var roleNames = request.Roles.Select(code => RoleHelper.GetRoleDisplayName(code)).ToList();
-				query = query.Where(e => roleNames.Contains(e.RoleNoNavigation.RoleName));
+				// Debug: 輸出接收到的職位篩選條件
+				Console.WriteLine($"接收到的職位篩選: {string.Join(", ", request.Roles)}");
+
+				// 因為資料庫的 RoleName 欄位存的就是職位代碼 (RS, EX, MK 等)
+				// 所以直接用前端傳來的代碼查詢即可
+				query = query.Where(e => e.RoleNoNavigation != null && request.Roles.Contains(e.RoleNoNavigation.RoleName));
+
+				Console.WriteLine($"使用職位代碼篩選: {string.Join(", ", request.Roles)}");
 			}
 
-
-			// 狀態
+			// 狀態篩選
 			if (request.Statuses != null && request.Statuses.Any())
 			{
-				bool wantIn = request.Statuses.Contains("在職");
-				bool wantOut = request.Statuses.Contains("離職");
-				query = query.Where(e => (wantIn && e.Status) || (wantOut && !e.Status));
+				bool wantActive = request.Statuses.Contains("在職");
+				bool wantInactive = request.Statuses.Contains("離職");
+
+				if (wantActive && !wantInactive)
+				{
+					query = query.Where(e => e.Status == true);
+				}
+				else if (!wantActive && wantInactive)
+				{
+					query = query.Where(e => e.Status == false);
+				}
+				// 如果兩個都選或都沒選，就不篩選
 			}
 
-			// 入職日期
-			if (!string.IsNullOrWhiteSpace(request.DateFrom) && DateTime.TryParse(request.DateFrom, out DateTime from))
+			// 入職日期篩選
+			if (!string.IsNullOrWhiteSpace(request.DateFrom))
 			{
-				query = query.Where(e => e.HireDate >= from);
-			}
-			if (!string.IsNullOrWhiteSpace(request.DateTo) && DateTime.TryParse(request.DateTo, out DateTime to))
-			{
-				query = query.Where(e => e.HireDate <= to);
+				if (DateTime.TryParse(request.DateFrom, out DateTime fromDate))
+				{
+					query = query.Where(e => e.HireDate >= fromDate);
+				}
 			}
 
-			// 分頁
+			if (!string.IsNullOrWhiteSpace(request.DateTo))
+			{
+				if (DateTime.TryParse(request.DateTo, out DateTime toDate))
+				{
+					// 包含整天，所以加到隔天的 00:00:00
+					toDate = toDate.AddDays(1);
+					query = query.Where(e => e.HireDate < toDate);
+				}
+			}
+
+			// 計算總數
 			var totalCount = await query.CountAsync();
-			var page = Math.Max(request.Page, 1);
-			var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
+			// 分頁處理
+			var page = Math.Max(request.Page, 1);
+			var pageSize = request.PageSize <= 0 ? 10 : Math.Min(request.PageSize, 100); // 限制最大 100 筆
+			var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+			// 如果當前頁數大於總頁數，調整到最後一頁
+			if (page > totalPages && totalPages > 0)
+			{
+				page = totalPages;
+			}
+
+			// 取得資料
 			var items = await query
 				.OrderBy(e => e.EmpCode)
 				.Skip((page - 1) * pageSize)
 				.Take(pageSize)
 				.ToListAsync();
 
-			// 設定 ViewBag 資料
+			// 設定 ViewBag 資料供 Partial View 使用
 			ViewBag.Total = totalCount;
 			ViewBag.PageSize = pageSize;
 			ViewBag.Page = page;
-			ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+			ViewBag.TotalPages = totalPages;
+			ViewBag.RoleHelper = typeof(RoleHelper);
 
-			// Render 部分 View - 先渲染員工列表
-			var empRowsHtml = await RenderPartialViewToStringAsync("_EmpRowsPartial", items);
-
-			// 再渲染分頁 - 這裡需要傳遞一個空的 model，但 ViewBag 會保持
-			var paginationHtml = await RenderPartialViewToStringAsync("_PaginationPartial", new object());
-
-			return Json(new
+			try
 			{
-				empRows = empRowsHtml,
-				pagination = paginationHtml
-			});
+				// Render 員工列表
+				var empRowsHtml = await RenderPartialViewToStringAsync("_EmpRowsPartial", items);
+
+				// Render 分頁 
+				var paginationHtml = await RenderPartialViewToStringAsync("_PaginationPartial", new object());
+
+				return Json(new
+				{
+					success = true,
+					empRows = empRowsHtml,
+					pagination = paginationHtml,
+					totalCount = totalCount,
+					currentPage = page,
+					totalPages = totalPages
+				});
+			}
+			catch (Exception ex)
+			{
+				// 記錄錯誤
+				Console.WriteLine($"SearchEmps 錯誤: {ex.Message}");
+
+				return Json(new
+				{
+					success = false,
+					message = "資料載入失敗，請稍後再試",
+					error = ex.Message
+				});
+			}
 		}
 
 		// GET: Emps/Details/5

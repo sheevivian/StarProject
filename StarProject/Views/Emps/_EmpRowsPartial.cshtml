@@ -22,7 +22,7 @@
         </td>
 
         <td style="width:200px">
-            <div class="fw-bold">@item.Name</div>
+            <div>@item.Name</div>
         </td>
 
         <td style="width:150px">
@@ -30,12 +30,12 @@
         </td>
 
         <td>
-            <div class="text-primary fw-bold">@roleInfo.DepartmentDisplayName</div>
+            <div>@roleInfo.DepartmentDisplayName</div>
         </td>
 
         <td>
             <div>
-                <span class="fw-bold">@roleInfo.RoleDisplayName</span>
+                <span>@roleInfo.RoleDisplayName</span>
             </div>
             <small class="text-muted d-block">
                 @roleInfo.PermissionSummary
@@ -57,11 +57,11 @@
         <td>
             @if (item.Status)
             {
-                <span class="badge bg-success">在職</span>
+                <span>在職</span>
             }
             else
             {
-                <span class="badge bg-secondary">離職</span>
+                <span>離職</span>
             }
         </td>
 

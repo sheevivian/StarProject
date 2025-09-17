@@ -7,12 +7,74 @@
         <div class="card h-100 position-relative shadow cardDetail">
             <!-- 固定圖片大小 -->
             <div class="card-img-container">
-                <img src="@Html.DisplayFor(modelItem => item.TicImage)" class="card-img-top" alt="景點照片" />
+                <img src="@Html.DisplayFor(modelItem => item.TicImage)" class="card-img-top" alt="票券圖片" />
             </div>
 
             <!-- flex-column 讓內容上下排列 -->
             <div class="card-body d-flex flex-column">
+                @if (item.TicCategory == "常設展覽")
+                {
+                    <span class="badge rounded-pill text-bg-primary mb-1" style="font-size:15px; width:80px;">
+                        常設展覽
+                    </span>
+                }
+                else if (item.TicCategory == "特別展覽")
+                {
+                    <span class="badge rounded-pill text-bg-success mb-1" style="font-size:15px; width:80px;">
+                        特別展覽
+                    </span>
+                }
+                else if (item.TicCategory == "星空劇院")
+                {
+                    <span class="badge rounded-pill bg-warning text-white mb-1" style="font-size:15px; width:80px;">
+                        星空劇院
+                    </span>
+                }
+                else if (item.TicCategory == "優惠套票")
+                {
+                    <span class="badge rounded-pill text-bg-danger mb-1" style="font-size:15px; width:80px;">
+                        優惠套票
+                    </span>
+                }
+                else if (item.TicCategory == "立體劇場")
+                {
+                    <span class="badge rounded-pill text-bg-secondary mb-1" style="font-size:15px; width:80px;">
+                        立體劇場
+                    </span>
+                }
+                else if (item.TicCategory == "星際探險")
+                {
+                    <span class="badge rounded-pill text-bg-dark mb-1" style="font-size:15px; width:80px;">
+                        星際探險
+                    </span>
+                }
+
                 <h4 class="card-title fw-bold">@Html.DisplayFor(modelItem => item.TicName)</h4>
+                @if (item.TicCategory == "優惠套票")
+                {
+                    <!-- 限制描述文字只顯示兩行 -->
+                    <span class="card-text text-secondary fs12px mt-auto">
+                        @Html.DisplayFor(modelItem => item.TicDesc)
+                    </span>
+                }
+                else
+                {
+                    <!-- 限制描述文字只顯示兩行 -->
+                    <span class="card-text text-secondary fs12px mt-auto">
+                        <br/>
+                    </span>
+                }
+                <button type="button"
+                        class="btn btn-color btn-sm rounded-pill mt-2 btn-detail"
+                        data-id="@item.TicName"
+                        data-image="@item.TicImage"
+                        data-category="@item.TicCategory"
+                        data-status="@item.TicStatus"
+                        data-desc="@item.TicDesc"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalDetail">
+                    詳細內容
+                </button>
             </div>
         </div>
     </div>

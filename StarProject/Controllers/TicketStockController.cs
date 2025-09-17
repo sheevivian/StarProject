@@ -32,7 +32,7 @@ namespace StarProject.Controllers
 				startDate = DateTime.Today;
 
 			if (!endDate.HasValue)
-				endDate = DateTime.Today.AddDays(7);
+				endDate = DateTime.Today.AddDays(6);
 
 			// 1️⃣ 把每日庫存投影成同樣結構
 			var dailyStocks = _context.TicketStocks
@@ -84,6 +84,7 @@ namespace StarProject.Controllers
 							TicCategory = g.Key.TicCategory,
 							Type = g.Key.TicType,
 							ReleaseDate = g.Key.Date,
+							InitialStock = g.Sum(x => x.Stock ?? 0),
 							TotalStock = g.Sum(x => x.Stock ?? 0)
 									   + g.Sum(x => x.TransQuantity ?? 0)
 						};

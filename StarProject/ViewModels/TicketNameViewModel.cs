@@ -9,5 +9,6 @@
 		public string? TicCategory { get; set; }
 
 		public string? TicStatus { get; set; }
+		public string? TicDesc { get; set; }
 	}
 }

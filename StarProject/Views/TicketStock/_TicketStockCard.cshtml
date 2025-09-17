@@ -20,8 +20,8 @@
                 }
                 @foreach (var ticketGroupByCat in dayGroup.GroupBy(x => x.TicCategory))
                 {
-                    // 判斷這個分類底下是否有任何票券庫存 < 1000
-                    var isAnyLowStock = ticketGroupByCat.Any(x => x.TotalStock < 100);
+                    // 判斷這個分類底下是否有任何票券庫存 < 初始庫存1/4
+                    var isAnyLowStock = ticketGroupByCat.Any(x => x.TotalStock < (x.InitialStock/4));
 
                     // 外層 Accordion id
                     var ticketCat = $"{dateId}-cat{catIndex}";
@@ -50,7 +50,8 @@
                                     {
                                         // 計算這個展覽所有庫存的總和
                                         var totalStock = ticketGroupByName.Sum(x => x.TotalStock);
-                                        var isLowStock = totalStock < 100;
+                                        var intialStock = ticketGroupByName.Sum(x => x.InitialStock);
+                                        var isLowStock = totalStock < (intialStock / 4);
 
                                         // 內層 Accordion id
                                         var ticketId = $"{ticketCat}-name{nameIndex}";
@@ -85,12 +86,18 @@
                                                             <tbody>
                                                                 @foreach (var item in ticketGroupByName)
                                                                 {
-                                                                    var lowerClass = totalStock < 100 ? "text-danger fw-bold border-0 border border-bottom border-black" : "";
+                                                                    var total = item.TotalStock;
+                                                                    var init = item.InitialStock ?? 0;
+
+                                                                    // 小於 1/4 時變紅
+                                                                    var lowerClass = (init > 0 && total < (init / 4.0))
+                                                                    ? "text-danger fw-bold border-0 border border-bottom border-black"
+                                                                    : "";
+
                                                                     <tr>
-                                                                        <td>@item.Type</td>
+                                                                        <td>@item.InitialStock</td>
                                                                         <td class="@lowerClass">@item.TotalStock</td>
                                                                     </tr>
-
                                                                 }
                                                             </tbody>
                                                         </table>

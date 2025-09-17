@@ -87,7 +87,7 @@
                         @foreach (var ticketGroupByCat in dayGroup.GroupBy(x => x.TicCategory))
                         {
                             // 判斷這個分類底下是否有任何票券庫存 < 1000
-                            var isAnyLowStock = ticketGroupByCat.Any(x => x.TotalStock < 100);
+                            var isAnyLowStock = ticketGroupByCat.Any(x => x.TotalStock < (x.InitialStock / 4.0));
 
                             // 外層 Accordion id
                             var ticketCat = $"{dateId}-cat{catIndex}";
@@ -115,8 +115,7 @@
                                             @foreach (var ticketGroupByName in ticketGroupByCat.GroupBy(x => x.Name))
                                             {
                                                 // 計算這個展覽所有庫存的總和
-                                                var totalStock = ticketGroupByName.Sum(x => x.TotalStock);
-                                                var isLowStock = totalStock < 100;
+                                                var isLowStock = ticketGroupByName.Any(x => x.TotalStock < (x.InitialStock / 4.0));
 
                                                 // 內層 Accordion id
                                                 var ticketId = $"{ticketCat}-name{nameIndex}";
@@ -151,7 +150,7 @@
                                                                     <tbody>
                                                                         @foreach (var item in ticketGroupByName)
                                                                         {
-                                                                            var lowerClass = totalStock < 100 ? "text-danger fw-bold border-0 border border-bottom border-black" : "";
+                                                                            var lowerClass = @item.TotalStock < @item.InitialStock / 4 ? "text-danger fw-bold border-0 border border-bottom border-black" : "";
                                                                             <tr>
                                                                                 <td>@item.Type</td>
                                                                                 <td class="@lowerClass">@item.TotalStock</td>

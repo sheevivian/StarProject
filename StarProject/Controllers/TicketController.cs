@@ -36,14 +36,14 @@ namespace StarProject.Controllers
             var query = _context.Tickets
 					.Include(t => t.TicCategoryNoNavigation)
 					.GroupBy(t => t.Name)
-				.Select(g => new TicketNameViewModel
-				{
-					TicName = g.Key,
-					TicImage = g.Max(x => x.Image),
-					TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
-					TicStatus = g.Max(x => x.Status),
-					TicDesc = g.Max(x => x.Desc)
-				});
+					.Select(g => new TicketNameViewModel
+					{
+						TicName = g.Key,
+						TicImage = g.Max(x => x.Image),
+						TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
+						TicStatus = g.Max(x => x.Status),
+						TicDesc = g.Max(x => x.Desc)
+					});
 
 			// Step 3: 分頁 (這時 query 仍是 IQueryable<ProductStockSumViewModel>)
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
@@ -79,7 +79,8 @@ namespace StarProject.Controllers
 								TicImage = g.Max(x => x.Image),
 								TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
 								TicStatus = g.Max(x => x.Status),
-							});
+								TicDesc = g.Max(x => x.Desc),
+						});
 
 			// keyword
 			if (!string.IsNullOrEmpty(filters.keyword))

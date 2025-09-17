@@ -53,14 +53,14 @@
                 @if (item.TicCategory == "優惠套票")
                 {
                     <!-- 限制描述文字只顯示兩行 -->
-                    <span class="card-text text-secondary fs12px mt-auto">
+                    <span class="card-text text-truncate-2 text-secondary fs12px mt-auto">
                         @Html.DisplayFor(modelItem => item.TicDesc)
                     </span>
                 }
                 else
                 {
                     <!-- 限制描述文字只顯示兩行 -->
-                    <span class="card-text text-secondary fs12px mt-auto">
+                    <span class="card-text text-truncate-2 text-secondary fs12px mt-auto">
                         <br/>
                     </span>
                 }

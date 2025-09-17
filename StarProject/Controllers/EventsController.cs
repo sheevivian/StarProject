@@ -27,6 +27,46 @@ namespace StarProject.Controllers
 			_context = context;
 		}
 
+		private IQueryable<Event> VisibleEventsQuery(string? status, string? keyword)
+		{
+			var now = DateTime.Now;
+
+			// 只取在「列表」應顯示的活動
+			var q = _context.Events.AsNoTracking()
+				.Where(e =>
+					// 沒有「未來才要發佈、且尚未執行」的排程
+					!_context.Schedules.Any(s =>
+						s.EventNo == e.No &&
+						s.Executed == false &&
+						s.ReleaseDate > now
+					)
+					&&
+					// 沒有「已過期」的排程（SqlMin 視為無期限）
+					!_context.Schedules.Any(s =>
+						s.EventNo == e.No &&
+						s.ExpirationDate != SqlMin &&
+						s.ExpirationDate <= now
+					)
+				);
+
+			// 關鍵字
+			if (!string.IsNullOrWhiteSpace(keyword))
+			{
+				var kw = keyword.Trim();
+				q = q.Where(e => e.Title.Contains(kw));
+			}
+
+			// 狀態
+			if (!string.IsNullOrWhiteSpace(status))
+			{
+				var keys = NormalizeStatus(status);
+				q = q.Where(e => keys.Contains(e.Status));
+			}
+
+			return q;
+		}
+
+
 		// =================== 活動總覽 (Dashboard) ==================
 		[HttpGet]
 		public async Task<IActionResult> Index()
@@ -35,10 +75,9 @@ namespace StarProject.Controllers
 			var firstDay = new DateTime(now.Year, now.Month, 1);
 			var nextMonthFirst = firstDay.AddMonths(1);
 
-			var allEvents = await _context.Events
-				.AsNoTracking()
-				.OrderByDescending(e => e.CreatedTime)
-				.ToListAsync();
+			var visible = VisibleEventsQuery(status: null, keyword: null);
+			var allEvents = await visible.OrderByDescending(e => e.CreatedTime).ToListAsync();
+
 
 			// 統計
 			ViewBag.TotalEvents = allEvents.Count;
@@ -75,32 +114,85 @@ namespace StarProject.Controllers
 
 		// =================== 活動清單 (List + 分頁) ==================
 		[HttpGet]
-		public async Task<IActionResult> List(int page = 1, int pageSize = DefaultPageSize)
+		[HttpGet]
+		public async Task<IActionResult> List(string? status, string? keyword, int page = 1, int pageSize = DefaultPageSize)
 		{
-			var query = _context.Events
-								.OrderByDescending(x => x.StartDate)
-								.ThenByDescending(x => x.CreatedTime);
-
-			var (events, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
-
-			ViewBag.Total = total;
-			ViewBag.TotalPages = totalPages;
+			ViewBag.Status = status;
+			ViewBag.Keyword = keyword;
 			ViewBag.Page = page;
 			ViewBag.PageSize = pageSize;
 
+			var q = VisibleEventsQuery(status, keyword)
+					.OrderByDescending(x => x.StartDate)
+					.ThenByDescending(x => x.CreatedTime);
+
+			var (events, total, totalPages) = await PaginationHelper.PaginateAsync(q, page, pageSize);
+
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
 			return View(events);
 		}
-
 		// AJAX 分頁：只回傳 rows（_EventRows）
 		[HttpGet]
-		public async Task<IActionResult> GetEvents(int page = 1, int pageSize = DefaultPageSize)
+		[HttpGet]
+		public async Task<IActionResult> GetEvents(string? status, string? keyword, int page = 1, int pageSize = DefaultPageSize)
 		{
-			var query = _context.Events
-								.OrderByDescending(x => x.StartDate)
-								.ThenByDescending(x => x.CreatedTime);
+			ViewBag.Status = status;   // 若 _EventRows 需要知道目前狀態，可用這個
+			ViewBag.Keyword = keyword;
 
-			var (events, _, _) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+			var now = DateTime.Now;
+
+			// 只取「目前應該可見」的活動
+			var q = _context.Events.AsNoTracking()
+				.Where(e =>
+					// 尚未到發佈時間且未執行 → 隱藏
+					!_context.Schedules.Any(s =>
+						s.EventNo == e.No &&
+						s.Executed == false &&
+						s.ReleaseDate > now
+					)
+					&&
+					// 已過期 → 隱藏（SqlMin 視為無期限）
+					!_context.Schedules.Any(s =>
+						s.EventNo == e.No &&
+						s.ExpirationDate != SqlMin &&
+						s.ExpirationDate <= now
+					)
+				);
+
+			// 關鍵字
+			if (!string.IsNullOrWhiteSpace(keyword))
+			{
+				var kw = keyword.Trim();
+				q = q.Where(e => e.Title.Contains(kw));
+			}
+
+			// 狀態
+			if (!string.IsNullOrWhiteSpace(status))
+			{
+				var keys = NormalizeStatus(status);
+				q = q.Where(e => keys.Contains(e.Status));
+			}
+
+			// 排序 + 分頁
+			q = q.OrderByDescending(x => x.StartDate)
+				 .ThenByDescending(x => x.CreatedTime);
+
+			var (events, _, _) = await PaginationHelper.PaginateAsync(q, page, pageSize);
 			return PartialView("_EventRows", events);
+		}
+
+		// =================== 私有工具 ==================
+		private static string[] NormalizeStatus(string raw)
+		{
+			var s = (raw ?? "").Trim();
+			return s switch
+			{
+				"報名中" or "Open" or "開放報名" => new[] { "報名中", "Open", "開放報名" },
+				"已結束" or "Ended" or "Closed" => new[] { "已結束", "Ended", "Closed" },
+				"已取消" or "Cancelled" or "Canceled" => new[] { "已取消", "Cancelled", "Canceled" },
+				_ => new[] { s }
+			};
 		}
 
 		// =================== 詳情 ==================
@@ -446,7 +538,7 @@ namespace StarProject.Controllers
 		// =================== 進階搜尋（清單頁） ==================
 		// 使用你的 SearchFilterVM（含 keyword/Categories/Statuses/(Locations)/DateFrom/DateTo/Page/PageSize）
 		[HttpPost]
-		[IgnoreAntiforgeryToken] // 若要驗證 CSRF：改成 [ValidateAntiForgeryToken] 並在前端加 RequestVerificationToken header
+		[IgnoreAntiforgeryToken]
 		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
 		{
 			filters ??= new SearchFilterVM();
@@ -454,13 +546,17 @@ namespace StarProject.Controllers
 			int page = filters.Page > 0 ? filters.Page : 1;
 			int pageSize = filters.PageSize > 0 ? filters.PageSize : DefaultPageSize;
 
-			var q = _context.Events.AsQueryable();
+			// 先做「只取可見活動」
+			var q = _context.Events.AsNoTracking()
+				.Where(e =>
+					!_context.Schedules.Any(s => s.EventNo == e.No && s.Executed == false && s.ReleaseDate > DateTime.Now) &&
+					!_context.Schedules.Any(s => s.EventNo == e.No && s.ExpirationDate != SqlMin && s.ExpirationDate <= DateTime.Now)
+				);
 
-			// 排序（與 List 一致）
+			// 你的原有條件照掛
 			q = q.OrderByDescending(e => e.StartDate)
 				 .ThenByDescending(e => e.CreatedTime);
 
-			// 關鍵字
 			if (!string.IsNullOrWhiteSpace(filters.keyword))
 			{
 				var kw = filters.keyword.Trim();
@@ -471,36 +567,31 @@ namespace StarProject.Controllers
 					(e.Desc != null && e.Desc.Contains(kw)));
 			}
 
-			// 類別
-			if (filters.Categories != null && filters.Categories.Any())
+			if (filters.Categories?.Any() == true)
 				q = q.Where(e => filters.Categories.Contains(e.Category));
 
-			// 狀態
-			if (filters.Statuses != null && filters.Statuses.Any())
+			if (filters.Statuses?.Any() == true)
 				q = q.Where(e => filters.Statuses.Contains(e.Status));
 
-
-			// 日期區間（StartDate）
 			if (!string.IsNullOrWhiteSpace(filters.DateFrom) && DateTime.TryParse(filters.DateFrom, out var from))
 				q = q.Where(e => e.StartDate >= from.Date);
+
 			if (!string.IsNullOrWhiteSpace(filters.DateTo) && DateTime.TryParse(filters.DateTo, out var to))
 				q = q.Where(e => e.StartDate <= to.Date.AddDays(1).AddTicks(-1));
 
-			// ✅ 呼叫分頁工具（與隊友一致）
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(q, page, pageSize);
 
-			// 分頁資訊給 Partial 用
 			ViewBag.Total = total;
 			ViewBag.TotalPages = totalPages;
 			ViewBag.Page = page;
 			ViewBag.PageSize = pageSize;
 
-			// 轉成 rows 與 pagination 的 HTML
 			var tableHtml = await RenderPartialViewToString("_EventRows", items);
 			var paginationHtml = await RenderPartialViewToString("_EventPagination", null);
 
 			return Json(new { tableHtml, paginationHtml });
 		}
+
 
 		// =================== 報名管理 ==================
 		[HttpGet]
@@ -518,6 +609,62 @@ namespace StarProject.Controllers
 					searchUserKeyword = searchUserNo ?? ""   // 對應 ParticipantsController.Index 的參數名稱
 				});
 		}
+
+		// =================== 檢視排程中的活動（Modal 會用） ==================
+		[HttpGet]
+		public async Task<IActionResult> GetScheduled(int withinDays = 180)
+		{
+			var now = DateTime.Now;
+			var until = now.AddDays(withinDays);
+
+			// 「目前排程中的活動」定義：
+			// 1) 尚未到發布時間（未執行），或
+			// 2) 已經到發布時間但仍在有效期限內（未過期，且標記未執行）
+			//    —— 視你的排程器行為而定，這裡以「ReleaseDate >= 現在 且 未過期」為主，並忽略 Executed=true 的已處理案件
+			var list = await (
+				from s in _context.Schedules.AsNoTracking()
+				join e in _context.Events.AsNoTracking() on s.EventNo equals e.No
+				where
+					// 發佈時間在未來（常見情境）
+					s.ReleaseDate > now
+					// 還沒過期（ExpirationDate==SqlMin 視為無期限）
+					&& (s.ExpirationDate == SqlMin || s.ExpirationDate > now)
+					// 只看尚未執行（若你的排程服務會把執行後改為 true）
+					&& (s.Executed == false)
+					// 可選：限制最遠查詢範圍，避免資料量太大
+					&& s.ReleaseDate <= until
+				orderby s.ReleaseDate ascending
+				select new
+				{
+					e.No,
+					e.Title,
+					e.Category,
+					e.Location,
+					e.Status,
+					e.Image,
+					s.ReleaseDate,
+					s.ExpirationDate
+				}
+			).ToListAsync();
+
+			return Json(list);
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> GetScheduledCount()
+		{
+			var now = DateTime.Now;
+			var count = await _context.Schedules
+				.AsNoTracking()
+				.Where(s =>
+					s.ReleaseDate > now &&
+					(s.ExpirationDate == SqlMin || s.ExpirationDate > now) &&
+					(s.Executed == false))
+				.CountAsync();
+
+			return Json(new { count });
+		}
+
 
 		// =================== 私有工具 ==================
 		private static DateTime TrimToMinute(DateTime dt)

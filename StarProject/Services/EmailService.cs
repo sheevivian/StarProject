@@ -138,7 +138,7 @@ namespace StarProject.Services
 				var namePart = !string.IsNullOrWhiteSpace(recipientName)
 					? WebUtility.HtmlEncode(recipientName.Trim()) + " "
 					: string.Empty;
-				var greeting = $"{namePart}星際旅伴 您好";
+				var greeting = $"星際旅伴{namePart}您好";
 				var safeEventName = WebUtility.HtmlEncode(eventName);
 
 				var msg = new MimeMessage();
@@ -150,11 +150,17 @@ namespace StarProject.Services
 				var builder = new BodyBuilder
 				{
 					HtmlBody =
-						$"<p>{greeting}，您已成功報名活動：<strong>{safeEventName}</strong></p>" +
-						$"<p>活動時間為 {eventTime:yyyy-MM-dd HH:mm}</p>" +
-						$"<p>這是您的入場 QR Code（請於報到時出示）：</p>" +
+						$"<p>{greeting}：</p>" +
+						"<p>歡迎加入我們的宇宙探險旅程！</p>" +
+						$"<p>我們很高興地通知您，您已成功報名本次活動：<strong>{safeEventName}</strong>。</p>" +
+
+						 "<p>活動詳情：</p>" +
+						$"<p>活動時間：{eventTime:yyyy-MM-dd HH:mm}</p>" +
+						"<p>報到方式：請於報到時出示此信件中的 QR Code，以便我們為您辦理入場手續。</p>" +
+						$"<p>這是您的入場 QR Code：</p>" +
 						$"<p><img alt=\"QR Code\" src=\"cid:{cid}\" style=\"max-width:240px;\"/></p>" +
-						"<p>期待您的參與！</p>" +
+
+						"<p>期待與您相見，一同探索浩瀚宇宙的奧秘！</p>" +
 						"<p>阿波羅天文館</p>"
 				};
 

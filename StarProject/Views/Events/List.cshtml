@@ -243,6 +243,16 @@
 <main class="flex-fill position-relative">
     <div class="d-flex align-items-center mb-3">
         <h1 class="fw-bold flex-grow-1 mb-0">活動列表</h1>
+        <button type="button"
+                id="btnViewScheduled"
+                class="btn btn-outline-search fw-bold me-2 position-relative"
+                data-bs-toggle="modal"
+                data-bs-target="#scheduledModal">
+            <i class="fa-regular fa-calendar"></i> 檢視排程
+            <span id="scheduledBadge"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
+                  style="display:none">0</span>
+        </button>
         <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-star" style="color: #000000;"></i></i> 新增</a>
     </div>
 
@@ -412,6 +422,41 @@
             <p><strong>活動說明：</strong><span id="offcanvasDesc"></span></p>
         </div>
     </div>
+
+    <div class="modal fade" id="scheduledModal" tabindex="-1" aria-labelledby="scheduledModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title fw-bold" id="scheduledModalLabel">排程中的活動</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="scheduledEmpty" class="text-secondary" style="display:none;">目前沒有排程中的活動。</div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:86px">圖片</th>
+                                    <th>活動名稱</th>
+                                    <th style="width:140px">活動種類</th>
+                                    <th style="width:160px">發布時間</th>
+                                    <th style="width:120px">目前狀態</th>
+                                    <th style="width:220px">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduledTbody">
+                                <!-- 由 JS 動態塞入 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-secondary me-auto">*發佈日期大於現在時間且未發佈。</small>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 @section Scripts {
@@ -553,6 +598,44 @@
             loadPage(page);
           });
 
+                // 1) 讀取網址上的 ?status=...
+        const urlParams = new URLSearchParams(window.location.search);
+        const statusFromUrl = urlParams.get('status') || '';
+        const keywordFromInput = () => $('#keyword').val() || ''; // 有搜尋框才會用到
+
+        // 2) AJAX 重新載入 _EventRows
+        function refreshEventsTable(page) {
+          $.ajax({
+            url: '/Events/GetEvents',
+            type: 'GET',
+            data: {
+              page: page || 1,
+              pageSize: @ViewBag.PageSize ?? 10,
+              status: statusFromUrl,          // ★ 關鍵：帶回目前狀態
+              keyword: keywordFromInput()
+            },
+            success: function (html) {
+              // 假設你的 _EventRows 只渲染 <tbody> 內容
+              $('#eventsContainer').html(html);
+            }
+          });
+        }
+
+        // 3) 監聽分頁連結（_EventRows 內部會重新產生分頁按鈕）
+        //   - 若你的分頁按鈕有 data-page 屬性就優先用，否則從 href 的 ?page= 解析
+        $(document).on('click', '#eventsContainer .page-link', function (e) {
+          e.preventDefault();
+          const $a = $(this);
+          let page = $a.data('page');
+          if (!page) {
+            const href = $a.attr('href') || '';
+            const p = new URLSearchParams(href.split('?')[1] || '').get('page');
+            page = parseInt(p || '1', 10);
+          }
+          if (!page || isNaN(page)) page = 1;
+          refreshEventsTable(page);
+        });
+
           // Offcanvas 詳細
           $(document).on('click', '.btn-detail', function () {
             var btn = $(this);
@@ -582,6 +665,77 @@
 
             bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasDetail')).show();
           });
+
+
+                  // ===== 檢視排程中的活動（Modal） =====
+        (function scheduledModalFeature(){
+          const $modal = $('#scheduledModal');
+          const $tbody = $('#scheduledTbody');
+          const $empty = $('#scheduledEmpty');
+          const $badge = $('#scheduledBadge');
+
+          function fmt(dtStr){
+            if(!dtStr) return '';
+            const d = new Date(dtStr);
+            if (isNaN(d)) return dtStr; // 後端已是字串就原樣
+            const pad = (n)=>String(n).padStart(2,'0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          }
+
+          function htmlRow(x){
+            const img = x.image || '/img/logo.png';
+            const exp = (!x.expirationDate || x.expirationDate === '0001-01-01T00:00:00') ? '—' : fmt(x.expirationDate);
+            const feeOps = `
+              <a class="btn btn-sm btn-primary br20px me-1" href="/Events/Edit/${x.no}">
+                <i class="fa-solid fa-pen-to-square"></i> 編輯
+              </a>;
+            return `
+              <tr>
+                <td>
+                  <div class="thumbnail-container">
+                    <img src="${img}" class="thumb-img" alt="img" style="width:64px;height:64px;object-fit:cover;border-radius:8px">
+                  </div>
+                </td>
+                <td class="fw-semibold">${x.title ?? ''}</td>
+                <td>${x.category ?? ''}</td>
+                <td>${fmt(x.releaseDate)}</td>
+                <td>${x.status ?? ''}</td>
+                <td>${feeOps}</td>
+              </tr>`;
+          }
+
+          async function refreshBadge(){
+            try{
+              const res = await $.get('/Events/GetScheduledCount');
+              const n = res?.count ?? 0;
+              if(n>0){ $badge.text(n).show(); } else { $badge.hide(); }
+            }catch(_){ $badge.hide(); }
+          }
+
+          async function loadScheduled(){
+            $tbody.empty();
+            $empty.hide();
+            try{
+              const list = await $.get('/Events/GetScheduled');
+              if(!list || list.length===0){
+                $empty.show();
+                return;
+              }
+              $tbody.html(list.map(htmlRow).join(''));
+            }catch(err){
+              $empty.text('載入失敗：' + (err.responseText || err.statusText || err.message)).show();
+            }
+          }
+
+          // 開窗時載入一次
+          $modal.on('show.bs.modal', loadScheduled);
+
+          // 頁面載入與每 90 秒更新一下徽章（可自行調整/移除）
+          $(refreshBadge);
+          setInterval(refreshBadge, 90000);
+        })();
+
+
 
           // 單筆刪除
           $(document).on('click', '#deleteOnebtn', async function (e) {

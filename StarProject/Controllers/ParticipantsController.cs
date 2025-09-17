@@ -144,65 +144,93 @@ namespace StarProject.Controllers
             return View(new Participant { Status = "報名成功" });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("No,EventNo,UsersNo,RegisteredDate,Status")] Participant participant)
-        {
-			ModelState.Remove(nameof(Participant.EventNoNavigation));
-			ModelState.Remove(nameof(Participant.UsersNoNavigation));
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Create([FromForm] Participant input)
+		{
+			// 1) 基本防呆
+			if (input == null)
+				return AjaxAwareFail("空表單");
 
-			if (string.Equals(participant.Status, "Success", StringComparison.OrdinalIgnoreCase))
-                participant.Status = "報名成功";
+			// 2) 外鍵存在檢查
+			var ev = await _context.Events.AsNoTracking()
+				.FirstOrDefaultAsync(e => e.No == input.EventNo);
+			if (ev == null)
+				return AjaxAwareFail("活動不存在或已被刪除。");
 
-            participant.PaymentNo = null;
+			var user = await _context.Users.AsNoTracking()
+				.FirstOrDefaultAsync(u => u.No == input.UsersNo);
+			if (user == null)
+				return AjaxAwareFail("會員不存在或已被刪除。");
 
-            if (!ModelState.IsValid)
-            {
-                await PopulateCreateDropdownsAsync(participant.EventNo, participant.UsersNo);
-                return View(participant);
-            }
+			// 3) 重複報名（依你規則調整 Status 條件）
+			var isDup = await _context.Participants.AsNoTracking().AnyAsync(p =>
+				p.EventNo == input.EventNo &&
+				p.UsersNo == input.UsersNo &&
+				(p.Status == "報名成功" || p.Status == "Success"));
+			if (isDup)
+				return AjaxAwareFail("重複報名：此會員已報名該活動（報名成功）。");
 
-            var duplicate = await _context.Participants
-                .AsNoTracking()
-                .AnyAsync(p =>
-                    p.EventNo == participant.EventNo &&
-                    p.UsersNo == participant.UsersNo &&
-                    (p.Status == "報名成功" || p.Status == "Success")
-                );
+			// 4) 建立實體並補齊必要欄位
+			var entity = new Participant
+			{
+				EventNo = input.EventNo,
+				UsersNo = input.UsersNo,
+				Status = string.IsNullOrWhiteSpace(input.Status) ? "報名成功" : input.Status,
+				RegisteredDate = DateTime.Now,
+				UpdatedAt = DateTime.Now,
+				PaymentNo = input.PaymentNo, // 若你不打算此時綁付款，留 null 也可
+				Code = await GenerateUniqueParticipantCodeAsync() // 🔑 避免 UNIQUE 衝突
+			};
 
-            if (duplicate)
-            {
-                ModelState.AddModelError(string.Empty, "此會員已報名該活動（狀態：報名成功），請勿重複建立。");
-                await PopulateCreateDropdownsAsync(participant.EventNo, participant.UsersNo);
-                return View(participant);
-            }
+			_context.Participants.Add(entity);
 
-            try
-            {
-                participant.Code = await GenerateNextParticipantCodeAsync();
-                participant.RegisteredDate = DateTime.Now;
-                participant.UpdatedAt = DateTime.Now;
+			try
+			{
+				await _context.SaveChangesAsync();
 
-                _context.Add(participant);
-                await _context.SaveChangesAsync();
+				// AJAX 則回 JSON；非 AJAX 照舊 redirect
+				if (IsAjax(Request))
+					return Json(new { success = true, message = "建立成功" });
 
-                // ✅ 改用 _email 呼叫你的 EmailService 方法
-                if (IsSuccessStatus(participant.Status))
-                    await SendSignupEmailAndRecordAsync(participant.No);
+				return RedirectToAction("Index");
+			}
+			catch (DbUpdateException dbx)
+			{
+				var msg = dbx.InnerException?.Message ?? dbx.Message;
+				return AjaxAwareFail("資料庫錯誤：" + msg);
+			}
+		}
 
-                TempData["Success"] = "新增成功。";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError(string.Empty, $"建立失敗：{ex.Message}");
-            }
+		// === 工具 ===
+		private static bool IsAjax(HttpRequest req)
+			=> string.Equals(req.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
 
-            await PopulateCreateDropdownsAsync(participant.EventNo, participant.UsersNo);
-            return View(participant);
-        }
+		private IActionResult AjaxAwareFail(string message)
+		{
+			if (IsAjax(Request))
+				return StatusCode(400, new { success = false, message }); // 讓前端 catch 到
+			ModelState.AddModelError(string.Empty, message);
+			return View(); // 若你有 Create 頁面
+		}
 
-        private async Task PopulateCreateDropdownsAsync(int? selectedEventNo, object? selectedUsersNo)
+		// 產生唯一 7 碼代碼（與 DB 檢查）
+		private async Task<string> GenerateUniqueParticipantCodeAsync()
+		{
+			const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+			var rnd = Random.Shared;
+
+			for (int i = 0; i < 50; i++)
+			{
+				var code = new string(Enumerable.Range(0, 7).Select(_ => chars[rnd.Next(chars.Length)]).ToArray());
+				var exists = await _context.Participants.AnyAsync(p => p.Code == code);
+				if (!exists) return code;
+			}
+			// 保底：用 ticks 取前 7 碼
+			return DateTime.UtcNow.Ticks.ToString("x").ToUpperInvariant()[..7];
+		}
+
+		private async Task PopulateCreateDropdownsAsync(int? selectedEventNo, object? selectedUsersNo)
         {
             ViewBag.EventNo = new SelectList(
                 await _context.Events.AsNoTracking()
@@ -541,5 +569,30 @@ public async Task<IActionResult> ExportExcel(int? eventId)
     {
         return ex.GetBaseException() is SqlException sql && (sql.Number == 2627 || sql.Number == 2601);
     }
-    }
+
+		// 僅傳回「報名中」活動與會員清單，供 Modal 下拉載入
+		[HttpGet]
+		public async Task<IActionResult> GetCreateOptions()
+		{
+			var openEvents = await _context.Events
+				.AsNoTracking()
+				.Where(e => e.Status == "報名中")
+				.OrderBy(e => e.StartDate)
+				.Select(e => new { id = e.No, text = $"{e.Title}（{e.StartDate:yyyy/MM/dd HH:mm}）" })
+				.ToListAsync();
+
+			var users = await _context.Users
+				.AsNoTracking()
+				.OrderBy(u => u.Name)
+				.Select(u => new { id = u.No.ToString(), text = u.Name })   // ← 這行改成 ToString()
+				.ToListAsync();
+
+			return Json(new { events = openEvents, users });
+		}
+
+
+
+
+	}
+
 }

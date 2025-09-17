@@ -13,9 +13,10 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h1 class="fw-bold text-black">報名管理</h1>
     <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-warning text-dark" asp-controller="Participants" asp-action="Create">
+        <button type="button" class="btn btn-warning text-dark"
+                data-bs-toggle="modal" data-bs-target="#createParticipantModal">
             <i class="fi fi-sr-alien"></i> 新增
-        </a>
+        </button>
 
         <!-- 跟 _ParticipantsTable 風格一致：細框、btn-sm、方角、帶圖示 -->
         <a class="btn btn-outline-success btn-export"
@@ -148,6 +149,66 @@
         </div>
     </div>
 </div>
+
+<!-- Modal：新增報名（垂直置中） -->
+<div class="modal fade" id="createParticipantModal" tabindex="-1" aria-labelledby="createParticipantLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <!-- 垂直置中 + 略寬 -->
+        <div class="modal-content">
+            <form id="createParticipantForm" method="post" action="@Url.Action("Create","Participants")">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="createParticipantLabel">新增報名</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- 活動（僅顯示「報名中」的活動；由 JS 載入選項） -->
+                        <div class="col-12">
+                            <label for="Create_EventNo" class="form-label fw-bold">活動</label>
+                            <select name="EventNo" id="Create_EventNo" class="form-select" required>
+                                <option value="">載入中…</option>
+                            </select>
+                            <div class="text-danger small d-none" id="errEvent">請選擇活動</div>
+                        </div>
+
+                        <!-- 會員 -->
+                        <div class="col-12">
+                            <label for="Create_UsersNo" class="form-label fw-bold">會員</label>
+                            <select name="UsersNo" id="Create_UsersNo" class="form-select" required>
+                                <option value="">載入中…</option>
+                            </select>
+                            <div class="text-danger small d-none" id="errUser">請選擇會員</div>
+                        </div>
+
+                        <!-- 狀態 -->
+                        <div class="col-12">
+                            <label for="Create_Status" class="form-label fw-bold">狀態</label>
+                            <select name="Status" id="Create_Status" class="form-select" required>
+                                <option value="報名成功">報名成功</option>
+                                <option value="報名取消已退款">報名取消已退款</option>
+                            </select>
+                        </div>
+
+                        <!-- 重複報名警示 -->
+                        <div class="col-12">
+                            <div id="dupWarnCreate" class="alert alert-danger d-none" role="alert" aria-live="assertive">
+                                <strong>重複報名！</strong> 此會員已報名該活動（狀態：報名成功），請勿重複建立。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" id="btnCreateSubmit" class="btn btn-primary">建立</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 @section Styles {
     <style>
@@ -351,345 +412,355 @@
 }
 
 @section Scripts {
+    @* 驗證 *@
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('Index script loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('Index script loaded');
 
-            let currentEventId = 0;
+          // ====== 參與者名單 Modal（舊功能） ======
+          let currentEventId = 0;
+          const listUrl = '@Url.Action("ListByEvent", "Participants")';
+          const csvUrl  = '@Url.Action("ExportCsv", "Participants")';
+          const xlsUrl  = '@Url.Action("ExportExcel", "Participants")';
+          const bulkUrl = '@Url.Action("BulkDelete", "Participants")';
+          const resendUrl = '@Url.Action("ResendSignup", "Participants")';
 
-            // API 路徑
-            const listUrl = '@Url.Action("ListByEvent", "Participants")';
-            const csvUrl  = '@Url.Action("ExportCsv", "Participants")';
-            const xlsUrl  = '@Url.Action("ExportExcel", "Participants")';
-            const bulkUrl = '@Url.Action("BulkDelete", "Participants")';
+          const participantsModalEl = document.getElementById('participantsModal');
+          const participantsModal   = bootstrap.Modal.getOrCreateInstance(participantsModalEl);
 
-            const modalEl = document.getElementById('participantsModal');
-            const modal   = bootstrap.Modal.getOrCreateInstance(modalEl); // 避免重複建立
+          function cleanupModalArtifacts() {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+          }
+          participantsModalEl?.addEventListener('hidden.bs.modal', cleanupModalArtifacts);
 
-            // ── 通用：清理殘留 backdrop 與 body 狀態 ──────────────────────────────
-            function cleanupModalArtifacts() {
-                // 移除所有殘留的 backdrop
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                // 移除 body 狀態
-                document.body.classList.remove('modal-open');
-                document.body.style.removeProperty('overflow');
-                document.body.style.removeProperty('padding-right');
-            }
-
-            // 當 Modal 完全關閉時，一律清理一次（保險）
-            modalEl.addEventListener('hidden.bs.modal', () => {
-                cleanupModalArtifacts();
-            });
-
-            // ✅ 新增：重寄確認信的 API 路徑
-            const resendUrl = '@Url.Action("ResendSignup", "Participants")';
-
-            // 小工具：切換按鈕的 loading 狀態
-            function setBtnLoading(btn, on) {
-            if (!btn) return;
-            if (on) { btn.classList.add('btn-loading'); btn.setAttribute('disabled', 'disabled'); }
-            else { btn.classList.remove('btn-loading'); btn.removeAttribute('disabled'); }
-        }
-
-
-            // 卡片點擊 → 顯示 Modal + 載入名單
-            document.addEventListener('click', function (e) {
-                const card = e.target.closest('.cardDetail');
-                if (!card) return;
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                currentEventId = Number(card.getAttribute('data-event-id')) || 0;
-                const title = card.getAttribute('data-event-title') || '參與者名單';
-
-                const modalTitle = document.getElementById('participantsModalLabel');
-                const modalEventId = document.getElementById('modalEventId');
-                if (modalTitle) modalTitle.textContent = title;
-                if (modalEventId) modalEventId.textContent = currentEventId;
-
-                const btnExportCsv = document.getElementById('btnExportCsv');
-                const btnExportExcel = document.getElementById('btnExportExcel');
-                if (btnExportCsv) btnExportCsv.href = `${csvUrl}?eventId=${currentEventId}`;
-                if (btnExportExcel) btnExportExcel.href = `${xlsUrl}?eventId=${currentEventId}`;
-
-                loadParticipantsTable(currentEventId).then(() => {
-                    modal.show();
-                });
-            });
-
-            // 載入參與者列表（PartialView）
-            async function loadParticipantsTable(eventId) {
-                const container = document.getElementById('participantsTableContainer');
-                if (!container) return;
-
-                container.innerHTML = `
-                    <div class="text-center text-muted py-5" id="tableLoading">
-                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                        載入中…
-                    </div>`;
-
-                try {
-                    const url = `${listUrl}?eventId=${encodeURIComponent(eventId)}`;
-                    const response = await fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-                        },
-                        cache: 'no-store',
-                        redirect: 'manual'
-                    });
-
-                    if (response.type === 'opaqueredirect' || response.status === 0) {
-                        throw new Error('已被重導，可能需要重新登入。');
-                    }
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-
-                    const html = await response.text();
-                    if (!html || html.trim().length === 0) {
-                        throw new Error('回應內容為空');
-                    }
-                    // 粗略偵測是否整頁（避免誤把整頁塞進 container）
-                    if (html.toLowerCase().includes('<html') && html.toLowerCase().includes('<body')) {
-                        throw new Error('伺服器回傳整頁 HTML，請確認 Action 是否只回傳 PartialView。');
-                    }
-
-                    container.innerHTML = html;
-                } catch (error) {
-                    console.error('載入參與者列表失敗:', error);
-                    container.innerHTML = `
-                        <div class="alert alert-danger mb-0">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            載入失敗：${error.message || error}
-                            <br><small>請檢查權限或重新整理頁面</small>
-                        </div>`;
-                }
-            }
-
-            // 取得防偽 Token
-            function getAntiForgeryToken() {
-                const el = document.querySelector('#participantsTableContainer input[name="__RequestVerificationToken"]')
-                    || document.querySelector('input[name="__RequestVerificationToken"]');
-                return el?.value || '';
-            }
-
-            // 批次刪除（共用）
-            async function performBulkDelete(eventId, ids) {
-                try {
-                    const token = getAntiForgeryToken();
-                    if (!token) throw new Error('找不到防偽 Token，請重新整理頁面');
-
-                    const formData = new FormData();
-                    formData.append('__RequestVerificationToken', token);
-                    formData.append('eventId', String(eventId));
-                    ids.forEach(id => formData.append('ids', String(id)));
-
-                    const response = await fetch(bulkUrl, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-
-                    const contentType = response.headers.get('content-type') || '';
-                    if (!contentType.includes('application/json')) {
-                        const text = await response.text();
-                        console.error('Unexpected response:', text.substring(0, 300));
-                        throw new Error('伺服器回應格式錯誤（非 JSON）');
-                    }
-
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.message || '刪除失敗');
-
-                    // ✅ 刷新表格
-                    await loadParticipantsTable(eventId);
-
-                    // ✅ 強制清理任何殘留遮罩
-                    cleanupModalArtifacts();
-
-                    // 成功提示（若無 Swal 就用 alert）
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'success', title: '刪除成功', text: result.message || `已刪除 ${ids.length} 筆資料`, timer: 1600, showConfirmButton: false });
-                    } else {
-                        console.log('刪除成功');
-                    }
-                } catch (error) {
-                    console.error('批次刪除錯誤:', error);
-                    alert('刪除失敗：' + (error.message || error));
-                    // 防守：遇到例外也清一次
-                    cleanupModalArtifacts();
-                }
-            }
-
-            // 事件：批次刪除按鈕（在 Partial 裡面的 #btnBulkDelete）
-            document.addEventListener('click', async function (e) {
-                const bulkBtn = e.target.closest('#btnBulkDelete');
-                if (!bulkBtn) return;
-
-                e.preventDefault();
-
-                if (!currentEventId) {
-                    alert('請先選擇一個活動。');
-                    return;
-                }
-
-                const checkedBoxes = Array.from(
-                    document.querySelectorAll('#participantsTableContainer tbody input[name="ids"]:checked')
-                );
-                const ids = checkedBoxes.map(cb => Number(cb.value)).filter(id => !isNaN(id) && id > 0);
-
-                if (ids.length === 0) {
-                    alert('請先勾選要刪除的項目。');
-                    return;
-                }
-
-                if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？此操作無法復原。`)) return;
-
-                await performBulkDelete(currentEventId, ids);
-            });
-
-            // 事件：單筆刪除（在 Partial 裡面的 .js-row-delete）
-            document.addEventListener('click', async function (e) {
-                const deleteBtn = e.target.closest('.js-row-delete');
-                if (!deleteBtn) return;
-
-                e.preventDefault();
-
-                const id = Number(deleteBtn.dataset.id);
-                const eventId = currentEventId || Number(document.getElementById('modalEventId')?.textContent || 0);
-
-                if (!id || !eventId) {
-                    alert('刪除失敗：找不到必要的參數');
-                    return;
-                }
-
-                if (!confirm('確定刪除這筆報名資料嗎？此操作無法復原。')) return;
-
-                await performBulkDelete(eventId, [id]);
-            });
-
-                    // 事件：重寄確認信（在 Partial 裡面的 .js-resend）
-        document.addEventListener('click', async function (e) {
-            const btn = e.target.closest('.js-resend');
-            if (!btn) return;
-
+          // 卡片點擊 → 開啟名單 + 載入
+          document.addEventListener('click', (e) => {
+            const card = e.target.closest('.cardDetail');
+            if (!card) return;
             e.preventDefault();
 
-            const id = Number(btn.dataset.id);
-            if (!id) {
-                alert('重寄失敗：找不到參與者編號');
-                return;
-            }
+            currentEventId = Number(card.dataset.eventId) || 0;
+            const title = card.dataset.eventTitle || '參與者名單';
+            document.getElementById('participantsModalLabel').textContent = title;
+            document.getElementById('modalEventId').textContent = currentEventId;
 
-            const token = getAntiForgeryToken();
-            if (!token) {
-                alert('重寄失敗：找不到驗證 Token，請重新整理頁面');
-                return;
-            }
+            const btnExportCsv   = document.getElementById('btnExportCsv');
+            const btnExportExcel = document.getElementById('btnExportExcel');
+            if (btnExportCsv)   btnExportCsv.href   = `${csvUrl}?eventId=${currentEventId}`;
+            if (btnExportExcel) btnExportExcel.href = `${xlsUrl}?eventId=${currentEventId}`;
+
+            loadParticipantsTable(currentEventId).then(() => participantsModal.show());
+          });
+
+          async function loadParticipantsTable(eventId) {
+            const container = document.getElementById('participantsTableContainer');
+            if (!container) return;
+
+            container.innerHTML = `
+              <div class="text-center text-muted py-5" id="tableLoading">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                載入中…
+              </div>`;
 
             try {
-                setBtnLoading(btn, true);
+              const url = `${listUrl}?eventId=${encodeURIComponent(eventId)}`;
+              const resp = await fetch(url, {
+                method: 'GET',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                },
+                cache: 'no-store',
+                redirect: 'manual'
+              });
 
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+              const html = await resp.text();
+              if (!html || html.trim().length === 0) throw new Error('回應內容為空');
+              if (html.toLowerCase().includes('<html') && html.toLowerCase().includes('<body'))
+                throw new Error('伺服器回傳整頁 HTML，請確認 Action 是否只回傳 PartialView。');
+
+              container.innerHTML = html;
+            } catch (err) {
+              console.error('載入參與者列表失敗:', err);
+              container.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  載入失敗：${err.message || err}
+                  <br><small>請檢查權限或重新整理頁面</small>
+                </div>`;
+            }
+          }
+
+          function getAntiForgeryTokenForTable() {
+            const el = document.querySelector('#participantsTableContainer input[name="__RequestVerificationToken"]')
+                || document.querySelector('input[name="__RequestVerificationToken"]');
+            return el?.value || '';
+          }
+
+          async function performBulkDelete(eventId, ids) {
+            try {
+              const token = getAntiForgeryTokenForTable();
+              if (!token) throw new Error('找不到防偽 Token，請重新整理頁面');
+
+              const formData = new FormData();
+              formData.append('__RequestVerificationToken', token);
+              formData.append('eventId', String(eventId));
+              ids.forEach(id => formData.append('ids', String(id)));
+
+              const resp = await fetch(bulkUrl, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+              });
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
+              const ct = resp.headers.get('content-type') || '';
+              if (!ct.includes('application/json')) throw new Error('伺服器回應格式錯誤（非 JSON）');
+
+              const result = await resp.json();
+              if (!result.success) throw new Error(result.message || '刪除失敗');
+
+              await loadParticipantsTable(eventId);
+              cleanupModalArtifacts();
+              if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: '刪除成功', text: result.message || `已刪除 ${ids.length} 筆資料`, timer: 1600, showConfirmButton: false });
+              }
+            } catch (err) {
+              console.error('批次刪除錯誤:', err);
+              alert('刪除失敗：' + (err.message || err));
+              cleanupModalArtifacts();
+            }
+          }
+
+          document.addEventListener('click', async (e) => {
+            // 批次刪除
+            const bulkBtn = e.target.closest('#btnBulkDelete');
+            if (bulkBtn) {
+              e.preventDefault();
+              if (!currentEventId) return alert('請先選擇一個活動。');
+              const ids = Array.from(document.querySelectorAll('#participantsTableContainer tbody input[name="ids"]:checked'))
+                          .map(cb => Number(cb.value)).filter(n => n > 0);
+              if (!ids.length) return alert('請先勾選要刪除的項目。');
+              if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？此操作無法復原。`)) return;
+              await performBulkDelete(currentEventId, ids);
+            }
+
+            // 單筆刪除
+            const delBtn = e.target.closest('.js-row-delete');
+            if (delBtn) {
+              e.preventDefault();
+              const id = Number(delBtn.dataset.id);
+              const eventId = currentEventId || Number(document.getElementById('modalEventId')?.textContent || 0);
+              if (!id || !eventId) return alert('刪除失敗：找不到必要的參數');
+              if (!confirm('確定刪除這筆報名資料嗎？此操作無法復原。')) return;
+              await performBulkDelete(eventId, [id]);
+            }
+
+            // 重寄確認信
+            const reBtn = e.target.closest('.js-resend');
+            if (reBtn) {
+              e.preventDefault();
+              const id = Number(reBtn.dataset.id);
+              if (!id) return alert('重寄失敗：找不到參與者編號');
+              const token = getAntiForgeryTokenForTable();
+              if (!token) return alert('重寄失敗：找不到驗證 Token，請重新整理頁面');
+
+              try {
+                reBtn.classList.add('btn-loading');
                 const form = new FormData();
                 form.append('__RequestVerificationToken', token);
                 form.append('id', String(id));
 
                 const resp = await fetch(resendUrl, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        // ⬇ 這行可強化相容性（部分站台設定只收 Header）
-                        'RequestVerificationToken': token
-                    },
-                    body: form
+                  method: 'POST',
+                  headers: { 'X-Requested-With': 'XMLHttpRequest', 'RequestVerificationToken': token },
+                  body: form
                 });
-
-                if (resp.status === 400 || resp.status === 401 || resp.status === 403) {
-                    throw new Error('驗證失敗（可能缺少或過期的 Anti-Forgery Token），請重新整理頁面再試。');
-                }
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
                 const data = await resp.json();
                 if (data.success) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'success', title: '已重寄', text: data.message || '報名確認信已重新發送', timer: 1600, showConfirmButton: false });
-                    } else {
-                        alert(data.message || '已重新發送確認信');
-                    }
+                  if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'success', title: '已重寄', text: data.message || '報名確認信已重新發送', timer: 1600, showConfirmButton: false });
+                  } else {
+                    alert(data.message || '已重新發送確認信');
+                  }
                 } else {
-                    btn.classList.add('shake');
-                    setTimeout(() => btn.classList.remove('shake'), 500);
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'error', title: '重寄失敗', text: data.message || '請稍後再試' });
-                    } else {
-                        alert('重寄失敗：' + (data.message || '請稍後再試'));
-                    }
+                  reBtn.classList.add('shake'); setTimeout(() => reBtn.classList.remove('shake'), 500);
+                  if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: '重寄失敗', text: data.message || '請稍後再試' });
+                  else alert('重寄失敗：' + (data.message || '請稍後再試'));
                 }
-            } catch (err) {
-                btn.classList.add('shake');
-                setTimeout(() => btn.classList.remove('shake'), 500);
+              } catch (err) {
+                reBtn.classList.add('shake'); setTimeout(() => reBtn.classList.remove('shake'), 500);
                 alert('重寄失敗：' + (err.message || err));
-            } finally {
-                setBtnLoading(btn, false);
+              } finally {
+                reBtn.classList.remove('btn-loading');
+              }
             }
-        });
-                // === 全選/反選：工具函式，依勾選狀態更新 header 的 indeterminate ===
-        function updateCheckAllState() {
+          });
+
+          // 全選/反選（維持 header 的 indeterminate 狀態）
+          function updateCheckAllState() {
             const container = document.getElementById('participantsTableContainer');
             if (!container) return;
             const all = Array.from(container.querySelectorAll('tbody input[name="ids"]:not(:disabled)'));
-            const checkAllBox = container.querySelector('#checkAll[data-check-all]');
-            if (!checkAllBox) return;
-
-            const checkedCount = all.filter(cb => cb.checked).length;
-            if (all.length === 0) {
-                checkAllBox.checked = false;
-                checkAllBox.indeterminate = false;
-                return;
-            }
-            if (checkedCount === 0) {
-                checkAllBox.checked = false;
-                checkAllBox.indeterminate = false;
-            } else if (checkedCount === all.length) {
-                checkAllBox.checked = true;
-                checkAllBox.indeterminate = false;
-            } else {
-                checkAllBox.checked = false;
-                checkAllBox.indeterminate = true;
-            }
-        }
-
-        // === 事件委派：按「全選框」→ 勾選/取消所有列 ===
-        document.addEventListener('change', function (e) {
+            const box = container.querySelector('#checkAll[data-check-all]');
+            if (!box) return;
+            const checked = all.filter(cb => cb.checked).length;
+            if (!all.length) { box.checked = false; box.indeterminate = false; return; }
+            if (checked === 0)      { box.checked = false; box.indeterminate = false; }
+            else if (checked === all.length) { box.checked = true;  box.indeterminate = false; }
+            else                    { box.checked = false; box.indeterminate = true; }
+          }
+          document.addEventListener('change', (e) => {
             const container = document.getElementById('participantsTableContainer');
             if (!container) return;
-
-            // 點了表頭的全選框
             if (e.target.matches('#participantsTableContainer #checkAll, #participantsTableContainer #checkAll[data-check-all]')) {
-                const isChecked = e.target.checked;
-                container
-                    .querySelectorAll('tbody input[name="ids"]:not(:disabled)')
-                    .forEach(cb => cb.checked = isChecked);
-                updateCheckAllState();
-                return;
+              const on = e.target.checked;
+              container.querySelectorAll('tbody input[name="ids"]:not(:disabled)').forEach(cb => cb.checked = on);
+              updateCheckAllState();
             }
+            if (e.target.matches('#participantsTableContainer tbody input[name="ids"]')) updateCheckAllState();
+          });
 
-            // 單列 checkbox 勾選變更 → 更新 header 狀態
-            if (e.target.matches('#participantsTableContainer tbody input[name="ids"]')) {
-                updateCheckAllState();
+          // ====== 新增報名 Modal（整合版） ======
+          const createModalEl = document.getElementById('createParticipantModal');
+          const createForm    = document.getElementById('createParticipantForm');
+          const selEvent      = document.getElementById('Create_EventNo');
+          const selUser       = document.getElementById('Create_UsersNo');
+          const selStatus     = document.getElementById('Create_Status');
+          const dupWarn       = document.getElementById('dupWarnCreate');
+          const errEvent      = document.getElementById('errEvent');
+          const errUser       = document.getElementById('errUser');
+          const btnCreate     = document.getElementById('btnCreateSubmit');
+
+          const optionsUrl   = '@Url.Action("GetCreateOptions", "Participants")';
+          const checkDupBase = '/Participants/CheckDuplicate';
+
+          function getToken() {
+            const el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el?.value || '';
+          }
+
+          // 打開時：重置 & 載入下拉
+          createModalEl?.addEventListener('show.bs.modal', () => {
+            try { createForm?.reset(); } catch {}
+            dupWarn?.classList.add('d-none');
+            errEvent?.classList.add('d-none');
+            errUser?.classList.add('d-none');
+            loadCreateOptions();
+          });
+
+          async function loadCreateOptions() {
+            try {
+              if (selEvent) selEvent.innerHTML = '<option value="">載入中…</option>';
+              if (selUser)  selUser.innerHTML  = '<option value="">載入中…</option>';
+
+              const resp = await fetch(optionsUrl, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                cache: 'no-store'
+              });
+              if (!resp.ok) throw new Error('取得選項失敗');
+
+              const data = await resp.json();
+              const evOpts = ['<option value="">請選擇活動（僅顯示「報名中」）</option>']
+                .concat((data.events || []).map(e => `<option value="${e.id}">${e.text}</option>`));
+              if (selEvent) selEvent.innerHTML = evOpts.join('');
+
+              const userOpts = ['<option value="">請選擇會員</option>']
+                .concat((data.users || []).map(u => `<option value="${u.id}">${u.text}</option>`));
+              if (selUser) selUser.innerHTML = userOpts.join('');
+            } catch (err) {
+              console.error(err);
+              if (selEvent) selEvent.innerHTML = '<option value="">載入失敗</option>';
+              if (selUser)  selUser .innerHTML = '<option value="">載入失敗</option>';
             }
-        });
+          }
 
+          // 重複報名檢查
+          async function checkDuplicate() {
+            if (!dupWarn) return;
+            dupWarn.classList.add('d-none');
+            const eventId = selEvent?.value;
+            const usersNo = selUser ?.value;
+            if (!eventId || !usersNo) return;
 
+            try {
+              const url  = `${checkDupBase}?eventId=${encodeURIComponent(eventId)}&usersNo=${encodeURIComponent(usersNo)}`;
+              const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+              const data = await resp.json();
+              if (data && data.exists) dupWarn.classList.remove('d-none');
+            } catch { /* 靜默失敗，不阻擋送出 */ }
+          }
+          selEvent?.addEventListener('change', checkDuplicate);
+          selUser ?.addEventListener('change',  checkDuplicate);
 
-            console.log('Index script setup complete');
+          // 單一路徑的 submit（避免重複送出）
+          let submitting = false;
+          createForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (submitting) return;
+            submitting = true;
+            btnCreate?.setAttribute('disabled','disabled');
+
+            try {
+              // 前端基本檢查
+              errEvent?.classList.toggle('d-none', !!selEvent?.value);
+              errUser ?.classList.toggle('d-none', !!selUser ?.value);
+              if (!selEvent?.value || !selUser?.value) return;
+              if (!dupWarn?.classList.contains('d-none')) return;
+
+              const formData = new FormData(createForm);
+              const resp = await fetch(createForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'RequestVerificationToken': getToken(),
+                  'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text().catch(()=> '');
+                throw new Error(`HTTP ${resp.status} ${resp.statusText}\n${text.substring(0,400)}`);
+              }
+
+              const ct = resp.headers.get('content-type') || '';
+              if (ct.includes('application/json')) {
+                const data = await resp.json();
+                if (!data.success) throw new Error(data.message || '建立失敗（伺服器回傳失敗）');
+              }
+
+              // 成功：關閉新增 Modal
+              bootstrap.Modal.getOrCreateInstance(createModalEl).hide();
+
+              // 若「參與者名單」Modal 正開著 → 只刷新該活動；否則整頁刷新
+              const isTableOpen = participantsModalEl?.classList.contains('show');
+              const justEventId = selEvent?.value;
+              if (isTableOpen && typeof loadParticipantsTable === 'function') {
+                await loadParticipantsTable(justEventId);
+              } else {
+                location.reload();
+              }
+            } catch (err) {
+              alert(err.message || err);
+              console.error('Create failed:', err);
+            } finally {
+              submitting = false;
+              btnCreate?.removeAttribute('disabled');
+            }
+          });
+
+          console.log('Index script setup complete');
         });
     </script>
 }
+

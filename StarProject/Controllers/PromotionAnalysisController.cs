@@ -1,92 +1,152 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
-using StarProject.DTOs.PromotionDTOs;
 using StarProject.Models;
+using System.Globalization;
 
 namespace StarProject.Controllers
 {
     public class PromotionAnalysisController : Controller
     {
         private readonly StarProjectContext _context;
-        private readonly ICompositeViewEngine _viewEngine;
 
-        public PromotionAnalysisController(StarProjectContext context, ICompositeViewEngine viewEngine)
+        public PromotionAnalysisController(StarProjectContext context)
         {
             _context = context;
-            _viewEngine = viewEngine;
         }
 
         public IActionResult Index()
         {
-            // ✅ 修改：型別對齊 View（使用 DTO），也避免 null
-            return View(Enumerable.Empty<PromotionAnalysisDto>());
+            return View();
         }
 
+        // ✅ 綜合分析資料 API
         [HttpGet]
-        public async Task<IActionResult> GetPagedData(int page = 1, int pageSize = 10, string? search = null)
+        public async Task<IActionResult> GetAnalysisData()
         {
-            if (page < 1) page = 1;          // ✅ 邊界保護
-            if (pageSize <= 0) pageSize = 10;
+            var monthlyTrend = await GetMonthlyTrend();
+            var usageRanking = await GetUsageRanking();
+            var kpiData = await GetKPIData();
 
-            // ✅ 修改：改用 DTO 的查詢組裝（AsNoTracking 提升效能）
-            var baseQuery = PromotionAnalysisDto.BuildQuery(
-                _context.Promotions.AsNoTracking(),
-                _context.PromotionUsages.AsNoTracking(),
-                search
-            );
+            return Json(new
+            {
+                monthlyTrend,
+                usageRanking,
+                kpiData
+            });
+        }
 
-            var total = await baseQuery.CountAsync();
-            var totalPages = (int)Math.Ceiling(total / (double)pageSize);
-            if (totalPages == 0) totalPages = 1;
-            if (page > totalPages) page = totalPages;
+        // ✅ 月度使用趨勢分析
+        private async Task<object> GetMonthlyTrend()
+        {
+            var sixMonthsAgo = DateTime.Now.AddMonths(-6);
 
-            var data = await baseQuery
-                .OrderBy(p => p.PromotionNo) // ✅ 固定排序
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+            var monthlyData = await _context.OrderMasters
+                .Where(o => o.Date >= sixMonthsAgo && !string.IsNullOrEmpty(o.CouponCode))
+                .GroupBy(o => new { o.Date.Year, o.Date.Month })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Count = g.Count(),
+                    TotalDiscount = g.Sum(o => o.DiscountAmount ?? 0)
+                })
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
                 .ToListAsync();
 
-            // ✅ 渲染資料列（注意：Rows partial 也會調整型別 → DTO）
-            var rowsHtml = await RenderPartialViewToStringAsync("_PromotionAnalysisRows", data);
+            var labels = monthlyData
+                .Select(x => new DateTime(x.Year, x.Month, 1)
+                .ToString("yyyy年MM月", CultureInfo.InvariantCulture))
+                .ToList();
 
-            // ✅ 改用共用分頁 Partial（Views/Shared/_Pagination.cshtml）
-            ViewBag.Total = total;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.Page = page;
+            var counts = monthlyData.Select(x => x.Count).ToList();
+            var discounts = monthlyData.Select(x => x.TotalDiscount).ToList();
 
-            var paginationHtml = await RenderPartialViewToStringAsync("_Pagination", model: null);
-
-            return Json(new { rows = rowsHtml, pagination = paginationHtml });
+            return new { labels, counts, discounts };
         }
 
-        // 共用：將 Partial 渲染成字串，給 AJAX 回傳
-        private async Task<string> RenderPartialViewToStringAsync(string viewName, object? model)
+        // ✅ 優惠券使用排名
+        private async Task<object> GetUsageRanking()
         {
-            ViewData.Model = model;
+            var ranking = await _context.OrderMasters
+                .Where(o => !string.IsNullOrEmpty(o.CouponCode))
+                .GroupBy(o => o.CouponCode)
+                .Select(g => new
+                {
+                    CouponCode = g.Key,
+                    UsageCount = g.Count(),
+                    TotalDiscount = g.Sum(o => o.DiscountAmount ?? 0)
+                })
+                .OrderByDescending(x => x.UsageCount)
+                .Take(10)
+                .ToListAsync();
 
-            await using var sw = new StringWriter();
-            var viewResult = _viewEngine.FindView(ControllerContext, viewName, false);
-            if (viewResult.View == null)
-                throw new ArgumentNullException($"{viewName} not found");
-
-            var viewContext = new ViewContext(
-                ControllerContext,
-                viewResult.View,
-                ViewData,
-                TempData,
-                sw,
-                new HtmlHelperOptions()
-            );
-
-            await viewResult.View.RenderAsync(viewContext);
-            return sw.GetStringBuilder().ToString();
+            return ranking;
         }
 
-        // ❌ 已移除：GeneratePaginationHtml
-        // ✅ 原因：統一使用 Shared/_Pagination，樣式一致，Controller 更乾淨
+        // ✅ 關鍵績效指標 (KPI)
+        private async Task<object> GetKPIData()
+        {
+            var totalOrders = await _context.OrderMasters.CountAsync();
+
+            var couponOrders = await _context.OrderMasters
+                .Where(o => !string.IsNullOrEmpty(o.CouponCode))
+                .CountAsync();
+
+            var totalRevenue = await _context.OrderMasters.SumAsync(o => o.AllTotal);
+
+            var totalDiscount = await _context.OrderMasters.SumAsync(o => o.DiscountAmount ?? 0);
+
+            var couponRevenue = await _context.OrderMasters
+                .Where(o => !string.IsNullOrEmpty(o.CouponCode))
+                .SumAsync(o => o.AllTotal);
+
+            var nonCouponRevenue = await _context.OrderMasters
+                .Where(o => string.IsNullOrEmpty(o.CouponCode))
+                .SumAsync(o => o.AllTotal);
+
+            var couponROI = totalDiscount > 0
+                ? Math.Round((couponRevenue - totalDiscount) / totalDiscount * 100, 2)
+                : 0;
+
+            var couponUsageRate = totalOrders > 0
+                ? Math.Round((double)couponOrders / totalOrders * 100, 2)
+                : 0;
+
+            var avgDiscountRate = totalRevenue > 0
+                ? Math.Round(totalDiscount / totalRevenue * 100, 2)
+                : 0;
+
+            return new
+            {
+                totalOrders,
+                couponOrders,
+                totalRevenue,
+                totalDiscount,
+                couponRevenue,
+                nonCouponRevenue,
+                couponROI,
+                couponUsageRate,
+                avgDiscountRate
+            };
+        }
+
+        // ✅ 分類分析
+        [HttpGet]
+        public async Task<IActionResult> GetCategoryAnalysis()
+        {
+            var categoryData = await _context.OrderMasters
+                .Where(o => !string.IsNullOrEmpty(o.CouponCode))
+                .GroupBy(o => o.Category)
+                .Select(g => new
+                {
+                    Category = g.Key,
+                    OrderCount = g.Count(),
+                    TotalDiscount = g.Sum(o => o.DiscountAmount ?? 0),
+                    AvgDiscount = g.Average(o => o.DiscountAmount ?? 0)
+                })
+                .ToListAsync();
+
+            return Json(categoryData);
+        }
     }
 }

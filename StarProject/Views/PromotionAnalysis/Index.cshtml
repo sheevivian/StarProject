@@ -1,86 +1,251 @@
-﻿@using StarProject.DTOs.PromotionDTOs
-@model IEnumerable<PromotionAnalysisDto> // ✅ 修正：型別與 Controller.Index 一致
-
-@{
+﻿@{
     ViewData["Title"] = "優惠券成效分析";
 }
 
 <head>
     <link href="~/css/promotion.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .kpi-value { font-size: 2rem; font-weight: bold; }
+        .kpi-label { font-size: 1rem; opacity: 0.9; }
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .chart-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; color: #2B4C8C; }
+        .chart-wrapper { position: relative; height: 400px; }
+        .chart-wrapper-small { position: relative; height: 300px; }
+        .chart-wrapper-medium { position: relative; height: 350px; }
+    </style>
 </head>
 
-<main class="flex-fill position-relative">
-    <div class="d-flex align-items-center mb-3">
-        <h1 class="fw-bold flex-grow-1 mb-0">優惠券成效分析</h1>
+<main class="container-fluid">
+    <div class="d-flex align-items-center mb-4">
+        <h1 class="fw-bold flex-grow-1 mb-0">
+            <i class="fi fi-ss-money-wings me-2"></i>優惠券成效分析
+        </h1>
+        <button class="btn btn-primary" onclick="refreshData()">
+            <i class="fa-solid fa-rotate me-2"></i>更新資料
+        </button>
     </div>
 
-    <!-- 搜尋 + 每頁筆數 -->
-    <div class="input-group input-group-lg">
-        <input id="searchInput" type="text" class="form-control" placeholder="請輸入優惠名稱或類別">
-        <button type="button" class="input-group-text search" id="btnSearch">
-            <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
-
-        <div class="d-flex gap-3">
-            <div style="width:150px">
-                <select class="form-select form-select-lg" id="pageSizeSelect" onchange="loadData(1)">
-                    <option selected value="10">每頁10筆</option>
-                    <option value="15">每頁15筆</option>
-                    <option value="20">每頁20筆</option>
-                    <option value="25">每頁25筆</option>
-                </select>
+    <!-- KPI 卡片區 -->
+    <div class="row mb-4" id="kpiContainer">
+        <div class="col-md-2">
+            <div class="kpi-card">
+                <div class="kpi-label">使用優惠券訂單</div>
+                <div class="kpi-value" id="couponOrders">0</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="kpi-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="kpi-label">總折扣金額</div>
+                <div class="kpi-value" id="totalDiscount">--</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="kpi-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="kpi-label">優惠券使用率</div>
+                <div class="kpi-value" id="usageRate">--%</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="kpi-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="kpi-label">平均折扣率</div>
+                <div class="kpi-value" id="avgDiscountRate">--%</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="kpi-card" style="background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);">
+                <div class="kpi-label">優惠券 ROI</div>
+                <div class="kpi-value" id="couponROI">--%</div>
             </div>
         </div>
     </div>
 
-    <div class="table-rounded position-relative mt-3">
-        <table class="table table-hover table-borderless">
-            <thead>
-                <tr>
-                    <th>編號</th>
-                    <th>名稱</th>
-                    <th>分類</th>
-                    <th>狀態</th>
-                    <th>開始日期</th>
-                    <th>結束日期</th>
-                    <th>限定次數</th>
-                    <th>實際使用</th>
-                    <th>使用人數</th>
-                    <th>使用率 (%)</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"><!-- ✅ 首屏不渲染，由 JS 載入 --></tbody>
-        </table>
+    <!-- 圖表區 -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h3 class="chart-title">📈 月度使用趨勢</h3>
+                <div class="chart-wrapper">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <h3 class="chart-title">💰 優惠券投資報酬分析</h3>
+                <div class="chart-wrapper-small">
+                    <canvas id="roiChart"></canvas>
+                </div>
+                <div class="mt-3" id="roiDetails"></div>
+            </div>
+        </div>
+    </div>
 
-        <!-- ✅ 修改：與 Shared/_Pagination 匹配的容器 -->
-        <div id="paginationContainer" class="mt-3"></div>
+    <!-- 排行榜 -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3 class="chart-title">🏆 優惠券使用排行榜</h3>
+                <div class="chart-wrapper-medium">
+                    <canvas id="rankingChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3 class="chart-title">📊 分類使用分析</h3>
+                <div class="chart-wrapper-small">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
 @section Scripts {
-    <script>
-        async function loadData(page) {
-            const pageSize = document.getElementById("pageSizeSelect").value;
-            const search = document.getElementById("searchInput").value;
+<script>
+    let charts = {};
 
-            const qs = new URLSearchParams({ page, pageSize, search });
-            const res = await fetch(`/PromotionAnalysis/GetPagedData?${qs.toString()}`);
-            if (!res.ok) {
-                console.error("Fetch failed", res.status);
-                return;
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAnalysisData();
+        loadCategoryAnalysis();
+    });
+
+    async function loadAnalysisData() {
+        try {
+            const response = await fetch('/PromotionAnalysis/GetAnalysisData');
+            const data = await response.json();
+            updateKPI(data.kpiData);
+            drawMonthlyTrend(data.monthlyTrend);
+            drawRanking(data.usageRanking);
+            drawROI(data.kpiData);
+        } catch (error) {
+            console.error('載入資料失敗:', error);
+        }
+    }
+
+    function updateKPI(kpi) {
+        document.getElementById('couponOrders').textContent = kpi.couponOrders.toLocaleString();
+        document.getElementById('totalDiscount').textContent = '$' + kpi.totalDiscount.toLocaleString();
+        document.getElementById('usageRate').textContent = kpi.couponUsageRate + '%';
+        document.getElementById('avgDiscountRate').textContent = kpi.avgDiscountRate + '%';
+        document.getElementById('couponROI').textContent = kpi.couponROI + '%';
+    }
+
+    function drawMonthlyTrend(data) {
+        const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+        if (charts.monthlyTrend) charts.monthlyTrend.destroy();
+        charts.monthlyTrend = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [
+                    { label: '使用次數', data: data.counts, borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', tension: 0.4, yAxisID: 'y' },
+                    { label: '折扣金額', data: data.discounts, borderColor: '#f093fb', backgroundColor: 'rgba(240,147,251,0.1)', tension: 0.4, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } },
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: '使用次數' } },
+                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: '折扣金額 ($)' }, grid: { drawOnChartArea: false } }
+                }
             }
-            const result = await res.json();
+        });
+    }
 
-            document.getElementById("tableBody").innerHTML = result.rows;
-            document.getElementById("paginationContainer").innerHTML = result.pagination; // ✅ 由 partial 輸出填入
-        }
+    function drawRanking(data) {
+        const ctx = document.getElementById('rankingChart').getContext('2d');
+        if (charts.ranking) charts.ranking.destroy();
+        charts.ranking = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.couponCode),
+                datasets: [{
+                    label: '使用次數',
+                    data: data.map(d => d.usageCount),
+                    backgroundColor: ['#FFB84C','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F','#BB8FCE']
+                }]
+            },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
 
-        // ✅ 修改：Shared/_Pagination.cshtml 內用的是 refreshTable(page)
-        function refreshTable(page) {
-            loadData(page);
-        }
+    function drawROI(kpi) {
+        const ctx = document.getElementById('roiChart').getContext('2d');
+        if (charts.roi) charts.roi.destroy();
+        charts.roi = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['使用優惠券營收', '未使用優惠券營收'],
+                datasets: [{ data: [kpi.couponRevenue, kpi.nonCouponRevenue], backgroundColor: ['#4facfe', '#00f2fe'] }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    tooltip: { callbacks: { label: (ctx) => ctx.label + ': $' + ctx.parsed.toLocaleString() } }
+                }
+            }
+        });
+         
+        document.getElementById('roiDetails').innerHTML = `
+            <div class="roi-metric">
+                <span class="roi-metric-label">優惠券營收：</span>
+                <span class="roi-metric-value">$${kpi.couponRevenue.toLocaleString()}</span>
+            </div>
+            <div class="roi-metric">
+                <span class="roi-metric-label">非優惠券營收：</span>
+                <span class="roi-metric-value">$${kpi.nonCouponRevenue.toLocaleString()}</span>
+            </div>
+            <div class="roi-metric">
+                <span class="roi-metric-label">總折扣成本：</span>
+                <span class="roi-metric-value text-danger">-$${kpi.totalDiscount.toLocaleString()}</span>
+            </div>
+            <div class="roi-highlight">
+                    <div class="roi-highlight-value">ROI：${kpi.couponROI}% （淨收益 = 成本的 ${(kpi.couponROI/100).toFixed(2)} 倍）</div>
+            </div>
+           @*     <br/><br/>
+            <div class="roi-highlight">
+                        <div class="roi-highlight-value">總回收倍數：$${(kpi.couponROI/100 + 1).toFixed(2)} <br/>
+                        （每投入 $1 折扣 → 回收 $${(kpi.couponROI/100 + 1).toFixed(2)} 營收）</div>
+            </div>*@
+        `;
 
-        document.getElementById("btnSearch").addEventListener("click", () => loadData(1));
-        document.addEventListener("DOMContentLoaded", () => loadData(1));
-    </script>
+    }
+
+    async function loadCategoryAnalysis() {
+        const response = await fetch('/PromotionAnalysis/GetCategoryAnalysis');
+        const data = await response.json();
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        if (charts.category) charts.category.destroy();
+        charts.category = new Chart(ctx, {
+            type: 'pie',
+            data: { labels: data.map(d => d.category), datasets: [{ data: data.map(d => d.orderCount), backgroundColor: ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4'] }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function refreshData() {
+        loadAnalysisData();
+        loadCategoryAnalysis();
+    }
+</script>
 }

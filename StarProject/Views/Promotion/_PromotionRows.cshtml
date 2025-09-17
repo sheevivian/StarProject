@@ -20,7 +20,7 @@
         <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
         <td><span class="status-badge @statusClass">@status</span></td>
         <td style="width:116px; text-align:center;">
-            <a class="btn btn-color btn-sm" asp-action="Edit" asp-route-id="@item.No">編輯</a>
+            <a class="btn btn-color btn-sm" asp-controller="Promotion" asp-action="Edit" asp-route-id="@item.No">編輯</a>
         </td>
     </tr>
 }

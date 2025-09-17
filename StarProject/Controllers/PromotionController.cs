@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore;
+using StarProject.DTOs.PromotionDTOs; // ✅ 保持你的命名空間
 using StarProject.Models;
 using StarProject.ViewModels;
 using System.Text;
-using StarProject.DTOs.PromotionDTOs;
 
 namespace StarProject.Controllers
 {
@@ -26,7 +26,6 @@ namespace StarProject.Controllers
             return View(Enumerable.Empty<PromotionListDto>());
         }
 
-        // 列表分頁/搜尋
         [HttpGet]
         public async Task<IActionResult> GetPagedData(int page = 1, int pageSize = 10, string? search = null)
         {
@@ -34,8 +33,8 @@ namespace StarProject.Controllers
             if (pageSize <= 0) pageSize = 10;
 
             var query = _context.Promotions
-                .AsNoTracking()                       
-                .Select(PromotionListDto.Projection); 
+                .AsNoTracking()
+                .Select(PromotionListDto.Projection);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -53,7 +52,7 @@ namespace StarProject.Controllers
             if (page > totalPages) page = totalPages;
 
             var data = await query
-                .OrderBy(p => p.No)                   // ★ 明確排序，分頁穩定
+                .OrderBy(p => p.No)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -74,13 +73,18 @@ namespace StarProject.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
+            var now = DateTime.Now;
+            var start = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, now.Kind);
+            var end = start.AddDays(7);
+
             var vm = new PromotionFormViewModel
             {
-                StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(7)
+                StartDate = start,
+                EndDate = end,
+                UsesTime = 1,            // ✅ 預設每人 1 次
+                UsesTimeMode = "limited" // ✅ 讓欄位與模式一致
             };
 
-            // ★ 從 DB 撈已存在的類別，交給 VM 填入選項
             var dbCategories = await _context.Promotions
                 .AsNoTracking()
                 .Select(p => p.Category)
@@ -97,46 +101,86 @@ namespace StarProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PromotionFormViewModel vm)
         {
-            if (!ModelState.IsValid)
+            // 回填選單
+            var dbCategories = await _context.Promotions
+                .AsNoTracking()
+                .Select(p => p.Category)
+                .Where(c => c != null && c != "")
+                .Distinct()
+                .ToListAsync();
+            vm.FillCategoryOptions(dbCategories);
+
+            if (!ModelState.IsValid) return View(vm);
+
+            vm.NormalizeModes();
+
+            // ✅ 伺服器端重複檢查
+            var duplicateCode = await _context.Promotions.AnyAsync(p => p.CouponCode == vm.CouponCode);
+            var duplicateName = await _context.Promotions.AnyAsync(p => p.Name == vm.Name);
+            if (duplicateCode) ModelState.AddModelError(nameof(vm.CouponCode), "優惠代碼已存在！");
+            if (duplicateName) ModelState.AddModelError(nameof(vm.Name), "優惠名稱已存在！");
+            if (!ModelState.IsValid) return View(vm);
+
+            // ✅ 商業驗證（啟用期間需涵蓋現在；可重複 -> 每人 >= 2）
+            var businessErrors = vm.ValidateBusinessRules(DateTime.Now);
+            if (businessErrors.Any())
             {
-                // ★ 再次填回選項（避免回傳 View 時下拉變空）
-                var dbCategories = await _context.Promotions
-                    .AsNoTracking()
-                    .Select(p => p.Category)
-                    .Where(c => c != null && c != "")
-                    .Distinct()
-                    .ToListAsync();
-                vm.FillCategoryOptions(dbCategories);
+                foreach (var e in businessErrors) ModelState.AddModelError(string.Empty, e);
+                ViewBag.PopupError = string.Join("\n", businessErrors); // ✅ 交給 View 用 Modal 顯示
                 return View(vm);
             }
 
-            // ★ 交由 VM 正規化欄位值
-            vm.NormalizeModes();
+            // ✅ 修正：用 execution strategy 包住「使用者交易」
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // Promotion
+                    var entity = vm.ToEntity();
+                    _context.Promotions.Add(entity);
+                    await _context.SaveChangesAsync(); // 取得 entity.No
 
-            // ★ VM 映射成 Entity
-            var entity = vm.ToEntity();
-            _context.Promotions.Add(entity);
-            await _context.SaveChangesAsync();
+                    // PromotionRule
+                    var rule = vm.ToRuleEntity(entity.No);
+                    _context.PromotionRules.Add(rule);
+                    await _context.SaveChangesAsync();
+
+                    await tx.CommitAsync();
+                }
+                catch
+                {
+                    await tx.RollbackAsync();
+                    throw;
+                }
+            });
 
             TempData["SuccessMessage"] = "新增成功";
             return RedirectToAction(nameof(Index));
         }
 
-        // 供 Create.cshtml 的 fetch 檢查重複
+        // ============ 重複檢查（Create/ Edit 共用）===========
         [HttpPost]
-        public async Task<IActionResult> CheckDuplicate(string? couponCode, string? name)
+        public async Task<IActionResult> CheckDuplicate(string? couponCode, string? name, int? id)
         {
             var code = (couponCode ?? "").Trim().ToUpper();
             var nm = (name ?? "").Trim();
 
-            if (string.IsNullOrEmpty(code) && string.IsNullOrEmpty(nm))
-                return Json(new { isDuplicate = false });
+            var query = _context.Promotions.AsQueryable();
 
-            var isDup = await _context.Promotions.AnyAsync(p =>
-                (!string.IsNullOrEmpty(code) && p.CouponCode == code) ||
-                (!string.IsNullOrEmpty(nm) && p.Name == nm));
+            // ✅ 正確邏輯：
+            // - Create 時：id 是 null，檢查所有記錄
+            // - Edit 時：id 有值，排除自己，檢查其他記錄
+            if (id.HasValue)
+                query = query.Where(p => p.No != id.Value);
 
-            return Json(new { isDuplicate = isDup });
+            var duplicateCode = !string.IsNullOrEmpty(code) &&
+                               await query.AnyAsync(p => p.CouponCode == code);
+            var duplicateName = !string.IsNullOrEmpty(nm) &&
+                               await query.AnyAsync(p => p.Name == nm);
+
+            return Json(new { duplicateCode, duplicateName });
         }
 
         // ============ Edit ============
@@ -144,17 +188,19 @@ namespace StarProject.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-                return NotFound();
+            if (id == null) return NotFound();
 
             var entity = await _context.Promotions.FindAsync(id);
-            if (entity == null)
-                return NotFound();
+            if (entity == null) return NotFound();
 
-            // Entity → VM
             var vm = PromotionFormViewModel.FromEntity(entity);
 
-            // 填充類別選項
+            // ✅ 載入對應規則
+            var rule = await _context.PromotionRules
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Promotion_No == entity.No);
+            vm.ApplyRule(rule);
+
             var dbCategories = await _context.Promotions
                 .AsNoTracking()
                 .Select(p => p.Category)
@@ -170,47 +216,74 @@ namespace StarProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, PromotionFormViewModel vm)
         {
-            if (id != vm.No)
-                return NotFound();
+            if (id != vm.No) return NotFound();
 
-            if (!ModelState.IsValid)
+            var dbCategories = await _context.Promotions
+                .AsNoTracking()
+                .Select(p => p.Category)
+                .Where(c => c != null && c != "")
+                .Distinct()
+                .ToListAsync();
+            vm.FillCategoryOptions(dbCategories);
+
+            if (!ModelState.IsValid) return View(vm);
+
+            vm.NormalizeModes();
+
+            // ✅ 伺服器端重複檢查（排除自己）
+            var duplicateCode = await _context.Promotions.AnyAsync(p => p.No != id && p.CouponCode == vm.CouponCode);
+            var duplicateName = await _context.Promotions.AnyAsync(p => p.No != id && p.Name == vm.Name);
+            if (duplicateCode) ModelState.AddModelError(nameof(vm.CouponCode), "優惠代碼已存在！");
+            if (duplicateName) ModelState.AddModelError(nameof(vm.Name), "優惠名稱已存在！");
+            if (!ModelState.IsValid) return View(vm);
+
+            // ✅ 商業驗證
+            var businessErrors = vm.ValidateBusinessRules(DateTime.Now);
+            if (businessErrors.Any())
             {
-                // 再次填回選項
-                var dbCategories = await _context.Promotions
-                    .AsNoTracking()
-                    .Select(p => p.Category)
-                    .Where(c => c != null && c != "")
-                    .Distinct()
-                    .ToListAsync();
-                vm.FillCategoryOptions(dbCategories);
+                foreach (var e in businessErrors) ModelState.AddModelError(string.Empty, e);
+                ViewBag.PopupError = string.Join("\n", businessErrors);
                 return View(vm);
             }
 
-            // 正規化欄位值
-            vm.NormalizeModes();
-
-            // 找出既有實體
-            var existing = await _context.Promotions.FindAsync(id);
-            if (existing == null)
-                return NotFound();
-
-            // VM 更新到 Entity
-            var updated = vm.ToEntity(existing);
-
-            try
+            // ✅ 修正：execution strategy + user transaction
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                _context.Update(updated);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "修改成功";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await PromotionExists(vm.No))
-                    return NotFound();
-                else
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var existing = await _context.Promotions.FindAsync(id);
+                    if (existing == null) throw new InvalidOperationException("Promotion not found.");
+
+                    vm.ToEntity(existing);
+                    _context.Update(existing);
+                    await _context.SaveChangesAsync();
+
+                    var rule = await _context.PromotionRules.FirstOrDefaultAsync(r => r.Promotion_No == id);
+                    if (rule == null)
+                    {
+                        rule = vm.ToRuleEntity(id);
+                        _context.PromotionRules.Add(rule);
+                    }
+                    else
+                    {
+                        vm.ToRuleEntity(id, rule); // 覆寫欄位
+                        _context.PromotionRules.Update(rule);
+                    }
+                    await _context.SaveChangesAsync();
+
+                    await tx.CommitAsync();
+                }
+                catch
+                {
+                    await tx.RollbackAsync();
                     throw;
-            }
+                }
+            });
+
+            TempData["SuccessMessage"] = "修改成功";
+            return RedirectToAction(nameof(Index));
         }
 
         // ============ Delete ============
@@ -222,42 +295,16 @@ namespace StarProject.Controllers
             if (promotion == null)
                 return Json(new { success = false, message = "找不到該優惠券" });
 
+            var rules = _context.PromotionRules.Where(r => r.Promotion_No == id);
+            _context.PromotionRules.RemoveRange(rules);
+
             _context.Promotions.Remove(promotion);
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "刪除成功" });
         }
 
-        // 供 Create.cshtml 和 Edit.cshtml 的 fetch 檢查重複
-        [HttpPost]
-        public async Task<IActionResult> CheckDuplicate(string? couponCode, string? name, int? id)
-        {
-            var code = (couponCode ?? "").Trim().ToUpper();
-            var nm = (name ?? "").Trim();
-
-            if (string.IsNullOrEmpty(code) && string.IsNullOrEmpty(nm))
-                return Json(new { isDuplicate = false });
-
-            var query = _context.Promotions.AsQueryable();
-
-            // 如果是編輯模式，排除自己
-            if (id.HasValue)
-                query = query.Where(p => p.No != id.Value);
-
-            var isDup = await query.AnyAsync(p =>
-                (!string.IsNullOrEmpty(code) && p.CouponCode == code) ||
-                (!string.IsNullOrEmpty(nm) && p.Name == nm));
-
-            return Json(new { isDuplicate = isDup });
-        }
-
-        private async Task<bool> PromotionExists(int id)
-        {
-            return await _context.Promotions.AnyAsync(e => e.No == id);
-        }
-
-
-        // ============ 共用：Partial 渲染 / 分頁 HTML ============
+        // ============ 共用：Partial 渲染 ============
 
         private async Task<string> RenderPartialViewToStringAsync(string viewName, object model)
         {
@@ -279,27 +326,6 @@ namespace StarProject.Controllers
 
             await viewResult.View.RenderAsync(viewContext);
             return sw.GetStringBuilder().ToString();
-        }
-
-        private static string GeneratePaginationHtml(int currentPage, int totalPages)
-        {
-            var sb = new StringBuilder();
-
-            var prevDisabled = currentPage <= 1 ? " disabled" : "";
-            var prevPage = currentPage > 1 ? currentPage - 1 : 1;
-            sb.Append($"<li class='page-item{prevDisabled}'><a class='page-link' href='javascript:void(0);' onclick='loadData({prevPage})'>&laquo;</a></li>");
-
-            for (int i = 1; i <= totalPages; i++)
-            {
-                var active = i == currentPage ? " active" : "";
-                sb.Append($"<li class='page-item{active}'><a class='page-link' href='javascript:void(0);' onclick='loadData({i})'>{i}</a></li>");
-            }
-
-            var nextDisabled = currentPage >= totalPages ? " disabled" : "";
-            var nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
-            sb.Append($"<li class='page-item{nextDisabled}'><a class='page-link' href='javascript:void(0);' onclick='loadData({nextPage})'>&raquo;</a></li>");
-
-            return sb.ToString();
         }
     }
 }

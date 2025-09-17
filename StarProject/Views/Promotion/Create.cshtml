@@ -6,7 +6,6 @@
 <head>
     <link href="~/css/promotion.css" rel="stylesheet" />
     <style>
-        /* 移除 number input 的上下箭頭 */
         .no-spinner::-webkit-inner-spin-button,
         .no-spinner::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -21,48 +20,37 @@
 
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">
-            <i class="fi fi-ss-money-wings me-2"></i>新增優惠券
-        </h4>
+        <h4 class="mb-0"><i class="fi fi-ss-money-wings me-2"></i>新增優惠券</h4>
     </div>
 
     <div class="card-body">
-        <!-- 🔴 重要：確保表單有正確的 id -->
         <form asp-action="Create" method="post" id="promotionForm">
-            <!-- 隱藏欄位來儲存Mode值 -->
             <input type="hidden" asp-for="LimitMode" id="limitMode" value="unlimited" />
             <input type="hidden" asp-for="UsesTimeMode" id="usesTimeMode" value="unlimited" />
 
-            <!-- 基本資訊 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">基本資訊</legend>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Name" class="form-label">
-                            優惠名稱 <span class="text-danger">*</span>
-                        </label>
+                        <label asp-for="Name" class="form-label">優惠名稱 <span class="text-danger">*</span></label>
                         <input asp-for="Name" class="form-control" required />
                         <span asp-validation-for="Name" class="text-danger small"></span>
+                        <div id="duplicateNameAlert" class="text-danger small mt-1" style="display:none;">優惠名稱已存在！</div>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="CouponCode" class="form-label">
-                            優惠代碼 <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="CouponCode" class="form-control"
-                               style="text-transform: uppercase;"
+                        <label asp-for="CouponCode" class="form-label">優惠代碼 <span class="text-danger">*</span></label>
+                        <input asp-for="CouponCode" class="form-control" style="text-transform: uppercase;"
                                oninput="this.value = this.value.toUpperCase();" required />
                         <span asp-validation-for="CouponCode" class="text-danger small"></span>
-                        <div id="duplicateAlert" class="text-danger small mt-1" style="display:none;"></div>
+                        <div id="duplicateCodeAlert" class="text-danger small mt-1" style="display:none;">優惠代碼已存在！</div>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Category" class="form-label">
-                            適用類別 <span class="text-danger">*</span>
-                        </label>
+                        <label asp-for="Category" class="form-label">適用類別 <span class="text-danger">*</span></label>
                         <select asp-for="Category" asp-items="Model.CategoryOptions" class="form-select" required>
                             <option value="">請選擇</option>
                         </select>
@@ -70,9 +58,7 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Status" class="form-label">
-                            狀態 <span class="text-danger">*</span>
-                        </label>
+                        <label asp-for="Status" class="form-label">狀態 <span class="text-danger">*</span></label>
                         <select asp-for="Status" asp-items="Model.StatusOptions" class="form-select" required>
                             <option value="">請選擇</option>
                         </select>
@@ -81,91 +67,65 @@
                 </div>
             </fieldset>
 
-            <!-- 期間設定 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">有效期間</legend>
-
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="StartDate" class="form-label">
-                            開始時間 <span class="text-danger">*</span>
-                        </label>
+                        <label asp-for="StartDate" class="form-label">開始時間 <span class="text-danger">*</span></label>
                         <input asp-for="StartDate" type="datetime-local" class="form-control" step="60" required />
                         <span asp-validation-for="StartDate" class="text-danger small"></span>
                     </div>
-
                     <div class="col-md-6 mb-3">
-                        <label asp-for="EndDate" class="form-label">
-                            結束時間 <span class="text-danger">*</span>
-                        </label>
+                        <label asp-for="EndDate" class="form-label">結束時間 <span class="text-danger">*</span></label>
                         <input asp-for="EndDate" type="datetime-local" class="form-control" step="60" required />
                         <span asp-validation-for="EndDate" class="text-danger small"></span>
                     </div>
                 </div>
             </fieldset>
 
-            <!-- 使用限制 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">使用限制</legend>
-
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">優惠券總數量限制</label>
                         <div class="input-group">
-                            <input asp-for="Limit" class="form-control" placeholder="不填則無限制"
-                                   type="number" min="0"
-                                   onchange="updateLimitMode(this)" />
+                            <input asp-for="Limit" class="form-control" placeholder="不填則無限制" type="number" min="0" onchange="updateLimitMode(this)" />
                             <span class="input-group-text">張</span>
                         </div>
                         <span asp-validation-for="Limit" class="text-danger small"></span>
                     </div>
-
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">每人使用次數限制</label>
+                        <label class="form-label">每人使用次數</label>
                         <div class="input-group">
-                            <input asp-for="UsesTime" class="form-control" placeholder="不填則無限制"
-                                   type="number" min="0"
-                                   onchange="updateUsesTimeMode(this)" />
+                            <input asp-for="UsesTime" id="UsesTime" class="form-control" placeholder="1" type="number" min="0" onchange="updateUsesTimeMode(this)" />
                             <span class="input-group-text">次</span>
                         </div>
                         <span asp-validation-for="UsesTime" class="text-danger small"></span>
                     </div>
-
                     <div class="col-md-4 mb-3">
                         <label class="form-label d-block">&nbsp;</label>
                         <div class="form-check">
-                            <input asp-for="Reuse" class="form-check-input" type="checkbox" />
-                            <label asp-for="Reuse" class="form-check-label">
-                                會員可重複使用
-                            </label>
+                            <input asp-for="Reuse" id="Reuse" class="form-check-input" type="checkbox" />
+                            <label asp-for="Reuse" class="form-check-label">會員可重複使用</label>
                         </div>
                     </div>
                 </div>
             </fieldset>
 
-            <!-- 優惠規則 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">優惠規則</legend>
-
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="RuleType" class="form-label">
-                            折扣類型 <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="RuleType" asp-items="Model.RuleTypeOptions" class="form-select"
-                                onchange="updateDiscountHint(this.value)" required>
+                        <label asp-for="RuleType" class="form-label">折扣類型 <span class="text-danger">*</span></label>
+                        <select asp-for="RuleType" asp-items="Model.RuleTypeOptions" class="form-select" onchange="updateDiscountHint(this.value)" required>
                             <option value="">請選擇</option>
                         </select>
                         <span asp-validation-for="RuleType" class="text-danger small"></span>
                     </div>
-
                     <div class="col-md-6 mb-3">
-                        <label asp-for="DiscountValue" class="form-label">
-                            折扣數值
-                        </label>
+                        <label asp-for="DiscountValue" class="form-label">折扣數值</label>
                         <div class="input-group">
-                            <input asp-for="DiscountValue" id="DiscountValue" class="form-control" type="number"
-                                   min="0" step="0.01" />
+                            <input asp-for="DiscountValue" id="DiscountValue" class="form-control" type="number" min="0" step="0.01" />
                             <span class="input-group-text" id="discountUnit">元</span>
                         </div>
                         <small id="discountHint" class="text-muted"></small>
@@ -176,27 +136,23 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="ConditionType" class="form-label">門檻類型</label>
-                        <select asp-for="ConditionType" asp-items="Model.ConditionTypeOptions" class="form-select"
-                                onchange="toggleConditionFields(this.value)">
+                        <select asp-for="ConditionType" id="ConditionType" asp-items="Model.ConditionTypeOptions" class="form-select" onchange="toggleConditionFields(this.value)">
                         </select>
                         <span asp-validation-for="ConditionType" class="text-danger small"></span>
                     </div>
-
                     <div class="col-md-6 mb-3" id="amountCondition">
                         <label asp-for="ConditionAmount" class="form-label">消費門檻</label>
                         <div class="input-group">
                             <span class="input-group-text">滿</span>
-                            <input asp-for="ConditionAmount" class="form-control no-spinner" placeholder="0"
-                                   type="number" min="0" />
+                            <input asp-for="ConditionAmount" id="ConditionAmount" class="form-control no-spinner" placeholder="0" type="number" min="0" />
                             <span class="input-group-text">元</span>
                         </div>
                         <small class="text-muted">設定最低消費金額，0 或不填表示無門檻</small>
                         <span asp-validation-for="ConditionAmount" class="text-danger small"></span>
                     </div>
-
                     <div class="col-md-6 mb-3" id="memberCondition" style="display:none;">
                         <label asp-for="MemberLevel" class="form-label">會員等級</label>
-                        <select asp-for="MemberLevel" class="form-select">
+                        <select asp-for="MemberLevel" id="MemberLevel" class="form-select">
                             <option value="">請選擇</option>
                             <option value="Bronze">銅級會員</option>
                             <option value="Silver">銀級會員</option>
@@ -209,76 +165,97 @@
 
                 <div class="row">
                     <div class="col-12 mb-3">
-                        <label asp-for="Description" class="form-label">
-                            優惠說明 <span class="text-danger">*</span>
-                        </label>
-                        <textarea asp-for="Description" class="form-control" rows="3"
-                                  placeholder="請詳細說明優惠內容、使用條件等資訊" required></textarea>
+                        <label asp-for="Description" class="form-label">優惠說明 <span class="text-danger">*</span></label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="請詳細說明優惠內容、使用條件等資訊" required></textarea>
                         <span asp-validation-for="Description" class="text-danger small"></span>
                     </div>
                 </div>
             </fieldset>
 
-            <!-- 按鈕 -->
             <div class="d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="fa-solid fa-xmark me-2"></i>取消
-                </a>
-                <button type="submit" class="btn btn-primary" id="submitBtn">
-                    <i class="fa-solid fa-check me-2"></i>儲存
-                </button>
+                <a asp-action="Index" class="btn btn-secondary"><i class="fa-solid fa-xmark me-2"></i>取消</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fa-solid fa-check me-2"></i>儲存</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- 🔴 顯示驗證錯誤（除錯用） -->
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger mt-3">
-        <h5>表單驗證錯誤：</h5>
-        <div asp-validation-summary="All" class="text-danger"></div>
+<!-- ✅ Modal：置中顯示驗證錯誤（含紅色區塊） -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">錯誤！</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (ViewBag.PopupError != null){}
+                <div class="alert alert-danger">
+                    <div asp-validation-summary="All" class="text-danger m-0"></div>
+                </div>
+            </div>
+        </div>
     </div>
-}
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // 🔴 修正：確保頁面載入時正確初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('頁面載入完成');
+        document.addEventListener('DOMContentLoaded', function () {
+            // 預設 UsesTime = 1 並 limited（若空）
+            const uses = document.getElementById('UsesTime');
+            const usesMode = document.getElementById('usesTimeMode');
+            if (uses && (!uses.value || uses.value === '')) { uses.value = '1'; usesMode.value = 'limited'; }
+            else { usesMode.value = (uses.value && uses.value !== '0') ? 'limited' : 'unlimited'; }
 
-            // 初始化 Mode 值
-            document.getElementById('limitMode').value = 'unlimited';
-            document.getElementById('usesTimeMode').value = 'unlimited';
+            toggleConditionFields(document.getElementById('ConditionType').value || 'Amount');
 
-            // 初始化條件類型顯示
-            var conditionType = document.getElementById('ConditionType').value;
-            toggleConditionFields(conditionType || 'Amount');
+            // ✅ 可重複 -> 每人次數至少 2
+            document.getElementById('Reuse').addEventListener('change', function () {
+                if (this.checked) {
+                    if (!uses.value || parseInt(uses.value) < 2) uses.value = '2';
+                    usesMode.value = 'limited';
+                }
+            });
 
-            // 🔴 防止表單重複提交
+            // ✅ 名稱/代碼重複檢查（Create）
+            const codeInput = document.getElementById('CouponCode');
+            const nameInput = document.getElementById('Name');
+                    // ✅ Create 頁面：不傳 id，檢查整個資料庫
+            function triggerDupCheck() {
+                const code = codeInput.value || '';
+                const name = nameInput.value || '';
+                if (!code && !name) return;
+
+                fetch('@Url.Action("CheckDuplicate", "Promotion")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
+                    },
+                    // ✅ 注意：Create 不傳 id 參數
+                    body: 'couponCode=' + encodeURIComponent(code) + '&name=' + encodeURIComponent(name)
+                }).then(r => r.json()).then(res => {
+                    document.getElementById('duplicateCodeAlert').style.display = res.duplicateCode ? 'block' : 'none';
+                    document.getElementById('duplicateNameAlert').style.display = res.duplicateName ? 'block' : 'none';
+                });
+            }
+            codeInput.addEventListener('blur', triggerDupCheck);
+            nameInput.addEventListener('blur', triggerDupCheck);
+
+            // ✅ 有錯誤就彈 Modal（避免 7111 亂碼的 alert）
+            const hasErrors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(!ViewData.ModelState.IsValid || ViewBag.PopupError != null));
+            if (hasErrors) {
+                const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+                modal.show();
+            }
+
+            // 防重送
             var form = document.getElementById('promotionForm');
             var isSubmitting = false;
-
             if (form) {
-                form.addEventListener('submit', function(e) {
-                    console.log('表單提交中...');
-
-                    if (isSubmitting) {
-                        e.preventDefault();
-                        return false;
-                    }
-
-                    // 🔴 確保必要的隱藏欄位有值
-                    var limitMode = document.getElementById('limitMode');
-                    var usesTimeMode = document.getElementById('usesTimeMode');
-
-                    if (!limitMode.value) limitMode.value = 'unlimited';
-                    if (!usesTimeMode.value) usesTimeMode.value = 'unlimited';
-
-                    console.log('LimitMode:', limitMode.value);
-                    console.log('UsesTimeMode:', usesTimeMode.value);
-
+                form.addEventListener('submit', function (e) {
+                    if (isSubmitting) { e.preventDefault(); return false; }
                     isSubmitting = true;
                     document.getElementById('submitBtn').disabled = true;
                     document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>儲存中...';
@@ -286,29 +263,12 @@
             }
         });
 
-        // 更新 LimitMode 的函數
         function updateLimitMode(input) {
-            var limitMode = document.getElementById('limitMode');
-            if (input.value && input.value !== '' && input.value !== '0') {
-                limitMode.value = 'limited';
-            } else {
-                limitMode.value = 'unlimited';
-            }
-            console.log('LimitMode 更新為:', limitMode.value);
+            document.getElementById('limitMode').value = (input.value && input.value !== '0') ? 'limited' : 'unlimited';
         }
-
-        // 更新 UsesTimeMode 的函數
         function updateUsesTimeMode(input) {
-            var usesTimeMode = document.getElementById('usesTimeMode');
-            if (input.value && input.value !== '' && input.value !== '0') {
-                usesTimeMode.value = 'limited';
-            } else {
-                usesTimeMode.value = 'unlimited';
-            }
-            console.log('UsesTimeMode 更新為:', usesTimeMode.value);
+            document.getElementById('usesTimeMode').value = (input.value && input.value !== '0') ? 'limited' : 'unlimited';
         }
-
-        // 切換門檻條件顯示
         function toggleConditionFields(conditionType) {
             var amountCondition = document.getElementById('amountCondition');
             var memberCondition = document.getElementById('memberCondition');
@@ -325,75 +285,34 @@
                 if (memberLevel) memberLevel.value = '';
             }
         }
-
-        // 更新折扣提示文字
         function updateDiscountHint(ruleType) {
             var unit = document.getElementById('discountUnit');
             var hint = document.getElementById('discountHint');
             var discountInput = document.getElementById('DiscountValue');
 
-            switch(ruleType) {
+            switch (ruleType) {
                 case 'FixedAmount':
                     unit.textContent = '元';
                     hint.textContent = '輸入固定折扣金額';
-                    discountInput.disabled = false;
-                    break;
+                    discountInput.disabled = false; break;
                 case 'Percentage':
-                    unit.textContent = '%';
-                    hint.textContent = '輸入折扣百分比 (例：輸入 10 代表打 9 折)';
-                    discountInput.disabled = false;
-                    break;
+                    unit.textContent = '倍';
+                    hint.textContent = '輸入折扣乘數 (例：0.9=九折；0.85=85折)';
+                    discountInput.disabled = false; break;
                 case 'FreeShipping':
                     unit.textContent = '';
                     hint.textContent = '免運費優惠，無需輸入數值';
-                    discountInput.value = '0';
-                    discountInput.disabled = true;
-                    break;
+                    discountInput.value = '80'; // 依你目前行為
+                    discountInput.disabled = true; break;
                 case 'BuyXGetY':
-                    unit.textContent = '';
-                    hint.textContent = '請輸入附贈商品數量';
-                    discountInput.disabled = false;
-                    break;
+                    unit.textContent = '元';
+                    hint.textContent = '請輸入附贈商品金額';
+                    discountInput.disabled = false; break;
                 default:
                     unit.textContent = '';
                     hint.textContent = '';
-                    discountInput.disabled = false;
+                    discountInput.disabled = false; break;
             }
         }
-
-        // 🔴 簡化的重複檢查（不阻止提交）
-        var checkTimer;
-        document.getElementById('CouponCode').addEventListener('blur', function() {
-            clearTimeout(checkTimer);
-            var couponCode = this.value;
-            var name = document.getElementById('Name').value;
-
-            if (couponCode || name) {
-                checkTimer = setTimeout(function() {
-                    fetch('@Url.Action("CheckDuplicate", "Promotion")', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
-                        },
-                        body: 'couponCode=' + encodeURIComponent(couponCode) + '&name=' + encodeURIComponent(name)
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        var duplicateAlert = document.getElementById('duplicateAlert');
-                        if (result.isDuplicate) {
-                            duplicateAlert.textContent = '優惠代碼或名稱已存在！';
-                            duplicateAlert.style.display = 'block';
-                            // 🔴 不要禁用提交按鈕，讓後端處理
-                        } else {
-                            duplicateAlert.style.display = 'none';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('檢查重複時發生錯誤:', error);
-                    });
-                }, 500);
-            }
-        });
     </script>
 }

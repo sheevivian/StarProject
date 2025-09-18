@@ -140,7 +140,7 @@
                                                    data-permission="cone" @(role.CoNe ? "checked" : "") />
                                         </td>
                                         <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleRowPermissions(this)">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleRowPermissions(this)">
                                                 全選/清空
                                             </button>
                                         </td>
@@ -205,10 +205,20 @@
             background-color: #495057 !important;
         }
 
-    .permission-checkbox {
+    .form-check-input.permission-checkbox {
+        accent-color: #2B4C8C !important; /* 深藍色勾勾 */
+        transform: scale(1.3);
         cursor: pointer;
-        transform: scale(1.2);
     }
+
+    .form-check-input.permission-checkbox {
+        appearance: auto !important; /* 恢復瀏覽器原生樣式 */
+        -webkit-appearance: auto !important;
+        accent-color: #2B4C8C !important;
+        transform: scale(1.3);
+        cursor: pointer;
+    }
+
 
     .table td {
         vertical-align: middle;

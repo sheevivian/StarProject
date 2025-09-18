@@ -166,7 +166,8 @@ namespace StarProject.Controllers
 			}
 		}
 
-
+		// 詳細資料-商品異動庫存
+		// Get: ProductStock/GetLogs/5
 		[HttpGet]
 		public async Task<IActionResult> GetLogs(int productNo)
 		{
@@ -186,7 +187,16 @@ namespace StarProject.Controllers
 			return Json(logs); // 回傳 JSON
 		}
 
-
-
+		[HttpGet]
+		public async Task<IActionResult> Create()
+		{
+			ViewBag.TransType = new List<SelectListItem>
+				{
+					new SelectListItem { Value = "入庫", Text = "入庫" },
+					new SelectListItem { Value = "退貨", Text = "退貨" },
+					new SelectListItem { Value = "盤差", Text = "盤差" },
+				};
+			return View();
+		}
 	}
 }

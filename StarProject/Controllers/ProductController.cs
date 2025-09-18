@@ -550,7 +550,7 @@ namespace StarProject.Controllers
 		// 新增商品介紹(POST)
 		// POST: Product/Article/5
 		[HttpPost]
-		public async Task<IActionResult> Article(int id,ProductIntroViewModel piVM)
+		public async Task<IActionResult> Article(int id, ProductIntroViewModel piVM)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -583,7 +583,7 @@ namespace StarProject.Controllers
 
 			return RedirectToAction("Index"); // 或回到列表頁
 		}
-		
+
 		// 商品介紹內文圖片(POST)
 		// POST: Product/ArticleImage
 		[HttpPost]
@@ -606,6 +606,8 @@ namespace StarProject.Controllers
 			}
 		}
 
+		// 商品頁預覽-內文(GET)
+		// GET: Product/GetLogs/5
 		[HttpGet]
 		public async Task<IActionResult> GetLogs(int id)
 		{
@@ -619,7 +621,8 @@ namespace StarProject.Controllers
 					.Include(p => p.ProductIntroduce)
 					.OrderByDescending(l => l.No)
 					.Where(l => l.No == id)
-					.Select(l => new ProductIntroViewModel {
+					.Select(l => new ProductIntroViewModel
+					{
 						ProductNo = l.No,
 						ProductName = l.Name,
 						Description = l.ProductIntroduce.Description,
@@ -628,6 +631,8 @@ namespace StarProject.Controllers
 			return Json(logs); // 回傳 JSON
 		}
 
+		// 商品頁預覽-圖片(GET)
+		// GET: Product/GetImageLogs/5
 		[HttpGet]
 		public async Task<IActionResult> GetImageLogs(int id)
 		{

@@ -647,7 +647,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A824D3DE34");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A82F0DBF26");
 
             entity.ToTable("ProCategory");
 
@@ -759,7 +759,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8C27ADAC2");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8766B273C");
 
             entity.ToTable("ProductStock");
 
@@ -767,6 +767,11 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Note).HasMaxLength(50);
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
             entity.Property(e => e.Type).HasMaxLength(10);
+
+            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductStocks)
+                .HasForeignKey(d => d.ProductNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductStock_Product");
         });
 
         modelBuilder.Entity<Promotion>(entity =>
@@ -867,7 +872,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A86F5B5956");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8F247112A");
 
             entity.ToTable("TicCategory");
 

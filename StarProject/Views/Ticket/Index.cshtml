@@ -15,11 +15,11 @@
             overflow: hidden;
         }
 
-            .card-img-container img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover; /* 填滿裁切 */
-            }
+        .card-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 填滿裁切 */
+        }
 
         /* 限制文字顯示兩行，多的用 ... */
         .text-truncate-2 {
@@ -59,6 +59,14 @@
         /* checkbox 層級最高，永遠在最上面 */
         .cardDetail .checkbox {
             z-index: 10;
+        }
+
+        .btn-price-edit:hover {
+            color: #000000;
+        }
+
+        .btn-price-edit:hover {
+            color: #4d4d4d;
         }
     </style>
     <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
@@ -214,6 +222,56 @@
     <div id="pagination">
         @await Html.PartialAsync("_TicketPagination", Model)
     </div>
+
+    <!-- 詳細內容 -->
+    <div class="modal fade" id="modalDetail" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content pb-3">
+                <div class="modal-header">
+                    <h4 id="hdBage"></h4>
+                    <h4 class="modal-title fw-bold" id="modalTitle"></h4>
+                    <span id="hdSpan" class="ms-2 fw-light fs-6 text-muted"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body d-flex row" id="modalCon">
+                    <!-- 圖片 -->
+                    <div class="col-4" style="width: 300px; height: 300px;">
+                        <img id="modalImage" src="" class="card-img-top rounded" alt="票券照片" style="width:100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="col-6">
+                        <h5 class="fs-5 d-flex">
+                            <i class="fa-solid fa-star" style="color: #FFD43B;"></i>各票種類型價格
+                        </h5>
+                        
+                        <table class="border border-2 border-black">
+                            <tbody style="text-align:center;">
+                                <tr id="typeRows" class="border border-2 border-black p-1"></tr>
+                                <tr id="priceRows" class="border border-2 border-black p-1"></tr>
+                            </tbody>
+                        </table>
+
+                        <h5 class="fs-5 mt-4">
+                            <i class="fa-solid fa-star" style="color: #FFD43B;"></i>
+                                7天庫存
+                            <span class="fs-6">
+                                (@(ViewData["startDate"])~@(ViewData["endDate"]))
+                            </span>
+                        </h5>
+                        <table class="border border-2 border-black">
+                            <thead style="text-align:center;">
+                                <tr id="typeSHeader" class="border border-2 border-black bg-black text-white p-1" style="font-weight: normal;">
+                                    <th class="" style="width: 80px; vertical-align:middle; border:0px"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockBody" class="border border-2 border-black p-1" style="text-align:center;">
+                                <!-- 生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 @section Scripts {
     @{
@@ -274,6 +332,166 @@
                 updateFilterCount()
                 refreshTicketTable(1);
             });
+
+            // 格式化日期字串 yyyy-MM-dd
+            function formatDate(dateStr) {
+                const date = new Date(dateStr); // log.releaseDate 是 "2025-09-17T00:00:00" 這種 ISO 字串
+                const y = date.getFullYear();
+                const m = ('0' + (date.getMonth() + 1)).slice(-2);
+                const d = ('0' + date.getDate()).slice(-2);
+                return `${m}/${d}`;
+            }
+
+            // 詳細資料
+            $(document).on('click', '.btn-detail', function () {
+                var btn = $(this);
+                // 🔑 取得這筆資料的 ID
+                var id = btn.data('id');
+                var desc =btn.data('desc')
+
+                $('#hdSpan').empty();
+                if (btn.data('category') === "優惠套票")
+                    {
+                        $('#hdSpan').append(`
+                            ${desc}
+                        `);
+                    }
+
+
+
+                // ✅ 先清空所有 badge
+                $('#hdBage').empty();
+
+                if (btn.data('category') === "常設展覽")
+                    {
+                        $('#hdBage').prepend(`
+                            <span class="badge rounded-pill text-bg-primary me-2" style="font-size:15px; width:80px;">
+                                常設展覽
+                            </span>
+                         `);
+                    }
+                if (btn.data('category') === "特別展覽")
+                    {
+                        $('#hdBage').prepend(`
+                            <span class="badge rounded-pill text-bg-success me-2" style="font-size:15px; width:80px;">
+                                特別展覽
+                            </span>
+                         `);
+                    }
+                else if (btn.data('category') === "星空劇院")
+                    {
+                        $('#hdBage').prepend(`
+                            <span class="badge rounded-pill bg-warning text-white me-2" style="font-size:15px; width:80px;">
+                                星空劇院
+                            </span>
+                         `);
+                    }
+                else if (btn.data('category') === "優惠套票")
+                    {
+                        $('#hdBage').prepend(`
+                            <span class="badge rounded-pill text-bg-danger me-2" style="font-size:15px; width:80px;">
+                                優惠套票
+                            </span>
+                         `);
+                    }
+                else if (btn.data('category') === "立體劇場")
+                    {
+                        $('#hdBage').prepend(`
+                            <span class="badge rounded-pill text-bg-secondary me-2" style="font-size:15px; width:80px;">
+                                立體劇場
+                            </span>
+                         `);
+                    }
+                else if (btn.data('category') === "星際探險")
+                    {
+                        $('#hdBage').prepend(`
+                            <span class="badge rounded-pill text-bg-dark me-2" style="font-size:15px; width:80px;">
+                                星際探險
+                            </span>
+                         `);
+                    }
+
+
+                // 標題
+                $('#modalTitle').text(btn.data('id'));
+
+                // 圖片
+                $('#modalImage').attr('src', btn.data('image'));
+                console.log('ID:', btn.data('id'), 'IMAGE:', btn.data('image'));
+                // 清空之前的紀錄
+                $('#typeRows').empty();
+                $('#priceRows').empty();
+
+                $.ajax({
+                    url: '/Ticket/GetLogs', // Controller 的路徑
+                    type: 'GET',
+                    data: { id : id },
+                    success: function (logs) {
+                            logs.forEach(log => {
+                                // 判斷 desc 是否有值
+                                let descAttr = '';
+                                if (log.desc && log.desc.trim() !== '') {
+                                    descAttr = `data-bs-toggle="tooltip" data-bs-offset="0,0" title="${log.desc}"`;
+                                }
+                                $('#typeRows').append(`
+                                <td class="border border-2 border-black bg-black text-white p-1 ${descAttr}" style="width:100px; vertical-align:middle; border:0px;">${log.ticType}</td>
+                                `);
+                                $('#priceRows').append(`
+                                <td class="border border-2 border-black p-1 fs-5">$${log.ticPrice}
+                                <a id="modelEditBtn" data-id="${log.ticNo}" class="btn btn-price-edit fs-6 border-0 p-0 ms-auto">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a></td>
+                                `);
+                                var btnEdit = $('#modelEditBtn');
+                                var editId = btnEdit.data('id');
+                                // 編輯按鈕連結
+                                $('#modelEditBtn').attr("href", "/Ticket/Edit/" + editId );
+                            });
+                            // 🔹這裡重新初始化 tooltip
+                            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                                return new bootstrap.Tooltip(tooltipTriggerEl);
+                            });
+                    },
+                    error: function () {
+                        alert('讀取紀錄失敗');
+                    }
+                });
+
+
+                $.ajax({
+                url: '/Ticket/GetStockLogs', // Controller 的路徑
+                    type: 'GET',
+                    data: { id: id },
+                    success: function (logs) {
+                        let dates = [...new Set(logs.map(l => l.releaseDate))].sort();
+                        let types = [...new Set(logs.map(l => l.type))];
+
+                        $('#typeSHeader').empty().append('<th class="p-1" style="width:80px; vertical-align: middle; font-weight: normal;"></th>'); // 第一格空格
+                        types.forEach(type => {
+                            $('#typeSHeader').append(`<th class="p-1" style="width:80px; vertical-align: middle; font-weight: normal;">${type}</th>`);
+                        });
+
+                        $('#stockBody').empty();
+                        dates.forEach(date => {
+                            let row = `<tr><th class="p-1 border border-2 border-black fs-5">${formatDate(date)}</th>`; // 第一欄票種名稱
+                            types.forEach(type => {
+                                // 找出對應庫存
+                                let log = logs.find(l => l.type === type && l.releaseDate === date);
+                                let stock = log ? log.totalStock : 0;
+                                row += `<td class="fs-5 p-1 border border-2 border-black">${stock}</td>`;
+                            });
+                            row += `</tr>`;
+                            $('#stockBody').append(row);
+                        });
+                    },
+                    error: function () {
+                        alert('讀取紀錄失敗');
+                    }
+                });
+
+            });
+
 
             // 【功能】更新篩選的顯示文字
             function updateSelectedFilters() {

@@ -1,4 +1,5 @@
 ﻿@model List<StarProject.Models.Role>
+@using StarProject.Helpers
 @{
     ViewData["Title"] = "權限管理";
 }
@@ -7,8 +8,8 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
+                <div class="card-header text-white" style="background-color:#2B4C8C">
+                    <h3 class="card-title mb-0" style="background-color:#2B4C8C">
                         <i class="fas fa-shield-alt"></i> 角色權限管理
                     </h3>
                 </div>
@@ -29,13 +30,13 @@
                         <table class="table table-bordered table-hover" id="permissionTable">
                             <thead class="table-dark">
                                 <tr>
-                                    <th style="min-width: 120px;">角色名稱</th>
+                                    <th style="min-width: 180px;">角色名稱</th>
                                     <th class="text-center permission-header" data-permission="emp">
                                         <div>員工管理</div>
                                         <small>(Emp)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="user">
-                                        <div>用戶管理</div>
+                                        <div>會員管理</div>
                                         <small>(User)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="info">
@@ -47,15 +48,15 @@
                                         <small>(Event)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="pd">
-                                        <div>產品管理</div>
+                                        <div>商品管理</div>
                                         <small>(Pd)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="tic">
-                                        <div>票務管理</div>
+                                        <div>門票管理</div>
                                         <small>(Tic)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="pm">
-                                        <div>專案管理</div>
+                                        <div>優惠管理</div>
                                         <small>(Pm)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="order">
@@ -63,19 +64,19 @@
                                         <small>(Order)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="cs">
-                                        <div>客服管理</div>
+                                        <div>客戶服務</div>
                                         <small>(CS)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="oa">
-                                        <div>OA系統</div>
+                                        <div>營運分析</div>
                                         <small>(OA)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="conlist">
-                                        <div>聯絡人清單</div>
+                                        <div>公司公告</div>
                                         <small>(CoNList)</small>
                                     </th>
                                     <th class="text-center permission-header" data-permission="cone">
-                                        <div>聯絡人編輯</div>
+                                        <div>修改公司公告</div>
                                         <small>(CoNE)</small>
                                     </th>
                                     <th class="text-center">操作</th>
@@ -85,7 +86,11 @@
                                 @foreach (var role in Model)
                                 {
                                     <tr data-role-id="@role.No">
-                                        <td class="fw-bold">@role.RoleName</td>
+                                        <td class="fw-bold">
+                                            @RoleHelper.GetRoleDisplayName(role.RoleName)
+                                            <br>
+                                            <small class="text-muted">(@role.RoleName)</small>
+                                        </td>
                                         <td class="text-center">
                                             <input type="checkbox" class="form-check-input permission-checkbox"
                                                    data-permission="emp" @(role.Emp ? "checked" : "") />
@@ -145,6 +150,28 @@
                         </table>
                     </div>
 
+                    <!-- 顯示角色對照表 -->
+                    <div class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users"></i> 角色代碼對照表
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    @foreach (var item in RoleHelper.RoleDisplayMap)
+                                    {
+                                        <div class="col-md-3 col-sm-6 mb-2">
+                                            <span class="badge bg-primary">@item.Key</span>
+                                            <span class="ms-2">@item.Value</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mt-3">
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i>
@@ -154,6 +181,7 @@
                                 <li>點擊欄位標題可以快速設定該權限的所有角色</li>
                                 <li>點擊「全選/清空」可以快速設定該角色的所有權限</li>
                                 <li>完成編輯後請記得點擊「儲存變更」按鈕</li>
+                                <li>角色名稱以中文顯示，括號內為原始代碼</li>
                             </ul>
                         </div>
                     </div>
@@ -162,6 +190,9 @@
         </div>
     </div>
 </div>
+
+<!-- 通知元素 -->
+<div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
 <style>
     .permission-header {
@@ -185,100 +216,261 @@
 
     .card {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 15px;
     }
+
+    .card-header {
+        border-top-left-radius: 15px !important;
+        border-top-right-radius: 15px !important;
+    }
+
+    /* 表格圓角樣式 */
+    .table {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+
+        .table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+
+        .table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
+        }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    /* 角色名稱欄位樣式 */
+    .table td:first-child {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+        .table td:first-child small {
+            font-weight: 400;
+            color: #6c757d;
+        }
+
+    /* 按鈕圓角 */
+    .btn {
+        border-radius: 8px;
+    }
+
+    .alert {
+        border-radius: 10px;
+    }
+
+    /* 通知樣式 */
+    .notification {
+        padding: 15px 25px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .notification.error {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+        }
+
+        .notification.warning {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+        }
+
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 4px;
+            background: rgba(255,255,255,0.8);
+        }
 </style>
 
 <script>
+    // 顯示通知的函數
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notification-container');
+
+        // 創建通知元素
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+
+        container.appendChild(notification);
+
+        // 觸發顯示動畫
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        // 4秒後自動移除
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 4000);
+    }
+
     // 儲存權限變更
     function savePermissions() {
         const updates = [];
 
         // 收集所有角色的權限資料
-        $('#permissionTable tbody tr').each(function() {
-            const roleId = $(this).data('role-id');
+        document.querySelectorAll('#permissionTable tbody tr').forEach(function(row) {
+            const roleId = parseInt(row.getAttribute('data-role-id'));
             const permissions = {};
 
-            $(this).find('.permission-checkbox').each(function() {
-                const permission = $(this).data('permission');
-                permissions[permission] = $(this).is(':checked');
+            row.querySelectorAll('.permission-checkbox').forEach(function(checkbox) {
+                const permission = checkbox.getAttribute('data-permission');
+                permissions[permission] = checkbox.checked;
             });
 
             updates.push({
-                roleId: roleId,
-                emp: permissions.emp || false,
-                user: permissions.user || false,
-                info: permissions.info || false,
-                event: permissions.event || false,
-                pd: permissions.pd || false,
-                tic: permissions.tic || false,
-                pm: permissions.pm || false,
-                order: permissions.order || false,
-                cs: permissions.cs || false,
-                oa: permissions.oa || false,
-                conlist: permissions.conlist || false,
-                cone: permissions.cone || false
+                RoleId: roleId,
+                Emp: permissions.emp || false,
+                User: permissions.user || false,
+                Info: permissions.info || false,
+                Event: permissions.event || false,
+                Pd: permissions.pd || false,
+                Tic: permissions.tic || false,
+                Pm: permissions.pm || false,
+                Order: permissions.order || false,
+                Cs: permissions.cs || false,
+                Oa: permissions.oa || false,
+                CoNlist: permissions.conlist || false,
+                CoNe: permissions.cone || false
             });
         });
 
         // 顯示載入中
-        const saveBtn = $('button:contains("儲存變更")');
-        const originalText = saveBtn.html();
-        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 儲存中...');
+        const saveBtn = document.querySelector('button[onclick="savePermissions()"]');
+        const originalContent = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 儲存中...';
+
+        // 獲取防偽令牌
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
         // 發送更新請求
-        $.ajax({
-            url: '@Url.Action("UpdatePermissions", "Role")',
+        fetch('@Url.Action("UpdatePermissions", "Role")', {
             method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(updates),
             headers: {
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token || ''
             },
-            success: function(response) {
-                if (response.success) {
-                    toastr.success(response.message || '權限更新成功');
-                } else {
-                    toastr.error(response.message || '更新失敗');
-                }
-            },
-            error: function(xhr, status, error) {
-                toastr.error('發生錯誤：' + error);
-            },
-            complete: function() {
-                // 恢復按鈕狀態
-                saveBtn.prop('disabled', false).html(originalText);
+            body: JSON.stringify(updates)
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+
+            // 檢查響應狀態
+            if (response.ok) {
+                return response.json().catch(() => {
+                    // 如果無法解析 JSON，假設成功
+                    return { success: true, message: '權限更新成功' };
+                });
+            } else {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+        })
+        .then(data => {
+            console.log('Server response:', data);
+
+            if (data.success !== false) {
+                showNotification(data.message || '權限更新成功！', 'success');
+
+                // 立即更新用戶權限緩存
+                if (typeof updateUserPermissions === 'function') {
+                    updateUserPermissions();
+                }
+
+                // 發送訊號讓其他頁面知道權限已更新
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem('permissionsUpdated', Date.now().toString());
+                }
+            } else {
+                showNotification(data.message || '更新失敗，請稍後再試', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('發生錯誤：' + error.message, 'error');
+        })
+        .finally(() => {
+            // 恢復按鈕狀態
+            setTimeout(() => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalContent;
+            }, 500);
         });
     }
 
     // 切換某個角色的所有權限
     function toggleRowPermissions(button) {
-        const row = $(button).closest('tr');
-        const checkboxes = row.find('.permission-checkbox');
-        const hasAnyChecked = checkboxes.is(':checked');
+        const row = button.closest('tr');
+        const checkboxes = row.querySelectorAll('.permission-checkbox');
+        const hasAnyChecked = Array.from(checkboxes).some(cb => cb.checked);
 
-        checkboxes.prop('checked', !hasAnyChecked);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = !hasAnyChecked;
+        });
     }
 
-    // 點擊欄位標題切換該權限的所有角色
-    $(document).ready(function() {
-        $('.permission-header').click(function() {
-            const permission = $(this).data('permission');
-            const columnIndex = $(this).index();
-            const checkboxes = $(`#permissionTable tbody tr td:nth-child(${columnIndex + 1}) .permission-checkbox`);
-            const hasAnyChecked = checkboxes.is(':checked');
+    // 頁面載入完成後初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 點擊欄位標題切換該權限的所有角色
+        document.querySelectorAll('.permission-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const permission = this.getAttribute('data-permission');
+                const columnIndex = Array.from(this.parentNode.children).indexOf(this);
+                const checkboxes = document.querySelectorAll(`#permissionTable tbody tr td:nth-child(${columnIndex + 1}) .permission-checkbox`);
+                const hasAnyChecked = Array.from(checkboxes).some(cb => cb.checked);
 
-            checkboxes.prop('checked', !hasAnyChecked);
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = !hasAnyChecked;
+                });
+            });
         });
 
-        // 載入 toastr (如果有的話)
-        if (typeof toastr === 'undefined') {
-            window.toastr = {
-                success: function(msg) { alert('成功：' + msg); },
-                error: function(msg) { alert('錯誤：' + msg); },
-                warning: function(msg) { alert('警告：' + msg); }
-            };
-        }
+        // 鍵盤快捷鍵支持 (Ctrl+S)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                savePermissions();
+            }
+        });
+
+        console.log('權限管理系統已初始化');
     });
 </script>
 

@@ -1,34 +1,124 @@
 ﻿@model List<StarProject.Models.OrderMaster>
 
-<h2 class="text-center my-4">出貨管理</h2>
+ <style>
+    body {
+        background-image: url(https://cdn.pixabay.com/photo/2021/01/17/02/02/planets-5923806_1280.jpg);
+        background-color: black;
+    }
 
-<table class="table table-bordered">
+       /* 📦 訂單流程 timeline 水平條 */
+       .progress-container {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           position: relative;
+           margin: 40px auto 60px;
+           max-width: 700px;
+       }
+
+           .progress-container::before {
+               content: '';
+               background: #dcdcdc;
+               position: absolute;
+               top: 50%;
+               left: 0;
+               height: 4px;
+               width: 100%;
+               transform: translateY(-50%);
+               z-index: 0;
+               border-radius: 2px;
+           }
+
+       .progress-step {
+           position: relative;
+           z-index: 1;
+           background: #dcdcdc;
+        color: #8E8E8E;
+        border-radius: 50%;
+           width: 40px;
+           height: 40px;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           font-weight: bold;
+           transition: 0.3s ease;
+       }
+
+           .progress-step.active {
+               background: #4c5bd4;
+               color: #fff;
+           }
+
+       .progress-label {
+           position: absolute;
+           top: 50px;
+           font-size: 0.9rem;
+           text-align: center;
+           width: 100px;
+           transform: translateX(-30%);
+        color: #fff;}
+ </style>
+        
+<head>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+
+<h1 class="text-center my-4 text-white">出貨管理</h1>
+
+<div class="progress-container">
+    <div class="progress-step active">
+        1
+        <div class="progress-label">選擇訂單</div>
+    </div>
+    <div class="progress-step ">
+        2
+        <div class="progress-label">建立出貨單</div>
+    </div>
+    <div class="progress-step">
+        3
+        <div class="progress-label">出貨單確認</div>
+    </div>
+</div>
+
+
+
+
+
+<div class="table-rounded position-relative mt-3">
+<table class="table">
     <thead>
         <tr>
             <th>訂單編號</th>
             <th>會員編號</th>
-            <th>付款狀態</th>
-            <th>出貨狀態</th>
-            <th>操作</th>
+            <th>會員名字</th>
+            <th>下單日期</th>
+            <th>付款資訊</th>
+            <th>最新出貨狀態</th>
+            <th>動作</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var order in Model)
         {
+            var latestStatus = order.OrderDeliveries
+            .SelectMany(d => d.OrderStatuses)
+            .OrderByDescending(s => s.StatusTime)
+            .FirstOrDefault()?.StatusType ?? order.Status;
+
             <tr>
                 <td>@order.No</td>
                 <td>@order.UserNo</td>
-                <td>@order.PaymentStatus</td>
-                <td>@order.Status</td>
+                <td>@order?.UserNoNavigation?.Name</td>
+                <td>@order.Date.ToString("yyyy-MM-dd ")</td>
+                    <td>@order.PaymentStatus</td>
+                <td><button class="btn btn-danger btn-sm">@latestStatus</button></td>
                 <td>
-                    <a class="btn btn-purple" 
-                       href="@Url.Action("ShippingOrder", "OrderStatus", new { orderNo = order.No })">
-                        建立出貨單
-                    </a>
+                    <a asp-action="ShippingOrder" asp-route-orderNo="@order.No" class="btn btn-purple btn-sm">建立出貨單</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+</div>
 
 

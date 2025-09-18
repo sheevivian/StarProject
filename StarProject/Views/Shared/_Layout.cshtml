@@ -208,8 +208,8 @@
 
                 <div id="collapseDis" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Promotion" asp-action="Index">優惠券管理</a>
-                        <a class="collapse-item" href="#">成效分析</a>
+                        <a class="collapse-item" asp-controller="Promotion" asp-action="Index">優惠券管理</a>
+                        <a class="collapse-item" asp-controller="PromotionAnalysis" asp-action="Index">成效分析</a>
                     </div>
                 </div>
             </li>
@@ -232,9 +232,9 @@
 
                 <div id="collapseOrd" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Orders" asp-action="Index">訂單紀錄</a>
-                        <a class="collapse-item" asp-area="" asp-controller="OrderStatus" asp-action="Index">出貨管理</a>
-                        @* <a class="collapse-item" href="#">請款/退款作業</a> *@
+                        <a class="collapse-item" href="https://localhost:7111/Orders">訂單紀錄</a>
+                        <a class="collapse-item" href="https://localhost:7111/OrderStatus/Index">出貨管理</a>
+                        <a class="collapse-item" href="https://localhost:7111/OrderDelivery/Index">出貨單列表</a>
                     </div>
                 </div>
             </li>
@@ -314,7 +314,7 @@
                         </li> *@
 
                         <!-- 新手指南 -->
-                        <li class="nav-item">
+                        <li class="nav-item mt-1">
                             <a class="nav-link" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                data-bs-title="如有疑問，請洽資訊技術部" data-bs-trigger="hover">
                                 <i class="fa-solid fa-circle-question fs-4"></i>

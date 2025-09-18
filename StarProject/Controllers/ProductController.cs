@@ -255,7 +255,7 @@ namespace StarProject.Controllers
 			}
 
 			// 產生Excel並暫存於 wwwroot/exceltemps
-			var fileName = $"ImportResult_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+			var fileName = $"UploadImgs_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
 			var savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "exceltemps", fileName);
 
 			var downloadWorkbook = new XSSFWorkbook();
@@ -263,12 +263,22 @@ namespace StarProject.Controllers
 			var headerRow = downloadSheet.CreateRow(0);
 			headerRow.CreateCell(0).SetCellValue("商品編號");
 			headerRow.CreateCell(1).SetCellValue("圖片路徑");
-			headerRow.CreateCell(2).SetCellValue("圖片順序");
+			headerRow.CreateCell(2).SetCellValue("圖片順序(1~5)");
+
+			var exampleRow = downloadSheet.CreateRow(1);
+			exampleRow.CreateCell(0).SetCellValue("102001");
+			exampleRow.CreateCell(1).SetCellValue("D:\\\\html_example\\product.jpg");
+			exampleRow.CreateCell(2).SetCellValue("1");
+			exampleRow.CreateCell(3).SetCellValue("範例欄位請勿刪除，避免資料讀取失敗！");
+
 
 			for (int i = 0; i < products.Count; i++)
 			{
-				var row = downloadSheet.CreateRow(i + 1);
+				var row = downloadSheet.CreateRow(i + 2);
 				row.CreateCell(0).SetCellValue(products[i].No);
+				row.CreateCell(1).SetCellValue("");
+				row.CreateCell(2).SetCellValue("");
+				row.CreateCell(3).SetCellValue("");
 			}
 
 			using (var fs = new FileStream(savePath, FileMode.Create, FileAccess.Write))

@@ -68,8 +68,7 @@
                                 <label asp-for="ProductNoNavigation.Name" class="control-label"></label>
                             </div>
                             <div class="col-8 col-lg-10">
-                                <input asp-for="ProductNoNavigation" class="form-control" readonly form-control-plaintext />
-                                <span asp-validation-for="ProductNoNavigation.Name" class="text-danger"></span>
+                            <input id="ProductName" class="form-control" readonly form-control-plaintext />
                             </div>
                         </div>
                         <div class="form-group d-flex align-items-center mb-3 row">
@@ -108,3 +107,36 @@
             </div>
         </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#ProductNo').on('blur', function () { // 當欄位失去焦點時
+            var productNo = $(this).val();
+            if (!productNo) return;
+
+            $.ajax({
+                url: '@Url.Action("GetProductName", "ProductStock")', // 對應你的 Controller
+                type: 'GET',
+                data: { productNo: productNo },
+                success: function (res) {
+                    if (res.success) {
+                        $('#ProductName').val(res.name);
+                    } else {
+                        $('#ProductName').val('');
+                        alert('找不到商品名稱');
+                    }
+                },
+                error: function () {
+                    alert('發生錯誤，請稍後再試');
+                }
+            });
+        });
+    });
+</script>
+}

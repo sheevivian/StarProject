@@ -189,6 +189,7 @@ namespace StarProject.Controllers
 		[HttpGet]
 		public async Task<IActionResult> Create()
 		{
+
 			ViewBag.TransType = new List<SelectListItem>
 				{
 					new SelectListItem { Value = "入庫", Text = "入庫" },
@@ -196,6 +197,60 @@ namespace StarProject.Controllers
 					new SelectListItem { Value = "盤差", Text = "盤差" },
 				};
 			return View();
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> Create(ProductStock pStock)
+		{
+			var productStock = new ProductStock
+			{
+				ProductNo = pStock.ProductNo,
+				Type = pStock.Type,
+				TransQuantity = pStock.TransQuantity,
+				Date = DateTime.Now,
+				Note = pStock.Note,
+			};
+
+			// 移除 ModelState 中無法綁定的欄位
+			ModelState.Remove("ProductNoNavigation");
+			if (ModelState.IsValid)
+			{
+				try
+				{
+					_context.Add(productStock);
+					await _context.SaveChangesAsync();
+
+					return RedirectToAction("Index");
+				}
+				catch (Exception ex)
+				{
+					return RedirectToAction("Error");
+				}
+			}
+
+			ViewBag.TransType = new List<SelectListItem>
+				{
+					new SelectListItem { Value = "入庫", Text = "入庫" },
+					new SelectListItem { Value = "退貨", Text = "退貨" },
+					new SelectListItem { Value = "盤差", Text = "盤差" },
+				};
+			return View();
+		}
+
+		// Key商品編號出現商品名稱
+		// GET: GetProductName
+		[HttpGet]
+		public async Task<JsonResult> GetProductName(int productNo)
+		{
+			var product = await _context.Products
+				.Where(p => p.No == productNo)
+				.Select(p => new { p.Name })
+				.FirstOrDefaultAsync();
+
+			if (product == null)
+				return Json(new { success = false, name = "" });
+
+			return Json(new { success = true, name = product.Name });
 		}
 	}
 }

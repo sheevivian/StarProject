@@ -67,8 +67,12 @@
         }
     </style>
 </head>
-
-<h1 class="fw-bold">商品編輯</h1>
+<div class="d-flex">
+    <h1 class="fw-bold">商品編輯</h1>
+    <div class="ms-auto">
+        <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
+    </div>
+</div>
 <div class="p-4 mt-3 rounded-4 bg-white">
     <h3 class="fw-bold mb-3"><i class="fa-solid fa-circle-info me-2"></i>基本資料</h3>
     <div class="row m-1 border border-1 rounded">
@@ -127,7 +131,7 @@
                 </div>
                 <div class="form-group d-flex justify-content-end mt-2">
                     <button type="submit" class="btn btn-topbar fw-bold fs-5 col-6">
-                        <i class="fa-solid fa-file"></i>保存修改
+                        <i class="fa-solid fa-file"></i>保存變更
                     </button>
                 </div>
             </form>
@@ -162,7 +166,7 @@
                 </form>
             </div>
             <div class="d-flex justify-content-end mt-2">
-                <button id="img-btn-save" class="btn btn-topbar fw-bold fs-5 col-6"><i class="fa-solid fa-file"></i>保存修改</button>
+                <button id="img-btn-save" class="btn btn-topbar fw-bold fs-5 col-6"><i class="fa-solid fa-file"></i>保存變更</button>
             </div>
         </div>
     </div>
@@ -174,21 +178,25 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
 
-        let deletedIds = [];
-        let fileList = [];
-        const maxFiles = 5;
+        let deletedIds = [];            // 刪除的舊檔案 id
+        let fileList = [];              // 暫存新選擇檔案
+        const maxFiles = 5;             // 最大數量
 
-        $(document).on('click', '.del-btn', function() {
+        // 🔹刪除舊檔案 (資料庫已有的)
+        $(document).on('click', '.del-btn', function () {
             const imgId = $(this).closest('.imgdiv').data("imgid");
             deletedIds.push(imgId);
             $(this).closest('.imgdiv').remove();
+
+            // 更新計算
+            updateFileCount();
+            refreshPreview();
         });
 
-
-        $('#img-btn-save').on('click', function(){
-            // alert("img-btn-save");
+        // 🔹儲存圖片順序
+        $('#img-btn-save').on('click', function () {
             const ImgData = [];
 
             $('#imgContainer .imgdiv').each(function () {
@@ -203,50 +211,61 @@
             };
 
             $.ajax({
-                url: '/Product/ImgSave', // 後端Controller action
+                url: '/Product/ImgSave',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(dataToSend),
-                success: function(res) {
-                    $("#imgContainer").html(res); // 更新圖片區塊
+                success: function (res) {
+                    $("#imgContainer").html(res);
                     deletedIds = [];
                     alert('修改成功！');
+
+                    updateFileCount();
+                    refreshPreview();
                 },
-                error: function(err) {
+                error: function (err) {
                     alert('修改失敗！');
                 }
             });
-        })
+        });
 
-
-
-        // 選擇檔案的文字條
+        // 🔹選擇檔案
         $("#ImageFiles").on("change", function () {
             const files = Array.from(this.files);
 
-            files.forEach(file => {
-                if (!file.type.match("image.*")) return;
-                if (fileList.length < maxFiles) {
-                    fileList.push(file);
-                }
-        });
+            // 計算現在畫面已有多少張舊檔案
+            const existingCount = $("#imgContainer .imgdiv").length;
 
-            // 清空 input → 避免選相同檔案時無法觸發 change
-            $(this).val("");
+            // 剩下可新增的數量
+            let remainingSlots = maxFiles - existingCount - fileList.length;
+
+            if (remainingSlots <= 0) {
+                alert("最多只能上傳 " + maxFiles + " 張圖片");
+                $(this).val(""); // 清空選擇
+                return;
+            }
+
+            files.slice(0, remainingSlots).forEach(file => {
+                if (!file.type.match("image.*")) return;
+                fileList.push(file);
+            });
+
+            $(this).val(""); // 清空 input → 避免相同檔案選擇不到
 
             updateFileCount();
             refreshPreview();
         });
 
-        // 檔案上傳後更新前端頁面
+        // 🔹送出表單 (上傳新檔案)
         $("#ImgEdit").on("submit", function (e) {
-            e.preventDefault(); // 先擋掉預設送出
+            e.preventDefault();
 
-            const formData = new FormData(this); // 把原本表單的 hidden 等資料先加進來
+            const formData = new FormData(this);
 
             fileList.forEach(file => {
-                formData.append("ImageFiles", file); // 後端接收欄位要對應
+                formData.append("ImageFiles", file);
             });
+
             $.ajax({
                 url: "/Product/ImgUpload",
                 type: "POST",
@@ -254,11 +273,10 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
-                    // res = 後端回傳的 Partial HTML
-                    $("#imgContainer").html(res); // 更新圖片區塊
-
-                    // 清空暫存、更新畫面
+                    $("#imgContainer").html(res);
                     alert("上傳成功！");
+
+                    // 清空暫存
                     fileList = [];
                     updateFileCount();
                     refreshPreview();
@@ -269,21 +287,22 @@
             });
         });
 
+        // 🔹顯示檔案數量
         function updateFileCount() {
-            if (fileList.length === 0) {
-                $("#fileCount").text("尚未選擇圖片");
-            } else {
-                $("#fileCount").text("已選 " + fileList.length + " 張圖片");
-            }
+            const existingCount = $("#imgContainer .imgdiv").length;
+            const total = existingCount + fileList.length;
+
+            $("#fileCount").text("目前共有 " + total + " 張圖片 (最多 " + maxFiles + " 張)");
         }
 
+        // 🔹預覽新選檔案
         function refreshPreview() {
             const previewContainer = $("#previewContainer");
             previewContainer.empty();
 
             fileList.forEach((file, index) => {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const card = $("<div>");
 
                     const wrapper = $("<div>").css({
@@ -294,34 +313,50 @@
                     });
 
                     const img = $("<img>")
-                         .attr("src", e.target.result)
-                         .attr("title", file.name)
-                         .css({ width: "100%", height: "100%", objectFit: "cover", border: "1px solid #ccc", padding: "2px" });
+                        .attr("src", e.target.result)
+                        .attr("title", file.name)
+                        .css({
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            border: "1px solid #ccc",
+                            padding: "2px"
+                        });
 
-                    const order = $("<div>")
-                         .addClass("d-flex justify-content-end align-items-center")
-                         
-
-                    const label = $("<label>")
-                          .attr({ id: 'ProImages.ImgOrder' })
-                          .text("圖片順序:")
-                          .addClass("p-0 fs-5")
-                          .css({ width: "100px" })
-
-                    const input = $('<input>')
-                          .attr({ type: 'number', id: 'ProImages.ImgOrder', name: `ImageOrders[${index}]`, min: 1, max: maxFiles })
-                          .addClass("form-control")
-                          .css({ width: "60px" })
-                          .val(index + 1); // 預設 1..N
-
+                    // 刪除按鈕 (刪新選檔案)
                     const delBtn = $("<button>")
                         .html(`<i class="fa-solid fa-square-xmark"></i>`)
                         .addClass("del-btn")
-                        .on("click", function() {
+                        .css({
+                            position: "absolute",
+                            top: "5px",
+                            right: "5px"
+                        })
+                        .on("click", function () {
                             fileList.splice(index, 1);
                             refreshPreview();
                             updateFileCount();
                         });
+
+                    // 圖片順序
+                    const order = $("<div>")
+                        .addClass("d-flex justify-content-end align-items-center");
+
+                    const label = $("<label>")
+                        .text("圖片順序:")
+                        .addClass("p-0 fs-5")
+                        .css({ width: "100px" });
+
+                    const input = $('<input>')
+                        .attr({
+                            type: 'number',
+                            name: `ImageOrders[${index}]`,
+                            min: 1,
+                            max: maxFiles
+                        })
+                        .addClass("form-control")
+                        .css({ width: "60px" })
+                        .val(index + 1);
 
                     wrapper.append(img).append(delBtn);
                     order.append(label).append(input);
@@ -330,10 +365,10 @@
                 };
                 reader.readAsDataURL(file);
             });
-
-            // $(".btnUpload").prop("disabled", fileList.length === 0);
         }
 
-
+        // 預設初始化
+        updateFileCount();
+        refreshPreview();
     });
 </script>

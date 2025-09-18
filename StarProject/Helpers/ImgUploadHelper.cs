@@ -4,7 +4,7 @@ namespace StarProject.Helpers
 {
 	public class ImgUploadHelper
 	{
-		private static readonly string ApiKey = "43aab2d4b2cd785f71444760486c0134";
+		private static readonly string ApiKey = "9a256f4abcba9979ece5b6db3da4a566";
 		private static readonly string ApiUrl = "https://api.imgbb.com/1/upload";
 
 		public static async Task<string> UploadToImgBB(IFormFile file)

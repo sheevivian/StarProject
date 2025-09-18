@@ -464,18 +464,22 @@ namespace StarProject.Controllers
 			return empCode;
 		}
 
-		// GET: Emps/Edit/5
+		// GET: Edit
 		[Permission("emp")]
 		public async Task<IActionResult> Edit(string id)
 		{
-			if (id == null)
+			if (string.IsNullOrEmpty(id))
 				return NotFound();
 
-			var emp = await _context.Emps.FindAsync(id);
+			var emp = await _context.Emps
+	.Include(e => e.RoleNoNavigation)   // ✅ 正確，載入 Role 導覽屬性
+	.Include(e => e.DeptNoNavigation)   // ✅ 正確，載入 Dept 導覽屬性
+	.FirstOrDefaultAsync(e => e.No == id);
+
+
 			if (emp == null)
 				return NotFound();
 
-			// 建立 ViewModel 並映射資料
 			var viewModel = new EditEmpViewModel
 			{
 				No = emp.No,
@@ -483,57 +487,110 @@ namespace StarProject.Controllers
 				RoleNo = emp.RoleNo,
 				DeptNo = emp.DeptNo,
 				HireDate = emp.HireDate,
-				Status = emp.Status,
 				Email = emp.Email,
 				Phone = emp.Phone,
 				IdNumber = emp.IdNumber,
-				BirthDate = emp.BirthDate
+				BirthDate = (DateTime)emp.BirthDate,
+				Status = emp.Status
 			};
 
-			// ✅ 和 Create 一樣，載入下拉式選單
 			LoadDropdowns(viewModel);
-			System.Diagnostics.Debug.WriteLine($"ViewModel.DeptNo = {viewModel.DeptNo}, ViewModel.RoleNo = {viewModel.RoleNo}");
+
+			System.Diagnostics.Debug.WriteLine($"Edit GET - 載入員工: {emp.Name}, DeptNo: {emp.DeptNo}, RoleNo: {emp.RoleNo}");
 
 			return View(viewModel);
 		}
 
-		// POST: Emps/Edit/5
+		// POST: Edit
 		[HttpPost]
 		[Permission("emp")]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(string id, EditEmpViewModel viewModel)
 		{
+			System.Diagnostics.Debug.WriteLine($"=== Edit POST 開始 ===");
+			System.Diagnostics.Debug.WriteLine($"URL ID: {id}, ViewModel No: {viewModel.No}");
+			System.Diagnostics.Debug.WriteLine($"接收到的資料:");
+			System.Diagnostics.Debug.WriteLine($"  Name: '{viewModel.Name}'");
+			System.Diagnostics.Debug.WriteLine($"  DeptNo: {viewModel.DeptNo}");
+			System.Diagnostics.Debug.WriteLine($"  RoleNo: {viewModel.RoleNo}");
+			System.Diagnostics.Debug.WriteLine($"  Email: '{viewModel.Email}'");
+			System.Diagnostics.Debug.WriteLine($"  Phone: '{viewModel.Phone}'");
+			System.Diagnostics.Debug.WriteLine($"  IdNumber: '{viewModel.IdNumber}'");
+			System.Diagnostics.Debug.WriteLine($"  Status: {viewModel.Status}");
+
 			if (id != viewModel.No)
-				return NotFound();
-
-			System.Diagnostics.Debug.WriteLine($"收到編輯資料: Name={viewModel.Name}, DeptNo={viewModel.DeptNo}, RoleNo={viewModel.RoleNo}");
-			System.Diagnostics.Debug.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
-
-			if (!ModelState.IsValid)
 			{
-				// ❗先重新載入下拉選單
-				LoadDropdowns(viewModel);
-
-				// 除錯用：檢查下拉選單是否成功載入
-				System.Diagnostics.Debug.WriteLine("Depts is null? " + (viewModel.Depts == null));
-				System.Diagnostics.Debug.WriteLine("Roles is null? " + (viewModel.Roles == null));
-
-				// 列出驗證錯誤
-				System.Diagnostics.Debug.WriteLine("ModelState驗證失敗:");
-				foreach (var error in ModelState)
-				{
-					System.Diagnostics.Debug.WriteLine($"欄位: {error.Key}, 錯誤: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
-				}
-
-				return View(viewModel);
+				System.Diagnostics.Debug.WriteLine("ID 不符，返回 NotFound");
+				return NotFound();
 			}
 
+			// 手動檢查必要欄位
+			if (string.IsNullOrWhiteSpace(viewModel.Name))
+			{
+				ModelState.AddModelError("Name", "員工姓名為必填");
+			}
+
+			if (viewModel.DeptNo <= 0)
+			{
+				ModelState.AddModelError("DeptNo", "請選擇部門");
+				System.Diagnostics.Debug.WriteLine($"DeptNo 無效: {viewModel.DeptNo}");
+			}
+
+			if (viewModel.RoleNo <= 0)
+			{
+				ModelState.AddModelError("RoleNo", "請選擇職位");
+				System.Diagnostics.Debug.WriteLine($"RoleNo 無效: {viewModel.RoleNo}");
+			}
+
+			// 檢查部門和職位是否存在
+			if (viewModel.DeptNo > 0)
+			{
+				var deptExists = await _context.Depts.AnyAsync(d => d.No == viewModel.DeptNo);
+				if (!deptExists)
+				{
+					ModelState.AddModelError("DeptNo", "選擇的部門不存在");
+					System.Diagnostics.Debug.WriteLine($"部門 {viewModel.DeptNo} 不存在");
+				}
+			}
+
+			if (viewModel.RoleNo > 0)
+			{
+				var roleExists = await _context.Roles.AnyAsync(r => r.No == viewModel.RoleNo);
+				if (!roleExists)
+				{
+					ModelState.AddModelError("RoleNo", "選擇的職位不存在");
+					System.Diagnostics.Debug.WriteLine($"職位 {viewModel.RoleNo} 不存在");
+				}
+			}
+
+			// 檢查 ModelState
+			System.Diagnostics.Debug.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+			if (!ModelState.IsValid)
+			{
+				System.Diagnostics.Debug.WriteLine("ModelState 驗證失敗，錯誤如下:");
+				foreach (var error in ModelState)
+				{
+					if (error.Value.Errors.Any())
+					{
+						System.Diagnostics.Debug.WriteLine($"  欄位 '{error.Key}': {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+					}
+				}
+
+				// 重新載入下拉選單
+				LoadDropdowns(viewModel);
+				return View(viewModel);
+			}
 
 			try
 			{
 				var existingEmp = await _context.Emps.FindAsync(id);
 				if (existingEmp == null)
+				{
+					System.Diagnostics.Debug.WriteLine($"找不到員工 ID: {id}");
 					return NotFound();
+				}
+
+				System.Diagnostics.Debug.WriteLine("開始更新員工資料...");
 
 				// 更新欄位
 				existingEmp.Name = viewModel.Name?.Trim();
@@ -548,23 +605,29 @@ namespace StarProject.Controllers
 
 				await _context.SaveChangesAsync();
 
-				System.Diagnostics.Debug.WriteLine("員工資料更新成功，準備跳轉到 Index");
+				System.Diagnostics.Debug.WriteLine("員工資料更新成功，跳轉到 Index");
 				return RedirectToAction(nameof(Index));
 			}
-			catch (DbUpdateConcurrencyException)
+			catch (DbUpdateConcurrencyException ex)
 			{
+				System.Diagnostics.Debug.WriteLine($"並發更新錯誤: {ex.Message}");
 				if (!EmpExists(viewModel.No))
+				{
 					return NotFound();
+				}
 				else
+				{
 					throw;
+				}
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"更新員工錯誤: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"更新員工時發生錯誤: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
 				ModelState.AddModelError("", $"更新員工時發生錯誤：{ex.Message}");
 			}
 
-			// ❗有錯誤時也別忘了載入選單
+			// 發生錯誤時重新載入下拉選單
 			LoadDropdowns(viewModel);
 			return View(viewModel);
 		}
@@ -685,31 +748,64 @@ namespace StarProject.Controllers
 		// 建立一個私有方法來載入編輯頁面的下拉式選單資料
 		private void LoadDropdowns(EditEmpViewModel viewModel)
 		{
-			// 部門下拉選單：直接用 DeptDescription 當顯示文字
-			viewModel.Depts = new SelectList(
-				_context.Depts
-					.Select(d => new
+			try
+			{
+				// 部門下拉選單
+				var deptList = _context.Depts
+					.Select(d => new SelectListItem
 					{
-						No = d.No,
-						DisplayName = d.DeptDescription
-					}),
-				"No",
-				"DisplayName",
-				viewModel.DeptNo
-			);
+						Value = d.No.ToString(),
+						Text = d.DeptDescription,
+						Selected = d.No == viewModel.DeptNo
+					})
+					.ToList();
 
-			// 職位下拉選單：用 RoleDisplayMap 轉換
-			viewModel.Roles = new SelectList(
-				_context.Roles
-					.Select(r => new
+				// 新增預設選項（可選）
+				deptList.Insert(0, new SelectListItem
+				{
+					Value = "",
+					Text = "請選擇部門",
+					Selected = viewModel.DeptNo == 0
+				});
+
+				viewModel.Depts = deptList;
+
+				// 職位下拉選單
+				var roleList = _context.Roles
+					.Select(r => new SelectListItem
 					{
-						No = r.No,
-						DisplayName = RoleHelper.GetRoleDisplayName(r.RoleName)
-					}),
-				"No",
-				"DisplayName",
-				viewModel.RoleNo
-			);
+						Value = r.No.ToString(),
+						Text = RoleHelper.GetRoleDisplayName(r.RoleName),
+						Selected = r.No == viewModel.RoleNo
+					})
+					.ToList();
+
+				// 新增預設選項（可選）
+				roleList.Insert(0, new SelectListItem
+				{
+					Value = "",
+					Text = "請選擇職位",
+					Selected = viewModel.RoleNo == 0
+				});
+
+				viewModel.Roles = roleList;
+
+				// Debug 輸出
+				System.Diagnostics.Debug.WriteLine($"EditEmp LoadDropdowns - DeptNo: {viewModel.DeptNo}, RoleNo: {viewModel.RoleNo}");
+				System.Diagnostics.Debug.WriteLine($"部門選項數量: {deptList.Count}, 職位選項數量: {roleList.Count}");
+
+				// 檢查是否有選中的項目
+				var selectedDept = deptList.FirstOrDefault(d => d.Selected);
+				var selectedRole = roleList.FirstOrDefault(r => r.Selected);
+				System.Diagnostics.Debug.WriteLine($"選中的部門: {selectedDept?.Text}, 選中的職位: {selectedRole?.Text}");
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"LoadDropdowns 錯誤: {ex.Message}");
+				// 提供空的選單以避免錯誤
+				viewModel.Depts = new List<SelectListItem>();
+				viewModel.Roles = new List<SelectListItem>();
+			}
 		}
 
 		private bool EmpExists(string id)

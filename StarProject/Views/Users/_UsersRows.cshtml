@@ -1,0 +1,64 @@
+﻿@foreach (var item in Model)
+{
+    <tr class="d-flex align-items-center">
+        <!-- 核取方塊 -->
+        <td style="width:60px;" class="text-center">
+            <input type="checkbox" class="checkbox form-check-input" value="@item.Id">
+        </td>
+        <!-- Account -->
+        <td style="width:180px;" class="px-3">
+            <div class="fw-semibold text-dark text-center" title="@item.Account">
+                @item.Account
+            </div>
+        </td>
+        <!-- Name -->
+        <td style="width:140px;" class="px-3">
+            <div class="text-dark text-center" title="@item.Name">
+                @item.Name
+            </div>
+        </td>
+        <!-- Phone -->
+        <td style="width:150px;" class="px-3 text-center">
+            <div class="text-dark small">
+                @item.Phone
+            </div>
+        </td>
+        <!-- Email -->
+        <td class="flex-grow-1 px-3" style="min-width:200px;">
+            <div class="text-dark small text-center" title="@item.Email">
+                @item.Email
+            </div>
+        </td>
+        <!-- Address -->
+        <td class="flex-grow-1 px-3" style="min-width:200px;">
+            <div class="text-muted small text-center" title="@item.Address">
+                @item.Address
+            </div>
+        </td>
+        <!-- Status -->
+        <td style="width:110px;" class="text-center">
+            <span class="badge rounded-pill
+                                      @(item.StatusText == "正常" ? "bg-success" :
+                                                                    item.StatusText == "停用" ? "bg-warning text-dark" :
+                                                                    "bg-danger") px-2 py-1 small">
+            @item.StatusText
+        </span>
+    </td>
+    <!-- 操作按鈕 -->
+    <td style="width:120px;" class="text-center">
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm rounded-pill px-3 btn-detail"
+                data-id="@item.Id"
+                data-account="@item.Account"
+                data-name="@item.Name"
+                data-phone="@item.Phone"
+                data-email="@item.Email"
+                data-address="@item.Address"
+                data-status="@item.StatusText"
+                data-bs-toggle="modal"
+                data-bs-target="#modalDetail">
+            詳細資料
+        </button>
+    </td>
+</tr>
+}

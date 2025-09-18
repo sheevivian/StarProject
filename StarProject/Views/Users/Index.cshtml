@@ -4,38 +4,683 @@
 @{
     ViewData["Title"] = "會員列表";
 }
+<head>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
 
-<h1 class="mb-3">會員名單</h1>
+<main class="flex-fill position-relative">
+    <!-- 標題+新增 -->
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">會員名單</h1>
+    </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model[0].Account)</th>
-            <th>@Html.DisplayNameFor(model => model[0].Name)</th>
-            <th>@Html.DisplayNameFor(model => model[0].Phone)</th>
-            <th>@Html.DisplayNameFor(model => model[0].Email)</th>
-            <th>@Html.DisplayNameFor(model => model[0].Address)</th>
-            <th>@Html.DisplayNameFor(model => model[0].StatusText)</th>
+    <!-- CSRF Token -->
+    <form id="deleteForm">
+        @Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+    </form>
 
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@Html.DisplayFor(m => item.Account)</td>
-                <td>@Html.DisplayFor(m => item.Name)</td>
-                <td>@Html.DisplayFor(m => item.Phone)</td>
-                <td>@Html.DisplayFor(m => item.Email)</td>
-                <td>@Html.DisplayFor(m => item.Address)</td>
-                <td>@Html.DisplayFor(m => item.StatusText)</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> 
-                </td>
-            </tr>
-        }
-    </tbody>
+    <!-- 搜尋框+每頁筆數 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input" placeholder="請輸入關鍵字（會員名稱、帳號狀態）">
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
 
-</table>
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
+					<!-- 帳號狀態 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+                            - 帳號狀態
+                        </button>
+                    </li>
+					<!-- 帳號狀態內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseCategory">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="停用" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+										停用
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="封鎖" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+										封鎖
+                                    </label>
+                                </div>
+                                <div class="form-check">
+									<input class="form-check-input" type="checkbox" value="正常" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+										正常
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+					<!-- 帳號使用期間 -->
+					<li>
+						<button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
+							- 帳號使用期間
+						</button>
+					</li>
+					<!-- 帳號使用期間 -->
+					<li>
+						<div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+							<div class="p-2">
+								<div class="mb-2">
+									<label for="dateFrom" class="form-label">起始日期</label>
+									<input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+								</div>
+								<div>
+									<label for="dateTo" class="form-label">結束日期</label>
+									<input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+								</div>
+							</div>
+						</div>
+					</li>
+
+					<li><hr class="dropdown-divider"></li>
+
+					<!-- 完成+清除 -->
+					<li class="d-flex gap-1">
+						<button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+							完成
+						</button>
+						<button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+							清除
+						</button>
+					</li>
+				</ul>
+			</div>
+
+			<div style="width:150px">
+				<select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+					<option selected value="10">每頁10筆</option>
+					<option value="15">每頁15筆</option>
+					<option value="20">每頁20筆</option>
+					<option value="25">每頁25筆</option>
+				</select>
+			</div>
+		</div>
+
+
+	</div>
+	<!-- 在搜尋框下方添加批次操作區域 -->
+	<div class="d-flex justify-content-between align-items-center mt-2" style="display:none !important;" id="delectAll">
+		<div>
+			<span id="selectNum" class="text-muted">已選取0項</span>
+		</div>
+		<div>
+			<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#batchStatusModal">
+				<i class="fa-solid fa-edit"></i> 批次狀態操作
+			</button>
+		</div>
+	</div>
+
+	<!-- 同時需要確保 _UsersRows.cshtml 中的操作列有正確的寬度和內容 -->
+	<!-- 在 _UsersRows.cshtml 的表格標頭添加操作欄 -->
+	<th style="width:116px;text-align: center;"></th>
+	<div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
+		<span id="selectedFiltersText" class="text-secondary"></span>
+	</div>
+
+	<!-- 列表 -->
+	<div class="table-rounded position-relative mt-3">
+		<table class="table">
+			<!-- 欄位 -->
+			<!-- 欄位標頭 -->
+			<thead class="table-light">
+				<tr class="d-flex">
+					<th style="width:60px" class="text-center">
+						<input class="form-check-input" type="checkbox" value="" id="checkAll"
+							   data-bs-toggle="tooltip" data-bs-placement="bottom"
+							   data-bs-title="全選" data-bs-trigger="hover">
+					</th>
+					<th class="px-3 fw-bold text-center" style="width:180px;">
+						Account
+					</th>
+					<th class="px-3 fw-bold text-center" style="width:140px;">
+						Name
+					</th>
+					<th class="px-3 fw-bold text-center" style="width:150px;">
+						Phone
+					</th>
+					<th class="px-3 fw-bold text-center flex-grow-1" style="min-width:200px;">
+						Email
+					</th>
+					<th class="px-3 fw-bold text-center flex-grow-1" style="min-width:200px;">
+						Address
+					</th>
+					<th class="px-3 fw-bold text-center" style="width:110px;">
+						Status
+					</th>
+					<th class="fw-bold text-center" style="width:120px;">
+						操作
+					</th>
+				</tr>
+			</thead>
+
+			<!-- 內容 -->
+			<tbody id="tableBody">
+				@await Html.PartialAsync("_UsersRows", Model)
+			</tbody>
+		</table>
+
+		<!-- 分頁 -->
+		<div id="pagination">
+			@await Html.PartialAsync("_Pagination", Model)
+		</div>
+
+
+		<!-- 詳細內容 Modal -->
+		<div class="modal fade" id="modalDetail" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+				<!-- 改為 modal-lg，比 modal-xl 窄 -->
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title fw-bold" id="modelTitle">會員資料</h4> <!-- 固定標題為會員資料 -->
+						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+					</div>
+					<div class="modal-body px-4" id="modelCon">
+						<!-- 調整 padding -->
+						<!-- 動態內容會插入這裡 -->
+					</div>
+
+					<div class="modal-footer">
+						<!-- 根據狀態顯示不同按鈕 -->
+						<button type="button" class="btn btn-warning br20px" id="modelSuspendBtn" data-bs-toggle="modal" data-bs-target="#suspendModal" data-id="" style="display:none">
+							<i class="fa-solid fa-user-slash"></i>停用
+						</button>
+						<button type="button" class="btn btn-danger br20px" id="modelBlockBtn" data-bs-toggle="modal" data-bs-target="#blockModal" data-id="" style="display:none">
+							<i class="fa-solid fa-ban"></i>封鎖
+						</button>
+						<button type="button" class="btn btn-success br20px" id="modelActivateBtn" data-bs-toggle="modal" data-bs-target="#activateModal" data-id="" style="display:none">
+							<i class="fa-solid fa-user-check"></i>啟用
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 確認停用彈窗 - 修正按鈕順序 -->
+		<div class="modal fade" id="suspendModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="suspendModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content shadow bg-body-tertiary">
+					<div class="modal-header">
+						<h5 class="modal-title" id="suspendModalLabel">確認停用</h5>
+					</div>
+					<div class="modal-body">
+						確定要停用此會員帳號嗎？
+					</div>
+					<div class="modal-footer">
+						<!-- 修正按鈕順序：確定按鈕在前，取消在後 -->
+						<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+						<form id="suspendForm" asp-action="Suspend" method="post" class="d-inline">
+							<button type="submit" class="btn btn-warning br20px" id="suspendBtn">確定停用</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 確認封鎖彈窗 - 修正按鈕順序 -->
+		<div class="modal fade" id="blockModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="blockModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content shadow bg-body-tertiary">
+					<div class="modal-header">
+						<h5 class="modal-title" id="blockModalLabel">確認封鎖</h5>
+					</div>
+					<div class="modal-body">
+						確定要封鎖此會員帳號嗎？
+					</div>
+					<div class="modal-footer">
+						<!-- 修正按鈕順序：確定按鈕在前，取消在後 -->
+						<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+						<form id="blockForm" asp-action="Block" method="post" class="d-inline">
+							<button type="submit" class="btn btn-danger br20px" id="blockBtn">確定封鎖</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 確認啟用彈窗 - 修正按鈕順序 -->
+		<div class="modal fade" id="activateModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="activateModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content shadow bg-body-tertiary">
+					<div class="modal-header">
+						<h5 class="modal-title" id="activateModalLabel">確認啟用</h5>
+					</div>
+					<div class="modal-body">
+						確定要啟用此會員帳號嗎？
+					</div>
+					<div class="modal-footer">
+						<!-- 修正按鈕順序：確定按鈕在前，取消在後 -->
+						<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+						<form id="activateForm" asp-action="Activate" method="post" class="d-inline">
+							<button type="submit" class="btn btn-success br20px" id="activateBtn">確定啟用</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 批次狀態操作選擇 Modal -->
+		<div class="modal fade" id="batchStatusModal" tabindex="-1" aria-labelledby="batchStatusModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="batchStatusModalLabel">批次狀態操作</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<p>請選擇要執行的操作：</p>
+						<div class="d-grid gap-2">
+							<button type="button" class="btn btn-warning" id="batchSuspend">批次停用</button>
+							<button type="button" class="btn btn-danger" id="batchBlock">批次封鎖</button>
+							<button type="button" class="btn btn-success" id="batchActivate">批次啟用</button>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+</main>
+
+@section Scripts {
+	<script>
+		let pageNumber = parseInt($('#pageSizeSelect').val()) || 10; // 預設每頁數量
+
+		$(function () {
+
+			// checkbox 勾選
+			$(document).on('click', '.checkbox', function () {
+				let checked = $(this).prop('checked');
+
+				let count = $('.checkbox:checked').length;
+
+				if (count > 0) {
+					$('#delectAll, #selectNum').show();
+					$('#selectNum').text(`已選取${count}項`);
+				} else {
+					$('#delectAll, #selectNum').hide();
+				}
+
+				if (checked) {
+					$(this).closest('tr').addClass('active');
+				} else {
+					$(this).closest('tr').removeClass('active');
+				}
+
+				$('#checkAll').prop('checked', $('.checkbox').length === $('.checkbox:checked').length);
+			});
+
+			// 全選
+			$('#checkAll').click(function () {
+
+				if ($(this).prop('checked')) {
+					$('.checkbox').prop('checked', true);
+					$('tbody tr').addClass('active');
+					$('#delectAll, #selectNum').show();
+
+					// 計算勾選數量
+					let count = $('.checkbox:checked').length;
+
+					if (count > 0) {
+						$('#selectNum').text(`已選取${count}項`);
+					}
+				}
+				else {
+					$('.checkbox').prop('checked', false);
+					$('tbody tr').removeClass('active');
+					$('#delectAll, #selectNum').hide();
+				}
+			});
+
+			// 批次操作
+			$('#batchSuspend, #batchBlock, #batchActivate').click(function () {
+				// 收集所有勾選的 checkbox 的 value
+				let ids = $('.checkbox:checked').map(function () {
+					return $(this).val();
+				}).get();
+
+				if (ids.length === 0) {
+					alert('請至少選擇一個項目');
+					return;
+				}
+
+				// 取得 CSRF token
+				var token = $('input[name="__RequestVerificationToken"]').val();
+
+				// 確定操作類型
+				let action = '';
+				let actionText = '';
+
+				if ($(this).attr('id') === 'batchSuspend') {
+					action = 'Suspend';
+					actionText = '停用';
+				} else if ($(this).attr('id') === 'batchBlock') {
+					action = 'Block';
+					actionText = '封鎖';
+				} else if ($(this).attr('id') === 'batchActivate') {
+					action = 'Activate';
+					actionText = '啟用';
+				}
+
+				if (confirm(`確定要批次${actionText} ${ids.length} 個會員嗎？`)) {
+					$.ajax({
+						url: `/Users/Batch${action}`,
+						type: 'POST',
+						data: {
+							__RequestVerificationToken: token,
+							ids: ids
+						},
+						traditional: true,
+						success: function (response) {
+							let page = parseInt($('#paginationInfo').text()) || 1;
+							refreshTable(page);
+							$('#delectAll, #selectNum').hide();
+							$('#checkAll').prop('checked', false);
+							$('#batchStatusModal').modal('hide');
+							alert(response.message || `批次${actionText}成功！`);
+						},
+						error: function () {
+							alert(`批次${actionText}失敗！`);
+						}
+					});
+				}
+			});
+
+			// 點搜尋按鈕
+			$('#btnSearch').on("click", function() {
+				refreshTable(1);
+				updateSelectedFilters();
+			});
+
+			// 輸入框 keyup 即時觸發
+			$('#searchInput').on("keyup", function() {
+				refreshTable(1);
+				updateSelectedFilters();
+			});
+
+			// 篩選完成按鈕
+			$('#filterFinsh').click(function () {
+				updateFilterCount();
+				updateSelectedFilters();
+				refreshTable(1);
+
+				// 關閉下拉選單
+				var toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
+				var dropdown = bootstrap.Dropdown.getInstance(toggleBtn);
+				if (!dropdown) dropdown = new bootstrap.Dropdown(toggleBtn);
+				dropdown.hide();
+			});
+
+			// 搜尋清除按鈕
+			$(".btn-outline-search").click(function () {
+				$("input[type=checkbox]").prop('checked', false);
+				$("#dateFrom").val("");
+				$("#dateTo").val("");
+				$("#searchInput").val("");
+				updateSelectedFilters();
+				updateFilterCount();
+				refreshTable(1);
+			});
+
+			// 日期區間邏輯
+			$("#dateFrom").on("change", function() {
+				const dateFrom = $(this).val();
+				if (dateFrom) {
+					$("#dateTo").attr('min', dateFrom);
+					const dateTo = $("#dateTo").val();
+					if (dateTo && dateTo < dateFrom) {
+						$("#dateTo").val("");
+					}
+				} else {
+					$("#dateTo").removeAttr('min');
+				}
+			});
+
+			// 分頁按鈕點擊
+			$(document).on("click", ".pagination .page-link", function (e) {
+				e.preventDefault();
+				let page = $(this).data("page");
+				if (page) {
+					refreshTable(page);
+				}
+			});
+
+				// 詳細資料按鈕 - 修改內容格式
+		$(document).on('click', '.btn-detail', function () {
+			var btn = $(this);
+			var id = btn.data('id');
+			var status = btn.data('status');
+			var account = btn.data('account');
+			var name = btn.data('name');
+			var phone = btn.data('phone');
+			var email = btn.data('email');
+			var address = btn.data('address');
+
+			// 固定標題為會員資料
+			$('#modelTitle').text('會員資料');
+
+			// 重新組織內容，姓名放在第一個
+			var content = `
+				<div class="row mb-3">
+					<div class="col-sm-3"><strong>姓名：</strong></div>
+					<div class="col-sm-9">${name || '無'}</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-sm-3"><strong>帳號：</strong></div>
+					<div class="col-sm-9">${account || '無'}</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-sm-3"><strong>電話：</strong></div>
+					<div class="col-sm-9">${phone || '無'}</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-sm-3"><strong>信箱：</strong></div>
+					<div class="col-sm-9">${email || '無'}</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-sm-3"><strong>地址：</strong></div>
+					<div class="col-sm-9">${address || '無'}</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-sm-3"><strong>狀態：</strong></div>
+					<div class="col-sm-9"><span class="badge ${getStatusBadgeClass(status)}">${status}</span></div>
+				</div>
+			`;
+
+			$('#modelCon').html(content);
+
+			// 根據狀態顯示對應按鈕
+			$('#modelSuspendBtn, #modelBlockBtn, #modelActivateBtn').hide();
+
+			if (status === '正常') {
+				$('#modelSuspendBtn, #modelBlockBtn').show().attr('data-id', id);
+			} else if (status === '停用') {
+				$('#modelBlockBtn, #modelActivateBtn').show().attr('data-id', id);
+			} else if (status === '封鎖') {
+				$('#modelActivateBtn').show().attr('data-id', id);
+			}
+		});
+
+		// 輔助函數：根據狀態返回對應的 badge 樣式
+		function getStatusBadgeClass(status) {
+			switch (status) {
+				case '正常':
+					return 'bg-success';
+				case '停用':
+					return 'bg-warning text-dark';
+				case '封鎖':
+					return 'bg-danger';
+				default:
+					return 'bg-secondary';
+			}
+		}
+
+				// 單一停用
+		$('#modelSuspendBtn').click(function() {
+			var id = $(this).data('id');
+			// 只設置 action，不要清空表單內容
+			$('#suspendForm').attr('action', '/Users/Suspend/' + id);
+		});
+
+		// 單一封鎖
+		$('#modelBlockBtn').click(function() {
+			var id = $(this).data('id');
+			$('#blockForm').attr('action', '/Users/Block/' + id);
+		});
+
+		// 單一啟用
+		$('#modelActivateBtn').click(function() {
+			var id = $(this).data('id');
+			$('#activateForm').attr('action', '/Users/Activate/' + id);
+		});
+
+		// 狀態操作表單提交後刷新並關閉所有相關 Modal
+		$('#suspendForm, #blockForm, #activateForm').on('submit', function(e) {
+			e.preventDefault(); // 防止預設提交
+
+			var form = $(this);
+
+			$.ajax({
+				url: form.attr('action'),
+				type: 'POST',
+				data: form.serialize(),
+				success: function(response) {
+					// 關閉所有相關 Modal
+					$('#modalDetail').modal('hide');
+					$('#suspendModal').modal('hide');
+					$('#blockModal').modal('hide');
+					$('#activateModal').modal('hide');
+
+					// 刷新表格
+					let page = parseInt($('#paginationInfo').text()) || 1;
+					refreshTable(page);
+
+					// 顯示成功訊息（可選）
+					// alert('操作成功！');
+				},
+				error: function() {
+					alert('操作失敗，請稍後再試');
+				}
+			});
+		});
+
+			// 當每頁筆數改變時
+			$('#pageSizeSelect').on('change', function () {
+				pageNumber = parseInt($(this).val());
+				refreshTable(1);
+			});
+
+			// 初始化篩選計數
+			updateFilterCount();
+		});
+
+		// 更新篩選顯示文字
+		function updateSelectedFilters() {
+			let selected = [];
+
+			// 帳號狀態
+			let categories = $("#collapseCategory input:checked").map(function () {
+				return $(this).next("label").text();
+			}).get();
+			if (categories.length) selected.push("<strong>狀態：</strong>" + categories.join(", "));
+
+			// 日期區間
+			let from = $("#dateFrom").val();
+			let to = $("#dateTo").val();
+			if (from || to) selected.push("<strong>日期：</strong>" + (from ? from : "不限") + " ~ " + (to ? to : "不限"));
+
+			// 顯示或隱藏 div
+			if (selected.length) {
+				$("#selectedFiltersDiv").show();
+				$("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;"));
+			} else {
+				$("#selectedFiltersDiv").hide();
+				$("#selectedFiltersText").html("");
+			}
+		}
+
+		// 更新篩選計數
+		function updateFilterCount() {
+			let count = 0;
+
+			// 帳號狀態
+			if ($("#collapseCategory input:checked").length > 0) count++;
+
+			// 日期 (任意一個日期不空算1)
+			if ($("#dateFrom").val() || $("#dateTo").val()) count++;
+
+			// 更新右上角 tooltip
+			if (count > 0) {
+				$("#filterCount").show().text(count);
+			} else {
+				$("#filterCount").hide();
+			}
+		}
+
+		// 統一刷新列表
+		async function refreshTable(page = 1) {
+			try {
+				let filters = {
+					Page: page,
+					PageSize: pageNumber,
+					Keyword: $('#searchInput').val(),
+					Categories: [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value),
+					DateFrom: $("#dateFrom").val() || null,
+					DateTo: $("#dateTo").val() || null
+				};
+
+				let response = await $.ajax({
+					url: '/Users/SearchSelect',
+					type: 'POST',
+					data: JSON.stringify(filters),
+					contentType: "application/json; charset=utf-8",
+					headers: {
+						'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+					}
+				});
+
+				// 如果本頁沒有資料且頁數大於 1，自動回前一頁
+				if ((!response.tableHtml || response.tableHtml.trim() === "") && page > 1) {
+					return await refreshTable(page - 1);
+				}
+
+				// 更新表格內容
+				$("#tableBody").html(response.tableHtml);
+
+				// 更新分頁
+				$("#pagination").html(response.paginationHtml);
+
+				// 清除選取狀態
+				$('#delectAll, #selectNum').hide();
+				$('#checkAll').prop('checked', false);
+
+			} catch (err) {
+				console.error("更新列表失敗：", err);
+				alert("更新列表失敗，請稍後再試");
+			}
+		}
+
+		// 全域函數供分頁使用
+		window.refreshTable = refreshTable;
+	</script>
+}

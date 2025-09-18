@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using NuGet.Protocol.Core.Types;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;
+using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Printing;
@@ -68,13 +68,13 @@ namespace StarProject.Controllers
 					LostInfo lost = new LostInfo
 					{
 						Name = lostInfo.Name,
-                        Category = lostInfo.Category,
+						Category = lostInfo.Category,
 						Desc = lostInfo.Desc,
 						Status = lostInfo.Status,
 						FoundDate = lostInfo.FoundDate,
 						CreatedDate = DateTime.Now,
-						OwnerName = null,
-						OwnerPhone = null,
+						OwnerName = lostInfo.OwnerName,
+						OwnerPhone = lostInfo.OwnerPhone,
 						Image = lostInfo.Image
 					};
 

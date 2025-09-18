@@ -1,69 +1,127 @@
-﻿@model StarProject.Models.Emp
-
+﻿@model StarProject.ViewModels.EditEmpViewModel
 @{
     ViewData["Title"] = "Edit";
 }
 
-<h1>Edit</h1>
-
+<h1>編輯員工</h1>
 <h4>Emp</h4>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-6">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <h5>表單驗證錯誤：</h5>
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>欄位</th>
+                            <th>錯誤訊息</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var kvp in ViewData.ModelState)
+                        {
+                            var field = kvp.Key;
+                            var errors = kvp.Value.Errors;
+                            foreach (var error in errors)
+                            {
+                                <tr>
+                                    <td>@field</td>
+                                    <td>@error.ErrorMessage</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- 隱藏欄位 -->
             <input type="hidden" asp-for="No" />
-            <div class="form-group">
+
+            <div class="form-group mb-3">
                 <label asp-for="Name" class="control-label"></label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="form-group mb-3">
                 <label asp-for="RoleNo" class="control-label"></label>
-                <select asp-for="RoleNo" class="form-control" asp-items="ViewBag.RoleNo"></select>
+                <select asp-for="RoleNo" class="form-control" asp-items="@Model.Roles">
+                    <option value="">-- 請選擇角色 --</option>
+                </select>
                 <span asp-validation-for="RoleNo" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="form-group mb-3">
                 <label asp-for="DeptNo" class="control-label"></label>
-                <select asp-for="DeptNo" class="form-control" asp-items="ViewBag.DeptNo"></select>
+                <select asp-for="DeptNo" class="form-control" asp-items="@Model.Depts">
+                    <option value="">-- 請選擇部門 --</option>
+                </select>
                 <span asp-validation-for="DeptNo" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="form-group mb-3">
                 <label asp-for="HireDate" class="control-label"></label>
-                <input asp-for="HireDate" class="form-control" />
+                <input asp-for="HireDate" class="form-control" type="date" />
                 <span asp-validation-for="HireDate" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="PasswordHash" class="control-label"></label>
-                <input asp-for="PasswordHash" class="form-control" />
-                <span asp-validation-for="PasswordHash" class="text-danger"></span>
+
+            <div class="form-group mb-3">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="PasswordSalt" class="control-label"></label>
-                <input asp-for="PasswordSalt" class="form-control" />
-                <span asp-validation-for="PasswordSalt" class="text-danger"></span>
+
+            <div class="form-group mb-3">
+                <label asp-for="Phone" class="control-label"></label>
+                <input asp-for="Phone" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="EmpCode" class="control-label"></label>
-                <input asp-for="EmpCode" class="form-control" />
-                <span asp-validation-for="EmpCode" class="text-danger"></span>
+
+            <div class="form-group mb-3">
+                <label asp-for="IdNumber" class="control-label"></label>
+                <input asp-for="IdNumber" class="form-control" />
+                <span asp-validation-for="IdNumber" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Status" /> @Html.DisplayNameFor(model => model.Status)
+
+            <div class="form-group mb-3">
+                <label asp-for="BirthDate" class="control-label"></label>
+                <input asp-for="BirthDate" class="form-control" type="date" />
+                <span asp-validation-for="BirthDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group form-check mb-3">
+                <input class="form-check-input" asp-for="Status" type="checkbox" />
+                <label class="form-check-label" asp-for="Status">
+                    啟用狀態
                 </label>
+                <span asp-validation-for="Status" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="儲存" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">取消</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
+
+<script>
+    // 除錯用：表單提交時檢查
+    document.querySelector('form').addEventListener('submit', function(e) {
+        console.log('表單正在提交...');
+        console.log('表單資料:', new FormData(this));
+    });
+</script>

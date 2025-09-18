@@ -10,13 +10,13 @@
             <div class="imgdiv" data-imgid="@imgMd.No">
                 <div style="position: relative; width: 200px; height: 200px; margin: 2px">
                     <img src="@imgMd.Image" class="w-100 h-100" style="object-fit: cover; border: 1px solid #ccc; padding: 2px" />
-                    <button class="del-btn-uped del-btn" data-imgid="@imgMd.No" data-productno="@Model.Product.No">
+                    <button class="del-btn" data-imgid="@imgMd.No" data-productno="@Model.Product.No">
                         <i class="fa-solid fa-square-xmark"></i>
                     </button>
                 </div>
-                <div class="d-flex justify-content-end align-items-center" style="margin: 2px">
-                    <label class="p-0" style="width: 80px">圖片順序:</label>
-                    <input type="number" class="img-order" name="ImageOrders[@index]" min="1" max="5" style="width: 60px"
+                <div class="d-flex justify-content-end align-items-center" style="margin-top: 8px">
+                    <label class="p-0 fs-5" style="width: 100px">圖片順序:</label>
+                    <input type="number" class="img-order form-control" name="ImageOrders[@index]" min="1" max="5" style="width: 60px"
                     value="@imgMd.ImgOrder" />
                 </div>
             </div>

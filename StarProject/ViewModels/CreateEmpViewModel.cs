@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace StarProject.ViewModels
@@ -13,16 +14,19 @@ namespace StarProject.ViewModels
 		[Required(ErrorMessage = "部門為必填欄位")]
 		[Display(Name = "部門")]
 		public int DeptNo { get; set; }
+		public SelectList? Depts { get; set; }
 
 		[Required(ErrorMessage = "職位為必填欄位")]
 		[Display(Name = "職位")]
 		public int RoleNo { get; set; }
+		public SelectList? Roles { get; set; }
 
 		[Required(ErrorMessage = "到職日期為必填欄位")]
 		[DataType(DataType.Date)]
 		[Display(Name = "到職日期")]
 		public DateTime HireDate { get; set; } = DateTime.Today;
 
+		[Required(ErrorMessage = "電子郵件為必填欄位")]
 		[EmailAddress(ErrorMessage = "請輸入有效的Email格式")]
 		[StringLength(100, ErrorMessage = "Email不可超過100個字元")]
 		[Display(Name = "Email")]

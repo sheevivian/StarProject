@@ -1,4 +1,5 @@
-﻿@model StarProject.ViewModel.NewsVM
+﻿@using StarProject.ViewModels
+@model NewsVM
 
 @{
     ViewData["Title"] = "官網公告新增";
@@ -43,6 +44,7 @@
             height: 100%;
             width: auto; /* 保持比例 */
             object-fit: cover; /* 填滿容器裁切 */
+            object-position: center; /* 裁切以圖片中心對齊 */
         }
 
         .card-header{
@@ -83,9 +85,11 @@
                                 <option value="">請選擇</option>
                                 <option value="最新消息">最新消息</option>
                                 <option value="館區動態">館區動態</option>
+                                <option value="展覽公告">展覽公告</option>
                                 <option value="活動資訊">活動資訊</option>
                                 <option value="最新天象">最新天象</option>
                                 <option value="觀測公告">觀測公告</option>
+                                <option value="宇宙探索">宇宙探索</option>
                                 <option value="系統公告">系統公告</option>
                                 <option value="其他消息">其他消息</option>
                             </select>
@@ -93,7 +97,7 @@
                         
                         <div class="form-group mb-2">
                             <label asp-for="PublishDate" class="control-label fw-bold fs-5"></label><span asp-validation-for="PublishDate" class="text-danger ms-3"></span>
-                            <input asp-for="PublishDate" class="form-control" />
+                            <input asp-for="PublishDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd HH:mm")" />
                         </div>
                         
                         <div class="form-group mb-2">
@@ -107,12 +111,12 @@
             <!-- 右側：圖片區 -->
             <div class="col-lg-6">
                 <div class="card h-100">
-                    <div class="card-header fw-bold fs-4"><strong>公告圖片</strong></div>
+                    <div class="card-header fw-bold fs-4"><strong>公告封面</strong></div>
                     <div class="card-body d-flex flex-column">
                         <!-- 多圖上傳 -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold fs-5">上傳圖片</label>
-                            <input asp-for="ImageFiles" type="file" class="form-control" multiple id="imageFilesInput" />
+                            <label class="form-label fw-bold fs-5">上傳圖片</label><small class="text-muted ms-3">可選多張上傳</small>
+                            <input type="file" class="form-control" multiple id="imageFilesInput" name="ImageFiles" />
                         </div>
 
                         <!-- Carousel 預覽 + 拖曳排序 -->
@@ -223,7 +227,7 @@
                 // Carousel item
                 const item = $(`
                     <div class="carousel-item ${index===0?'active':''}">
-                        <img src="${url}" class="d-block w-100 h-100" style="object-fit:cover;">
+                        <img src="${url}" class="d-block w-100" style="height:500px; object-fit:cover;object-position: center;">
                     </div>
                 `);
                 carouselInner.append(item);
@@ -244,13 +248,17 @@
             });
         }
 
-        // 將 fileList 同步回 input
         function updateFileInput(){
             const dataTransfer = new DataTransfer();
-            fileList.forEach(obj => {
-                dataTransfer.items.add(obj.file);
-            });
-            imageFilesInput.files = dataTransfer.files;
+            if(fileList.length > 0){
+                fileList.forEach(obj => {
+                    dataTransfer.items.add(obj.file);
+                });
+                imageFilesInput.files = dataTransfer.files;
+            } else {
+                // 不改 input.files，保持原本空值
+                imageFilesInput.value = "";
+            }
         }
 
         // 拖曳排序
@@ -293,13 +301,10 @@
                     }
                 })
                 .then(editor => {
-                   // 將 CKEditor 的內容同步回原本的 textarea
+                    // 只綁一次事件
                     editor.model.document.on('change:data', () => {
-                        // 同步內容回 textarea
-                        editor.model.document.on('change:data', () => {
-                            textarea.value = editor.getData();
-                            console.log(textarea.value);
-                        });
+                        textarea.value = editor.getData();
+                        // console.log(textarea.value); // 可以保留或刪掉
                     });
                 })
                 .catch(error => {

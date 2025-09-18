@@ -1,0 +1,286 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0c0e27 0%, #1a1d47 50%, #2d3561 100%);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* 星空背景動畫 */
+.stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    -webkit-animation: twinkle 3s infinite;
+    animation: twinkle 3s infinite;
+}
+
+.star:nth-child(odd) {
+    -webkit-animation-delay: 1s;
+    animation-delay: 1s;
+}
+
+.star:nth-child(3n) {
+    -webkit-animation-delay: 2s;
+    animation-delay: 2s;
+}
+
+/* 星星閃爍動畫 */
+@-webkit-keyframes twinkle {
+    0%, 100% { 
+        opacity: 0.3; 
+        -webkit-transform: scale(1);
+        transform: scale(1); 
+    }
+    50% { 
+        opacity: 1; 
+        -webkit-transform: scale(1.2);
+        transform: scale(1.2); 
+    }
+}
+
+@keyframes twinkle {
+    0%, 100% { 
+        opacity: 0.3; 
+        -webkit-transform: scale(1);
+        transform: scale(1); 
+    }
+    50% { 
+        opacity: 1; 
+        -webkit-transform: scale(1.2);
+        transform: scale(1.2); 
+    }
+}
+
+/* 浮動動畫 */
+@-webkit-keyframes float {
+    0%, 100% { 
+        -webkit-transform: translateY(0px);
+        transform: translateY(0px); 
+    }
+    50% { 
+        -webkit-transform: translateY(-20px);
+        transform: translateY(-20px); 
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        -webkit-transform: translateY(0px);
+        transform: translateY(0px); 
+    }
+    50% { 
+        -webkit-transform: translateY(-20px);
+        transform: translateY(-20px); 
+    }
+}
+
+/* 脈衝動畫 */
+@-webkit-keyframes pulse {
+    0% { 
+        -webkit-transform: scale(1);
+        transform: scale(1); 
+    }
+    50% { 
+        -webkit-transform: scale(1.05);
+        transform: scale(1.05); 
+    }
+    100% { 
+        -webkit-transform: scale(1);
+        transform: scale(1); 
+    }
+}
+
+@keyframes pulse {
+    0% { 
+        -webkit-transform: scale(1);
+        transform: scale(1); 
+    }
+    50% { 
+        -webkit-transform: scale(1.05);
+        transform: scale(1.05); 
+    }
+    100% { 
+        -webkit-transform: scale(1);
+        transform: scale(1); 
+    }
+}
+
+/* 主要容器 */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.access-denied-card {
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 60px 40px;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+    -webkit-animation: float 6s ease-in-out infinite;
+    animation: float 6s ease-in-out infinite;
+    -webkit-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.access-denied-card:hover {
+    -webkit-transform: translateY(-5px);
+    transform: translateY(-5px);
+}
+
+.telescope-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 30px;
+    background: linear-gradient(45deg, #64b5f6, #42a5f5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(100, 181, 246, 0.3);
+    -webkit-animation: pulse 2s infinite;
+    animation: pulse 2s infinite;
+}
+
+h1 {
+    color: #ffffff;
+    font-size: 28px;
+    margin-bottom: 20px;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+.error-code {
+    color: #ff6b6b;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    padding: 10px 20px;
+    background: rgba(255, 107, 107, 0.1);
+    border-radius: 25px;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    display: inline-block;
+}
+
+p {
+    color: #b8c5d6;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    -webkit-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    -webkit-transform: translateY(-2px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-transform: translateY(-2px);
+    transform: translateY(-2px);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .access-denied-card {
+        padding: 40px 30px;
+        margin: 20px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .telescope-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 40px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 200px;
+        justify-content: center;
+    }
+}
+
+/* 底部信息 */
+.footer-info {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    text-align: center;
+}

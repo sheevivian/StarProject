@@ -15,5 +15,5 @@ public partial class ProductStock
 
     public string? Note { get; set; }
 
-    public virtual Product ProductNoNavigation { get; set; } = null!;
+    public int No { get; set; }
 }

@@ -11,5 +11,7 @@ public partial class TicketStock
 
     public int Stock { get; set; }
 
+    public int No { get; set; }
+
     public virtual Ticket TicketNoNavigation { get; set; } = null!;
 }

@@ -1,0 +1,420 @@
+﻿@model StarProject.ViewModel.ParticipantsIndexVm
+@using StarProject.ViewModel
+@using System.Linq
+
+@{
+    ViewData["Title"] = "報名管理";
+    var cards = Model?.Cards ?? new List<EventCardVm>();
+}
+
+<!-- 標題 & 匯出「全部」 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="fw-bold text-white">報名管理</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-warning text-dark" asp-controller="Participants" asp-action="Create">
+            <i class="fi fi-sr-alien"></i> 新增
+        </a>
+        <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportExcel">匯出全部 Excel</a>
+        <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportCsv">匯出全部 CSV</a>
+    </div>
+</div>
+
+<hr />
+
+<!-- 卡片網格-->
+<section class="wrapper">
+    <div class="container">
+        <!-- 一行四張：lg 以上 4 欄；md 2 欄；xs 1 欄 -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="eventCardGrid">
+            @if (!cards.Any())
+            {
+                <div class="col-12">
+                    <div class="alert alert-warning">目前沒有可顯示的活動。</div>
+                </div>
+            }
+            else
+            {
+                @foreach (var e in cards)
+                {
+                    // 背景圖處理（沿用你的邏輯）
+                    var raw = e.CoverImageUrl ?? "";
+                    string bg;
+                    if (string.IsNullOrWhiteSpace(raw))
+                    {
+                        bg = "https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=1400&auto=format&fit=crop";
+                    }
+                    else if (raw.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                    {
+                        bg = raw;
+                    }
+                    else
+                    {
+                        var normalized = (raw.StartsWith("~/") || raw.StartsWith("/")) ? raw : $"~/uploads/{raw}";
+                        bg = Url.Content(normalized);
+                    }
+
+                    // ===== 狀態 → 右下角 icon + 文字（報名中=藍、已結束=灰、已取消=紅）=====
+                    var rawStatus = (e.Status ?? "").Trim();
+                    var norm = rawStatus.ToLowerInvariant();
+
+                    string[] openKeys = new[] { "報名中", "開放報名", "open", "進行中", "ongoing", "進行" };
+                    string[] endKeys = new[] { "已結束", "結束", "已截止", "截止", "closed", "ended", "end", "完結" };
+                    string[] cancelKeys = new[] { "已取消", "取消", "cancel", "canceled", "cancelled" };
+
+                    bool isCancelled = cancelKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
+                    bool isEnded = !isCancelled && endKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
+                    bool isOpen = !isCancelled && !isEnded && openKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
+
+                    // fallback：若完全判不到，就用中性灰（避免誤標為開放）
+                    string statusLabel, pillClass, statusIcon;
+                    if (isCancelled)
+                    {
+                        statusLabel = "已取消"; pillClass = "pill-cancelled"; statusIcon = "bi bi-x-circle-fill";
+                    }
+                    else if (isEnded)
+                    {
+                        statusLabel = "已結束"; pillClass = "pill-ended"; statusIcon = "bi bi-check-circle-fill";
+                    }
+                    else if (isOpen)
+                    {
+                        statusLabel = "報名中"; pillClass = "pill-open"; statusIcon = "bi bi-play-fill";
+                    }
+                    else
+                    {
+                        statusLabel = string.IsNullOrEmpty(rawStatus) ? "狀態未設定" : rawStatus;
+                        pillClass = "pill-ended";    // 中性灰
+                        statusIcon = "bi bi-info-circle-fill";
+                    }
+
+                    <div class="col">
+                        <div class="card h-100 event-card position-relative shadow-sm cardDetail"
+                             data-event-id="@e.No"
+                             data-event-title="@e.Title"
+                             data-bs-toggle="modal"
+                             data-bs-target="#participantsModal"
+                             role="button"
+                             aria-label="檢視 @e.Title 的報名名單">
+
+                            <!-- 上：固定比例的封面（16:9），圖片一致裁切 -->
+                            <div class="card-thumb" style="background-image:url('@bg');" aria-label="@e.Title"></div>
+
+                            <!-- 下：只保留 標題 / 時間 / 人數 -->
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title fw-bold text-truncate mb-2" title="@e.Title">@e.Title</h5>
+
+                                <div class="d-flex align-items-center gap-2 text-muted mb-1">
+                                    <i class="far fa-clock"></i>
+                                    <small>@e.StartDate.ToString("yyyy/MM/dd HH:mm")</small>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2 text-muted">
+                                    <i class="bi bi-people"></i>
+                                    <small>@e.CurrentCount / @e.MaxParticipants 人</small>
+                                </div>
+
+                                <!-- 右下角狀態膠囊（不擋點擊） -->
+                                <div class="status-pill @pillClass">
+                                    <i class="@statusIcon"></i>
+                                    <span class="ms-1">@statusLabel</span>
+                                </div>
+
+                                <!-- 覆蓋整張可點 -->
+                                <a class="stretched-link" href="javascript:void(0)"></a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+
+<!-- Modal：顯示單一活動的參與者名單 -->
+<div class="modal fade" id="participantsModal" tabindex="-1" aria-labelledby="participantsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h4 class="modal-title fw-bold mb-1" id="participantsModalLabel">參與者名單</h4>
+                    <div class="small text-muted" id="participantsModalSub">活動編號：<span id="modalEventId">-</span></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- 工具列：單一活動匯出、批次刪除 -->
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <a class="btn btn-outline-primary" id="btnExportCsv" target="_blank" rel="noopener">
+                        <i class="fa-solid fa-file-csv me-1"></i> 匯出 CSV（本活動）
+                    </a>
+                    <a class="btn btn-outline-success" id="btnExportExcel" target="_blank" rel="noopener">
+                        <i class="fa-solid fa-file-excel me-1"></i> 匯出 Excel（本活動）
+                    </a>
+
+                    <form id="bulkForm" class="ms-auto">
+                        @Html.AntiForgeryToken()
+                        <button type="button" class="btn btn-outline-danger" id="btnBulkDelete">
+                            <i class="fa-solid fa-trash-can me-1"></i> 刪除已勾選
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 名單容器（AJAX 載入 _ParticipantsTable 部分檢視） -->
+                <div id="participantsTableContainer" class="border rounded p-2 position-relative" style="min-height:180px">
+                    <div class="text-center text-muted py-5" id="tableLoading">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        載入中…
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 樣式 -->
+@section Styles {
+    <style>
+        body {
+            background: #161616;
+        }
+
+        h1 {
+            color: #fff;
+        }
+
+        .wrapper {
+            margin: 2rem 0;
+        }
+
+        /* 視覺層次：白底卡片＋陰影（建立堆疊脈絡以放置狀態膠囊與 stretched-link） */
+        .event-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #fff;
+            transition: transform .25s ease, box-shadow .25s ease;
+            position: relative;
+        }
+
+            .event-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0,0,0,.18);
+            }
+
+        /* 上半：固定比例縮圖 (16:9) + cover，確保整齊 */
+        .card-thumb {
+            aspect-ratio: 16/9;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* 下半：內容層次清楚、左對齊（並作為狀態膠囊的定位容器） */
+        .card-body {
+            position: relative;
+            padding: 14px 16px 16px 16px;
+        }
+
+        .card-title {
+            line-height: 1.25;
+        }
+
+        /* 讓狀態膠囊浮在 stretched-link 之上，但不吃點擊 */
+        .event-card .stretched-link::after {
+            z-index: 1;
+        }
+
+        .status-pill {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: .85rem;
+            font-weight: 700;
+            z-index: 2;
+            pointer-events: none;
+            background: rgba(255,255,255,.9);
+            color: #222;
+            box-shadow: 0 2px 6px rgba(0,0,0,.08);
+        }
+
+            .status-pill .bi {
+                font-size: 1rem;
+                line-height: 1;
+            }
+
+        /* 狀態色系：開=藍、結束=灰、取消=紅 */
+        .pill-open {
+            background: rgba(13,110,253,.95);
+            color: #fff;
+        }
+        /* Bootstrap primary 藍 */
+        .pill-ended {
+            background: rgba(222,226,230,.95);
+            color: #333;
+        }
+        /* secondary 淺灰 */
+        .pill-cancelled {
+            background: rgba(220,53,69,.95);
+            color: #fff;
+        }
+        /* danger 紅 */
+
+        /* RWD 高度微調（四欄時仍清爽） */
+        @@media (min-width:992px) {
+            .event-card {
+                min-height: 320px;
+            }
+        }
+
+        @@media (max-width:991.98px) {
+            .event-card {
+                min-height: 300px;
+            }
+        }
+
+        /* Modal 內表格對齊（保留） */
+        #participantsTableContainer table td,
+        #participantsTableContainer table th {
+            vertical-align: middle;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentEventId = 0;
+
+            // 用 Url.Action 產生正確路徑（避免硬碼根目錄問題）
+            const listUrl = '@Url.Action("ListByEvent", "Participants")';
+            const csvUrl  = '@Url.Action("ExportCsv", "Participants")';
+            const xlsUrl  = '@Url.Action("ExportExcel", "Participants")';
+            const bulkUrl = '@Url.Action("BulkDelete", "Participants")';
+
+            // 事件委派：點整張卡片或 stretched-link 都算
+            document.addEventListener('click', function (e) {
+                const trigger = e.target.closest('.cardDetail, a.stretched-link');
+                if (!trigger) return;
+
+                const card = trigger.classList.contains('cardDetail') ? trigger : trigger.closest('.cardDetail');
+                if (!card) return;
+
+                currentEventId = Number(card.getAttribute('data-event-id')) || 0;
+                const title = card.getAttribute('data-event-title') || '參與者名單';
+
+                const $title = document.getElementById('participantsModalLabel');
+                const $id    = document.getElementById('modalEventId');
+                if ($title) $title.textContent = title;
+                if ($id)    $id.textContent    = currentEventId;
+
+                // 設定匯出連結
+                const $csv = document.getElementById('btnExportCsv');
+                const $xls = document.getElementById('btnExportExcel');
+                if ($csv) $csv.href = `${csvUrl}?eventId=${currentEventId}`;
+                if ($xls) $xls.href = `${xlsUrl}?eventId=${currentEventId}`;
+
+                // 載入表格
+                loadParticipantsTable(currentEventId);
+            });
+
+            async function loadParticipantsTable(eventId) {
+                const container = document.getElementById('participantsTableContainer');
+                if (!container) return;
+
+                container.innerHTML = `
+                    <div class="text-center text-muted py-5" id="tableLoading">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        載入中…
+                    </div>`;
+
+                try {
+                    const res = await fetch(`${listUrl}?eventId=${encodeURIComponent(eventId)}`, {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        cache: 'no-store'
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const html = await res.text();
+                    container.innerHTML = html;
+                    wireSelectAllOnce();
+                } catch (err) {
+                    container.innerHTML = `<div class="alert alert-danger">載入失敗：${err.message || err}</div>`;
+                }
+            }
+
+            function wireSelectAllOnce() {
+                const container = document.getElementById('participantsTableContainer');
+                if (!container || container.dataset.selectAllWired === '1') return;
+
+                container.addEventListener('change', function (e) {
+                    const t = e.target;
+
+                    // Header 全選
+                    if (t.matches('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]')) {
+                        const checked = t.checked;
+                        container.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
+                            if (!cb.matches('[data-check-all], #checkAll, .js-check-all')) cb.checked = checked;
+                        });
+                        t.indeterminate = false;
+                        return;
+                    }
+
+                    // 單列勾選 → 更新 Header 狀態
+                    if (t.matches('tbody input[type="checkbox"]')) {
+                        const rows = Array.from(container.querySelectorAll('tbody input[type="checkbox"]'))
+                            .filter(cb => !cb.matches('[data-check-all], #checkAll, .js-check-all'));
+                        const header = container.querySelector('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]');
+                        if (header) {
+                            const allChecked = rows.length > 0 && rows.every(cb => cb.checked);
+                            const someChecked = rows.some(cb => cb.checked);
+                            header.checked = allChecked;
+                            header.indeterminate = !allChecked && someChecked;
+                        }
+                    }
+                });
+
+                container.dataset.selectAllWired = '1';
+            }
+
+            // 批次刪除（加防呆）
+            const bulkBtn = document.getElementById('btnBulkDelete');
+            if (bulkBtn) {
+                bulkBtn.addEventListener('click', async function () {
+                    if (!currentEventId) return;
+
+                    const checks = Array.from(document.querySelectorAll('#participantsTableContainer input[type="checkbox"]'))
+                        .filter(x => x.checked && (x.dataset.id || x.value));
+                    const ids = checks.map(x => Number(x.dataset.id || x.value)).filter(n => !isNaN(n));
+
+                    if (ids.length === 0) { alert('請先勾選要刪除的項目。'); return; }
+                    if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？`)) return;
+
+                    const tokenEl = document.querySelector('#bulkForm input[name="__RequestVerificationToken"]');
+                    const form = new FormData();
+                    if (tokenEl) form.append('__RequestVerificationToken', tokenEl.value);
+                    form.append('eventId', currentEventId);
+                    ids.forEach(id => form.append('ids', String(id)));
+
+                    try {
+                        const res = await fetch(bulkUrl, { method: 'POST', body: form });
+                        const json = await res.json();
+                        if (json.success) {
+                            await loadParticipantsTable(currentEventId);
+                        } else {
+                            alert(json.message || '刪除失敗。');
+                        }
+                    } catch (err) {
+                        alert('刪除失敗：' + (err.message || err));
+                    }
+                });
+            }
+        });
+    </script>
+}
+

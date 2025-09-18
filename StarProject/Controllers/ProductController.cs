@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Build.Graph;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using NPOI.HSSF.UserModel;
+using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
@@ -18,66 +22,123 @@ using System.Threading.Tasks;
 
 namespace StarProject.Controllers
 {
-    public class ProductController : Controller
+    public partial class ProductController : Controller
     {
-        private readonly StarProjectContext _context;
+		private const int pageNumber = 20;
+
+		private readonly StarProjectContext _context;
 
         public ProductController(StarProjectContext context)
         {
             _context = context;
         }
 
-		// 商品查詢+頁數
+		// 商品列表+頁數(GET)
         // GET: Product
         [HttpGet]
-		public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
+		public async Task<IActionResult> Index(int page = 1, int pageSize = pageNumber)
         {
-            // var starProjectContext = _context.Products.Include(p => p.ProCategoryNoNavigation);
-            // return View(await starProjectContext.ToListAsync());
+			// 先組 IQueryable (全部資料，還沒篩選)
+			var query = _context.Products
+						.Include(p => p.ProCategoryNoNavigation)
+						.Include(p => p.ProductImages)
+						.OrderByDescending(x => x.No);
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
 
-			// return View(_context.Products.Include(p => p.ProCategoryNoNavigation));
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
 
-			// 總筆數
-			var totalCount = await _context.Products.CountAsync();
-
-			// 計算要跳過幾筆
-			var products = await _context.Products
-				.Include(p => p.ProCategoryNoNavigation)
-				.OrderBy(p => p.No)
-				.Skip((page - 1) * pageSize)
-				.Take(pageSize)
-				.ToListAsync();
-
-			// 準備 ViewModel
-			var viewModel = new ProductListViewModel
-			{
-				Products = products,
-				CurrentPage = page,
-				PageSize = pageSize,
-				TotalCount = totalCount
-			};
-
-			return View(viewModel);
+			return View(items);
 		}
 
-        // GET: Product/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+		// 商品列表-搜尋+進階篩選功能
+		// POST: Product/SearchSelect
+		[HttpPost]
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
+		{
+			// 從 filters 取得 pageSize，如果沒有就給預設值
+			int page = filters.Page > 0 ? filters.Page : 1;
+			int pageSize = filters.PageSize >= 0 ? filters.PageSize : 10;
 
-            var product = await _context.Products
-                .Include(p => p.ProCategoryNoNavigation)
-                .FirstOrDefaultAsync(m => m.No == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
+			var query = _context.Products
+						.Include(p => p.ProCategoryNoNavigation)
+						.Include(p => p.ProductImages).AsQueryable();
+			query = query.OrderByDescending(x => x.No);
 
-            return View(product);
-        }
+			// keyword
+			if (!string.IsNullOrEmpty(filters.keyword))
+			{
+				query = query.Where(x => x.Name.Contains(filters.keyword)
+									 || x.ProCategoryNoNavigation.Name.Contains(filters.keyword)
+									 || x.Status.Contains(filters.keyword));
+			}
+
+			// 進階篩選>分類
+			if (filters.Categories != null && filters.Categories.Any())
+				query = query.Where(x => filters.Categories.Contains(x.ProCategoryNo));
+
+			// 進階篩選>狀態
+			if (filters.Statuses != null && filters.Statuses.Any())
+				query = query.Where(x => filters.Statuses.Contains(x.Status));
+
+			// 日期區間
+			if (!string.IsNullOrEmpty(filters.DateFrom))
+				query = query.Where(x => x.ReleaseDate >= DateTime.Parse(filters.DateFrom));
+
+			if (!string.IsNullOrEmpty(filters.DateTo))
+				query = query.Where(x => x.ReleaseDate <= DateTime.Parse(filters.DateTo));
+
+
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			var tableHtml = await RenderPartialViewToString("_ProductRows", items);
+			var paginationHtml = await RenderPartialViewToString("_ProductPagination", null);
+
+			return Json(new { tableHtml, paginationHtml });
+		}
+
+		// 商品列表-更新頁碼+搜尋
+		// GET: Product/RenderPartialViewToString
+		[HttpGet]
+		public async Task<string> RenderPartialViewToString(string viewName, object model)
+		{
+			if (string.IsNullOrEmpty(viewName))
+				viewName = ControllerContext.ActionDescriptor.ActionName;
+
+			ViewData.Model = model;
+
+			using (var sw = new StringWriter())
+			{
+				var viewEngine = HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+				var viewResult = viewEngine.FindView(ControllerContext, viewName, false);
+
+				if (viewResult.Success == false)
+					throw new ArgumentNullException($"View {viewName} not found.");
+
+				var viewContext = new ViewContext(
+					ControllerContext,
+					viewResult.View,
+					ViewData,
+					TempData,
+					sw,
+					new HtmlHelperOptions()
+				);
+
+				await viewResult.View.RenderAsync(viewContext);
+				return sw.GetStringBuilder().ToString();
+			}
+		}
 
 		// 新品上架-單筆(GET)
 		// GET: Product/Create
@@ -98,23 +159,29 @@ namespace StarProject.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create([Bind("Name,ProCategoryNo,Price,Status,ReleaseDate")] Product proModel)
 		{
+
 			int lastNo = _context.Products.Max(p => (int?)p.No) ?? 99999;
 			proModel.No = lastNo + 1;   // 新商品編號
-
 			proModel.UpdateDate = DateTime.Now;
-			try
-			{
-				_context.Add(proModel);
-				await _context.SaveChangesAsync();
+			
+			// 移除 ModelState 中無法綁定的欄位
+			ModelState.Remove("ProCategoryNoNavigation");
 
-				return RedirectToAction("Edit", new { id = proModel.No });
-			}
-			catch (Exception ex)
+			if (ModelState.IsValid)
 			{
-				// 這裡把錯誤訊息寫進 ModelState，讓畫面上可以看到
-				ModelState.AddModelError("", $"資料存檔失敗: {ex.Message}");
-			}
+				try
+				{
+					_context.Add(proModel);
+					await _context.SaveChangesAsync();
 
+					return RedirectToAction("Edit", new { id = proModel.No });
+				}
+				catch (Exception ex)
+				{
+					// 這裡把錯誤訊息寫進 ModelState，讓畫面上可以看到
+					ModelState.AddModelError("", $"資料存檔失敗: {ex.Message}");
+				}
+			}
 			// 如果失敗就回到 Create 畫面，顯示錯誤
 			ViewData["ProCategoryName"] = new SelectList(_context.ProCategories, "No", "Name");
 			ViewBag.StatusList = new List<SelectListItem>
@@ -122,8 +189,7 @@ namespace StarProject.Controllers
 				new SelectListItem { Value = "上架", Text = "上架" },
 				new SelectListItem { Value = "預購", Text = "預購" },
 			};
-
-			return View(proModel);
+			return View();
 		}
 
 		// 新品上架-多筆(GET)
@@ -216,9 +282,56 @@ namespace StarProject.Controllers
 				{
 					new SelectListItem { Value = "上架", Text = "上架" },
 					new SelectListItem { Value = "預購", Text = "預購" },
+					new SelectListItem { Value = "絕版", Text = "絕版" },
 				},
 				"Value", "Text", product.Status);
 			return View(vm); // 同一個 View
+		}
+
+		// 編輯商品(POST)
+		// POST: Tickets/Edit/5
+		// To protect from overposting attacks, enable the specific properties you want to bind to.
+		// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Edit(int id, ProductEditViewModel proEditVM)
+		{
+			if (id != proEditVM.Product.No)
+			{
+				return NotFound();
+			}
+
+			// 1. 先抓出資料庫裡的 Product
+			var product = await _context.Products.FirstOrDefaultAsync(p => p.No == id);
+			if (product == null)
+				return NotFound();
+
+			// 2. 更新有變更的欄位
+			product.Name = proEditVM.Product.Name;
+			product.ProCategoryNo = proEditVM.Product.ProCategoryNo;
+			product.Price = proEditVM.Product.Price;
+			product.Status = proEditVM.Product.Status;
+			product.ReleaseDate = proEditVM.Product.ReleaseDate;
+			product.UpdateDate = DateTime.Now; // 更新日期
+
+		
+			try
+			{
+				_context.Update(product);
+				await _context.SaveChangesAsync();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!ProductExists(product.No))
+				{
+					return NotFound();
+				}
+				else
+				{
+					throw;
+				}
+			}
+			return RedirectToAction("Edit", new { id = proEditVM.Product.No });
 		}
 
 		// 上傳照片(POST)
@@ -255,6 +368,14 @@ namespace StarProject.Controllers
 				await _context.SaveChangesAsync();
 			}
 
+			// 只更新 UpdateDate
+			var product = await _context.Products.FirstOrDefaultAsync(p => p.No == proEditVM.Product.No);
+			if (product != null)
+				product.UpdateDate = DateTime.Now;
+
+			await _context.SaveChangesAsync();
+
+
 			var images = _context.ProductImages
 				.Where(i => i.ProductNo == proEditVM.Product.No)
 				.OrderBy(i => i.ImgOrder)
@@ -271,67 +392,36 @@ namespace StarProject.Controllers
 			// return RedirectToAction(nameof(Edit), new { id = proEditVM.ProImage.ProductNo });
 		}
 
-		// 刪除照片(POST)
-		// POST: Product/ImgDelete
+		// 更新照片區(POST)
+		// POST: Product/ImgSave
 		[HttpPost]
-		public IActionResult ImgDelete(int id, int productNo)
+		public async Task<IActionResult> ImgSave([FromBody] ImgSaveDto imgSaveDto)
 		{
-			var img = _context.ProductImages.FirstOrDefault(x => x.No == id);
-			if (img != null)
+			// 刪除資料庫圖片
+			if (imgSaveDto.DeletedIds != null && imgSaveDto.DeletedIds.Any())
 			{
-				_context.ProductImages.Remove(img);
-				_context.SaveChanges();
+				var imgsToDelete = _context.ProductImages
+										   .Where(i => imgSaveDto.DeletedIds.Contains(i.No));
+				_context.ProductImages.RemoveRange(imgsToDelete);
 			}
 
-			// 刪除後重新撈圖片
-			var images = _context.ProductImages
-				.Where(i => i.ProductNo == productNo)
-				.OrderBy(i => i.ImgOrder)
-				.ToList();
-
-			var vm = new ProductEditViewModel
-			{
-				Product = _context.Products.FirstOrDefault(p => p.No == productNo),
-				ProImage = new ProductImage { ProductNo = productNo },
-				ProImages = images
-			};
-
-			return PartialView("_PicturePartial", vm);
-		}
-
-		// 取得照片序號(GET)
-		[HttpGet]
-		public int GetImgId(int id) {
-			return id;
-		}
-
-		public class ImgOrderDto
-		{
-			public int id { get; set; }
-			public int order { get; set; }
-		}
-
-		// 更新照片區(POST)
-		[HttpPost]
-		public async Task<IActionResult> ImgSave([FromBody] List<ImgOrderDto> imgOrders)
-		{
-			if (imgOrders == null || !imgOrders.Any())
-				return BadRequest();
-
 			// 依序更新
-			foreach (var item in imgOrders)
+			if (imgSaveDto.ImgData != null && imgSaveDto.ImgData.Any())
 			{
-				var img = await _context.ProductImages.FirstOrDefaultAsync(x => x.No == item.id);
-				if (img != null)
+				foreach (var item in imgSaveDto.ImgData)
 				{
-					img.ImgOrder = item.order;
+					var img = await _context.ProductImages.FirstOrDefaultAsync(i => i.No == item.OrderId);
+					if (img != null)
+					{
+						img.ImgOrder = item.OrderOd;
+					}
 				}
 			}
 
 			await _context.SaveChangesAsync();
 
 			// 把更新後的圖片再抓出來顯示
-			var firstId = imgOrders.First().id;
+			var firstId = imgSaveDto.ImgData.First().OrderId;
 			var productNo = _context.ProductImages
 				.Where(x => x.No == firstId)
 				.Select(x => x.ProductNo)
@@ -348,40 +438,6 @@ namespace StarProject.Controllers
 
 			return PartialView("_PicturePartial", vm);
 		}
-
-		// GET: Product/Delete/5
-		public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .Include(p => p.ProCategoryNoNavigation)
-                .FirstOrDefaultAsync(m => m.No == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-        // POST: Product/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
-            {
-                _context.Products.Remove(product);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
 
         private bool ProductExists(int id)
         {

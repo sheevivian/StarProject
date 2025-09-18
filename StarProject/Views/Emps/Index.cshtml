@@ -1,122 +1,416 @@
 ﻿@model IEnumerable<StarProject.Models.Emp>
+@Html.AntiForgeryToken()
 
 @{
     ViewData["Title"] = "員工列表";
 }
+<head>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
 
-<h1>員工列表</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-@* 成功訊息區塊 - 請加在表格前面 *@
-@if (TempData["NewEmpCode"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <h4 class="alert-heading">
-            <i class="fas fa-check-circle"></i> 新員工建立成功！
-        </h4>
-        <hr>
-        <p class="mb-1">
-            <strong>員工姓名：</strong>@TempData["NewEmpName"]<br>
-            <strong>員工編號：</strong>@TempData["NewEmpCode"]<br>
-            <strong>預設密碼：</strong><code>@TempData["TempPassword"]</code>
-        </p>
-
-        @if (TempData["EmailSent"] != null)
-        {
-            <div class="alert alert-info mt-2 mb-0">
-                <i class="fas fa-envelope-check"></i>
-                <strong>Email通知已發送</strong> - 員工將收到登入資訊
-            </div>
-        }
-
-        @if (TempData["EmailError"] != null)
-        {
-            <div class="alert alert-warning mt-2 mb-0">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>Email發送失敗：</strong>@TempData["EmailError"]
-            </div>
-        }
-
-        @if (TempData["EmailNotSent"] != null)
-        {
-            <div class="alert alert-info mt-2 mb-0">
-                <i class="fas fa-info-circle"></i>
-                @TempData["EmailNotSent"]
-            </div>
-        }
-
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+<main class="flex-fill position-relative">
+    <!-- 標題+新增 -->
+    <div class="d-flex align-items-center mb-3">
+        <h1 class="fw-bold flex-grow-1 mb-0">員工列表</h1>
+        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
     </div>
-}
 
-@* 您原本的員工列表內容繼續放在下面... *@
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HireDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PasswordHash)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PasswordSalt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EmpCode)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DeptNoNavigation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RoleNoNavigation)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HireDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PasswordHash)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PasswordSalt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EmpCode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DeptNoNavigation.No)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RoleNoNavigation.No)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.No">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.No">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.No">Delete</a>
-            </td>
-        </tr>
+    <!-- CSRF Token -->
+    <form id="deleteForm">
+        @Html.AntiForgeryToken() <!-- 生成 CSRF 隱藏欄位 -->
+    </form>
+
+    @* 成功訊息區塊 *@
+    @if (TempData["NewEmpCode"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <h4 class="alert-heading">
+                <i class="fas fa-check-circle"></i> 新員工建立成功！
+            </h4>
+            <hr>
+            <p class="mb-1">
+                <strong>員工編號：</strong>@TempData["NewEmpCode"]<br>
+                <strong>預設密碼：</strong><code>@TempData["TempPassword"]</code>
+            </p>
+            @if (TempData["EmailSent"] != null)
+            {
+                <div class="alert alert-info mt-2 mb-0">
+                    <i class="fas fa-envelope-check"></i>
+                    <strong>Email通知已發送</strong> - 員工將收到登入資訊
+                </div>
+            }
+            @if (TempData["EmailError"] != null)
+            {
+                <div class="alert alert-warning mt-2 mb-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Email發送失敗：</strong>@TempData["EmailError"]
+                </div>
+            }
+            @if (TempData["EmailNotSent"] != null)
+            {
+                <div class="alert alert-info mt-2 mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    @TempData["EmailNotSent"]
+                </div>
+            }
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- 搜尋框+每頁筆數 -->
+    <div class="input-group input-group-lg">
+        <input id="searchInput" type="text" class="form-control" aria-label="Sizing example input" placeholder="請輸入關鍵字（姓名、員工編號、部門、職位）">
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                data-bs-title="搜尋" data-bs-trigger="hover">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <div class="d-flex gap-3">
+            <!-- 進階篩選 -->
+            <div class="dropdown">
+                <button class="input-group-text search dropdown-toggle dropdown-toggle-split no-btn-style position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" id="advancedFilter">
+                    <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                       data-bs-title="進階篩選" data-bs-trigger="hover"></i>
+
+                    <!-- Counter - Alerts -->
+                    <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">9</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end p-2" style="width:180px">
+                    <!-- 部門 -->
+                    <!-- 部門篩選器 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDepartment" aria-expanded="false" aria-controls="collapseDepartment">
+                            - 部門
+                        </button>
+                    </li>
+                    <!-- 部門內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseDepartment">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="RS" id="dept1">
+                                    <label class="form-check-label" for="dept1">
+                                        天文研究部
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="EX" id="dept2">
+                                    <label class="form-check-label" for="dept2">
+                                        展覽企劃部
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="MK" id="dept3">
+                                    <label class="form-check-label" for="dept3">
+                                        行銷推廣部
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="IT" id="dept4">
+                                    <label class="form-check-label" for="dept4">
+                                        資訊技術部
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="HR" id="dept5">
+                                    <label class="form-check-label" for="dept5">
+                                        人力資源部
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="FN" id="dept6">
+                                    <label class="form-check-label" for="dept6">
+                                        財務會計部
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="VS" id="dept7">
+                                    <label class="form-check-label" for="dept7">
+                                        導覽服務部
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="MG" id="dept8">
+                                    <label class="form-check-label" for="dept8">
+                                        導覽服務部
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 職位篩選器 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseRole" aria-expanded="false" aria-controls="collapseRole">
+                            - 職位
+                        </button>
+                    </li>
+                    <!-- 職位內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseRole">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="RS" id="role1">
+                                    <label class="form-check-label" for="role1">
+                                        <strong>研究人員</strong>
+                                        <small class="text-muted d-block">天文相關研究工作</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="EX" id="role2">
+                                    <label class="form-check-label" for="role2">
+                                        <strong>策展人員</strong>
+                                        <small class="text-muted d-block">展覽規劃與執行</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="MK" id="role3">
+                                    <label class="form-check-label" for="role3">
+                                        <strong>行銷人員</strong>
+                                        <small class="text-muted d-block">宣傳推廣活動</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="IT" id="role4">
+                                    <label class="form-check-label" for="role4">
+                                        <strong>技術人員</strong>
+                                        <small class="text-muted d-block">系統維護開發</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="HR" id="role5">
+                                    <label class="form-check-label" for="role5">
+                                        <strong>人資人員</strong>
+                                        <small class="text-muted d-block">人事行政管理</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="FN" id="role6">
+                                    <label class="form-check-label" for="role6">
+                                        <strong>財務人員</strong>
+                                        <small class="text-muted d-block">會計財務業務</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="VS" id="role7">
+                                    <label class="form-check-label" for="role7">
+                                        <strong>服務人員</strong>
+                                        <small class="text-muted d-block">導覽票務服務</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="MG" id="role8">
+                                    <label class="form-check-label" for="role8">
+                                        <strong>管理人員</strong>
+                                        <small class="text-muted d-block">擁有完整管理權限</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 在職狀態 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseStatus" aria-expanded="false" aria-controls="collapseStatus">
+                            - 在職狀態
+                        </button>
+                    </li>
+                    <!-- 在職狀態內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-3 fs14px" id="collapseStatus">
+                            <div class="p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="在職" id="status1">
+                                    <label class="form-check-label" for="status1">
+                                        在職
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="離職" id="status2">
+                                    <label class="form-check-label" for="status2">
+                                        離職
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- 入職日期 -->
+                    <li>
+                        <button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseDate">
+                            - 入職日期
+                        </button>
+                    </li>
+                    <!-- 入職日期內容 -->
+                    <li>
+                        <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
+                            <div class="p-2">
+                                <div class="mb-2">
+                                    <label for="dateFrom" class="form-label">起始日期</label>
+                                    <input type="date" id="dateFrom" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div>
+                                    <label for="dateTo" class="form-label">結束日期</label>
+                                    <input type="date" id="dateTo" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- 完成+清除 -->
+                    <li class="d-flex gap-1">
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-search" id="filterFinsh">
+                            完成
+                        </button>
+                        <button type="button" class="br20px fw-bold btn flex-fill btn-outline-search">
+                            清除
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="width:150px">
+                <select class="form-select form-select-lg" aria-label="Large select example" id="pageSizeSelect">
+                    <option selected value="10">每頁10筆</option>
+                    <option value="15">每頁15筆</option>
+                    <option value="20">每頁20筆</option>
+                    <option value="25">每頁25筆</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="mt-1 ms-2" style="display:none" id="selectedFiltersDiv">
+        <span id="selectedFiltersText" class="text-secondary"></span>
+    </div>
+
+    <!-- 列表 -->
+    @if (Model.Any())
+    {
+        <div class="table-rounded position-relative mt-3">
+            <table class="table">
+                <!-- 欄位 -->
+                <thead>
+                    <tr>
+                        <th style="width:50px">
+                            <input class="form-check-input ms-4" type="checkbox" value="" id="checkAll" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                   data-bs-title="全選" data-bs-trigger="hover">
+                        </th>
+                        <th style="width:160px">
+                            姓名
+                        </th>
+                        <th style="width:120px">
+                            員工編號
+                        </th>
+                        <th style="width:140px">
+                            部門
+                        </th>
+                        <th style="width:200px">
+                            職位
+                        </th>
+                        <th style="width:140px">
+                           入職日期
+                        </th>
+                        <th style="width:80px">
+                            在職狀態
+                        </th>
+                        <th style="width:116px">
+
+                        </th>
+                    </tr>
+                </thead>
+
+                <!-- 內容 -->
+                <tbody id="tableBody">
+                    @await Html.PartialAsync("_EmpRowsPartial", Model)
+                </tbody>
+            </table>
+
+            <!-- 分頁 -->
+            <div id="pagination">
+                @await Html.PartialAsync("_PaginationPartial", Model)
+            </div>
+
+            <!-- 詳細內容 -->
+            <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header justify-content-between d-flex align-items-center pt-3 pb-2">
+                            <h3 class="modal-title fw-bolder" id="detailModalLabel">員工詳細資料</h3>
+                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                <a id="modalEditBtn" class="btn btn-edit br20px" style="background-color: #2B4C8C;"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
+                                <button type="button" class="btn btn-outline-delect br20px" id="modalDeleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id=""><i class="fa-solid fa-trash-can"></i>離職</button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card mb-3">
+                                        <div class="card-header text-white" style="background-color: #2B4C8C;">
+                                            <h5 class="mb-0"><i class="fas fa-user"></i> 基本資料</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p><strong>姓名：</strong><span id="modalName"></span></p>
+                                            <p><strong>員工編號：</strong><span id="modalEmpCode"></span></p>
+                                            <p><strong>部門：</strong><span id="modalDepartment"></span></p>
+                                            <p><strong>職位：</strong><span id="modalRole"></span></p>
+                                            <p><strong>入職日期：</strong><span id="modalHireDate"></span></p>
+                                            <p><strong>狀態：</strong><span id="modalStatus"></span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 全選垃圾桶及文字 -->
+            <div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center selectColor">
+                <span id="selectNum" style="display:none" class="fw-bold fs18px me-2">已選取0項</span>
+
+                <button type="button" class="btn p-0 selectColor fs18px" id="delectAll" data-bs-toggle="" data-bs-target="#deleteAllModal" style="display:none">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+
+            <!-- 全選刪除彈窗 -->
+            <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteAllModalLabel">確認離職</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            確定已選取員工離職嗎？
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定離職</button>
+                            <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 mt-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">目前沒有員工資料</h4>
+            <p class="text-muted">點擊上方「新增」按鈕來建立第一筆員工資料</p>
+            <a asp-action="Create" class="btn btn-search mt-3">
+                <i class="fas fa-plus"></i> 立即新增員工
+            </a>
+        </div>
+    }
+
+</main>
+
+@section Scripts {
+    <script src="~/js/emp_index.js"></script>
 }
-    </tbody>
-</table>

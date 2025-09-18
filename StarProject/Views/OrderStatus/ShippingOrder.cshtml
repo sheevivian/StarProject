@@ -1,6 +1,203 @@
 ﻿@model StarProject.Models.OrderDelivery
 @{
     ViewData["Title"] = "建立出貨單";
+    var order = ViewBag.Order as StarProject.Models.OrderMaster;
+}
+<style>
+    body {
+        background-image: url(https://cdn.pixabay.com/photo/2021/01/17/02/02/planets-5923806_1280.jpg);
+        background-color: black;
+    }
+
+    /* 📦 訂單流程 timeline 水平條 */
+    .progress-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        margin: 40px auto 60px;
+        max-width: 700px;
+    }
+
+        .progress-container::before {
+            content: '';
+            background: #dcdcdc;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            transform: translateY(-50%);
+            z-index: 0;
+            border-radius: 2px;
+        }
+
+    .progress-step {
+        position: relative;
+        z-index: 1;
+        background: #dcdcdc;
+        color: #999;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        transition: 0.3s ease;
+    }
+
+        .progress-step.active {
+            background: #4c5bd4;
+            color: #fff;
+        }
+
+    .progress-label {
+        position: absolute;
+        top: 50px;
+        font-size: 0.9rem;
+        text-align: center;
+        width: 100px;
+        transform: translateX(-30%);
+        color: #fff;
+    }
+</style>
+
+<h1 class="text-center my-4 text-white">出貨管理</h1>
+
+<div class="progress-container">
+    <div class="progress-step active">
+        1
+        <div class="progress-label">選擇訂單</div>
+    </div>
+    <div class="progress-step active ">
+        2
+        <div class="progress-label">建立出貨單</div>
+    </div>
+    <div class="progress-step ">
+        3
+        <div class="progress-label">出貨單確認</div>
+    </div>
+</div>
+
+<!-- 訂單資訊卡片 -->
+<div class="card mb-4">
+    <div class="card-header btn btn-warning text-center">
+        <strong>訂單資訊</strong>
+    </div>
+    <div class="card-body  text-center">
+        <h5>訂單編號：@Model.OrderNo</h5>
+        <h5>會員編號：@Model.UserNo</h5>
+        <h5>會員姓名：@(order?.UserNoNavigation?.Name ?? "未知")</h5>
+        <h5>總金額：@((order?.AllTotal ?? 0).ToString("N0")) 元</h5>
+    </div>
+</div>
+
+<hr />
+
+<h3 class="mb-3 text-white">訂單明細</h3>
+<table class="table table-bordered table-striped  text-center">
+    <thead>
+        <tr>
+            <th>商品名稱</th>
+            <th>圖片</th>
+            <th>數量</th>
+            <th>單價</th>
+            <th>優惠</th>
+            <th>優惠後價格</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (order != null && order.OrderItems.Any())
+        {
+            foreach (var item in order.OrderItems)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td><img src="@item.Image" alt="@item.Name" style="max-width:100px; height:auto;" /></td>
+                    <td>@item.Quantity</td>
+                    <td>@string.Format("{0:N0}", item.UnitPrice) 元</td>
+                    <td>@string.Format("{0:N0}", item.Discount) 元</td>
+                    <td>@string.Format("{0:N0}", item.DiscountedPrice) 元</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3">尚無訂單明細</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<!-- 收件人表單 -->
+<div class="col-md-6">
+    <h4 class="text-white">收件人資訊</h4>
+    <form asp-action="SubmitShippingOrder" method="post">
+        <input type="hidden" asp-for="OrderNo" />
+        <input type="hidden" asp-for="UserNo" />
+
+        <div class="form-group mb-3 text-white">
+            <label asp-for="RecipientName"></label>
+            <input asp-for="RecipientName" class="form-control" />
+        </div>
+        <div class="form-group mb-3 text-white">
+            <label asp-for="RecipientAddress"></label>
+            <input asp-for="RecipientAddress" class="form-control" />
+        </div>
+        <div class="form-group mb-3 text-white">
+            <label asp-for="RecipientPhone"></label>
+            <input asp-for="RecipientPhone" class="form-control" />
+        </div>
+        <div class="form-group mb-3 text-white">
+            <label asp-for="Notes"></label>
+            <textarea asp-for="Notes" class="form-control"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 mt-3">
+            <a asp-action="Index" class="btn btn-secondary">← 返回訂單列表</a>
+            <button type="submit" class="btn btn-purple">建立出貨單</button>
+        </div>
+    </form>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @model StarProject.Models.OrderDelivery
+@{
+    ViewData["Title"] = "建立出貨單";
 }
 
 <h1 class="text-center my-4">建立出貨單 </h1>
@@ -83,4 +280,4 @@
         </a>
     </div>
     
-</div>
+</div> *@

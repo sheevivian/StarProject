@@ -1,0 +1,56 @@
+﻿@model IEnumerable<StarProject.Models.OrderDelivery>
+<style>
+    body {
+        background-image: url(https://cdn.pixabay.com/photo/2021/01/17/02/02/planets-5923806_1280.jpg);
+        background-color: black;
+    }
+
+    
+</style>
+<head>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+<h1 class="text-center my-4 text-white">出貨單列表</h1>
+<div class="table-rounded position-relative mt-3">
+<table class="table table-striped table-hover text-center">
+    <thead class="table-dark">
+        <tr>
+            <th>出貨單編號</th>
+            <th>訂單編號</th>
+            <th>收件人</th>
+            <th>電話</th>
+            <th>地址</th>
+            <th>最新狀態</th>
+            <th>動作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model)
+        {
+            var latestStatus = d.OrderStatuses
+            .OrderByDescending(s => s.StatusTime)
+            .FirstOrDefault()?.StatusType ?? "未出貨";
+
+            <tr>
+                <td>@d.DeliveryId</td>
+                <td>@d.OrderNo</td>
+                <td>@d.RecipientName</td>
+                <td>@d.RecipientPhone</td>
+                <td>@d.RecipientAddress</td>
+                <td>
+                    <span class="badge bg-info">@latestStatus</span>
+                </td>
+                <td>
+                    @* <a asp-action="Details" asp-route-id="@d.DeliveryId" class="btn btn-sm btn-primary">檢視</a> *@
+                    <a asp-action="Edit" asp-route-id="@d.DeliveryId" class="btn btn-sm btn-warning">編輯</a>
+                    <form asp-action="Delete" method="post" style="display:inline-block"
+                          onsubmit="return confirm('確定要刪除這筆出貨單嗎？');">
+                        <input type="hidden" name="id" value="@d.DeliveryId" />
+                        <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

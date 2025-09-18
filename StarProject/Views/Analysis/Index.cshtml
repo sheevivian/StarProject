@@ -1,35 +1,133 @@
 ﻿@{
-    ViewData["Title"] = "月營收分析";
+    ViewData["Title"] = "月營收與回歸分析";
 }
 
-<h2>月營收分析</h2>
+<style>
+    body {
+        background: url(https://cdn.pixabay.com/photo/2021/01/17/02/02/planets-5923806_1280.jpg) no-repeat center center fixed;
+        background-size: cover;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+    }
 
-<div>
-    <label for="yearSelect">年份：</label>
-    <select id="yearSelect"></select>
+    h2.section-title {
+        margin: 40px 0 20px;
+        text-align: center;
+        font-weight: bold;
+        color: #E0E0FF;
+        letter-spacing: 1px;
+    }
 
-    <label for="monthSelect">月份：</label>
-    <select id="monthSelect"></select>
+    .filters {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+        .filters label {
+            margin-right: 5px;
+        }
+
+    .chart-card {
+        background: rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        margin-bottom: 25px;
+    }
+
+    .chart-title {
+        text-align: center;
+        font-weight: 600;
+        color: #FFDDAA;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 20px;
+    }
+</style>
+
+<div class="container my-5">
+
+    <h2 class="section-title">月營收分析</h2>
+
+    <!-- 篩選區 -->
+    <div class="filters">
+        <div>
+            <label for="categorySelect">商品類別：</label>
+            <select id="categorySelect" class="form-select d-inline-block w-auto">
+                <option value="">--請選擇--</option>
+            </select>
+        </div>
+        <div>
+            <label for="yearSelect">年份：</label>
+            <select id="yearSelect" class="form-select d-inline-block w-auto">
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+            </select>
+        </div>
+        <div>
+            <label for="monthSelect">月份：</label>
+            <select id="monthSelect" class="form-select d-inline-block w-auto">
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <option value="@i">@i 月</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- 商品Top3 + 各票券Type數量 -->
+    <div class="chart-grid">
+        <div class="chart-card">
+            <div class="chart-title">商品類別前3名</div>
+            <div id="topProductsChart" style="width:100%;height:300px;"></div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">各票券Type數量</div>
+            <div id="typeByMonthChart" style="width:100%;height:300px;"></div>
+        </div>
+    </div>
+
+    <!-- 商品 & 票券類別 -->
+    <div class="chart-grid">
+        <div class="chart-card">
+            <div class="chart-title">商品類別銷售</div>
+            <div id="productChart" style="width:100%;height:300px;"></div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">票券類別銷售</div>
+            <div id="ticketChart" style="width:100%;height:300px;"></div>
+        </div>
+    </div>
+
+    <!-- 每月營收折線圖 -->
+    <div class="chart-card">
+        <div class="chart-title">每月營收折線圖</div>
+        <div id="revenueChart" style="width:100%;height:350px;"></div>
+    </div>
+
+    <h2 class="section-title">迴歸與預測分析</h2>
+    <div class="chart-grid">
+        <div class="chart-card">
+            <div class="chart-title">商品迴歸分析</div>
+            <div id="productRegression" style="width:100%;height:300px;"></div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">票券迴歸分析</div>
+            <div id="ticketRegression" style="width:100%;height:300px;"></div>
+        </div>
+    </div>
 </div>
 
-<h3>商品類別</h3>
-<div id="productChart" style="width:600px; height:400px;"></div>
-
-<h3>票券類別</h3>
-<div id="ticketChart" style="width:600px; height:400px;"></div>
-
-<h3>每月營收折線圖</h3>
-<div id="revenueChart" style="width:100%; height:500px;"></div>
-
-
-@{
-    ViewData["Title"] = "回歸分析圖表";
-}
-
-<h2 class="mb-4">回歸分析</h2>
-
-<div id="productRegression" style="width: 100%; height: 400px; margin-bottom: 40px;"></div>
-<div id="ticketRegression" style="width: 100%; height: 400px;"></div>
 
 <!-- ECharts CDN -->
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
@@ -204,6 +302,113 @@
     // 分別載入商品 & 票券回歸圖
     fetchRegressionData("Product", "productRegression", "商品回歸分析");
     fetchRegressionData("Ticket", "ticketRegression", "票券回歸分析");
+
+
+    //     初始化類別清單 (可以直接寫死或從後端拿)
+    // const categories = ["卡片書籤","服包飾品","益智桌遊","地球儀","生活雜貨","書籍刊物","餐廚用品","交通卡","設計文具","望遠鏡",
+    //                     "星際探險","常設展覽","星空劇院","優惠套票","特別展覽","立體劇場"];
+    // categories.forEach(c => $("#categorySelect").append(`<option value="${c}">${c}</option>`));
+
+    // 初始化圖表
+    // var topProductsChart = echarts.init(document.getElementById('topProductsChart'));
+    // var typeByMonthChart = echarts.init(document.getElementById('typeByMonthChart'));
+
+    // function loadTopProducts() {
+    //     const cat = $("#categorySelect").val();
+    //     $.getJSON(`/Analysis/GetTopProductsByCategory?category=${cat}`, function(res){
+    //         topProductsChart.setOption({
+    //             title: { text: `${cat} 類別前三名商品`, left: 'center' },
+    //             tooltip: { trigger: 'axis' },
+    //             xAxis: { type: 'category', data: res.map(x => x.name) },
+    //             yAxis: { type: 'value', name: '數量' },
+    //             series: [{
+    //                 data: res.map(x => x.value),
+    //                 type: 'bar',
+    //                 itemStyle: { color: '#84C1FF' },
+    //                 label: { show: true, position: 'top' }
+    //             }]
+    //         });
+    //     });
+    // }
+
+    // function loadTypeByMonth() {
+    //     const year = $("#yearSelect").val();
+    //     const month = $("#monthSelect").val();
+    //     $.getJSON(`/Analysis/GetTypeCountsByMonth?year=${year}&month=${month}`, function(res){
+    //         typeByMonthChart.setOption({
+    //             title: { text: `${year}年${month}月 各Type銷售數量`, left: 'center' },
+    //             tooltip: { trigger: 'axis' },
+    //             xAxis: { type: 'category', data: res.map(x => x.name) },
+    //             yAxis: { type: 'value', name: '數量' },
+    //             series: [{
+    //                 data: res.map(x => x.value),
+    //                 type: 'bar',
+    //                 itemStyle: { color: '#6A6AFF' },
+    //                 label: { show: true, position: 'top' }
+    //             }]
+    //         });
+    //     });
+    // }
+
+    // 綁定事件
+    // $("#categorySelect").change(loadTopProducts);
+    // $("#yearSelect, #monthSelect").change(loadTypeByMonth);
+
+    // 初始載入
+    // loadTopProducts();
+    // loadTypeByMonth();
+        // 商品類別下拉（僅商品，不含票券）
+    // 初始化圖表
+    var topProductsChart = echarts.init(document.getElementById('topProductsChart'));
+    var typeByMonthChart = echarts.init(document.getElementById('typeByMonthChart'));
+
+    // 商品類別下拉（僅商品，不含票券）
+    const productCategories = ["卡片書籤","服包飾品","益智桌遊","地球儀","生活雜貨","書籍刊物","餐廚用品","交通卡","設計文具","望遠鏡"];
+    productCategories.forEach(c => $("#categorySelect").append(`<option value="${c}">${c}</option>`));
+
+    function loadTopProducts() {
+        const cat = $("#categorySelect").val();
+        if(!cat) return; // 沒選類別就不載入
+        $.getJSON(`/Analysis/GetTopProductsByCategory?category=${cat}`, function(res){
+            topProductsChart.setOption({
+                title: { text: `${cat} 類別前三名商品`, left: 'center' },
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: res.map(x => x.name) },
+                yAxis: { type: 'value', name: '數量' },
+                series: [{
+                    data: res.map(x => x.value),
+                    type: 'bar',
+                    itemStyle: { color: '#84C1FF' },
+                    label: { show: true, position: 'top' }
+                }]
+            });
+        });
+    }
+
+    function loadTicketTypesByMonth() {
+        const year = $("#yearSelect").val();
+        const month = $("#monthSelect").val();
+        $.getJSON(`/Analysis/GetTicketTypeCountsByMonth?year=${year}&month=${month}`, function(res){
+            typeByMonthChart.setOption({
+                title: { text: `${year}年${month}月 各票券Type銷售數量`, left: 'center' },
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: res.map(x => x.name) },
+                yAxis: { type: 'value', name: '數量' },
+                series: [{
+                    data: res.map(x => x.value),
+                    type: 'bar',
+                    itemStyle: { color: '#6A6AFF' },
+                    label: { show: true, position: 'top' }
+                }]
+            });
+        });
+    }
+
+    // 綁定事件
+    $("#categorySelect").change(loadTopProducts);
+    $("#yearSelect, #monthSelect").change(loadTicketTypesByMonth);
+
+
 </script>
 
 

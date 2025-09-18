@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
-using StarProject.DTOs.PromotionDTOs; // ✅ 保持你的命名空間
+using StarProject.DTOs.PromotionDTOs;
 using StarProject.Models;
 using StarProject.ViewModels;
 using System.Text;
@@ -81,8 +81,8 @@ namespace StarProject.Controllers
             {
                 StartDate = start,
                 EndDate = end,
-                UsesTime = 1,            // ✅ 預設每人 1 次
-                UsesTimeMode = "limited" // ✅ 讓欄位與模式一致
+                UsesTime = 1,
+                UsesTimeMode = "limited"
             };
 
             var dbCategories = await _context.Promotions
@@ -101,7 +101,6 @@ namespace StarProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PromotionFormViewModel vm)
         {
-            // 回填選單
             var dbCategories = await _context.Promotions
                 .AsNoTracking()
                 .Select(p => p.Category)
@@ -110,39 +109,39 @@ namespace StarProject.Controllers
                 .ToListAsync();
             vm.FillCategoryOptions(dbCategories);
 
+            // ✅ 修改：移除 TargetCategory 的 ModelState 錯誤，避免英文錯誤訊息
+            ModelState.Remove("TargetCategory");
+
             if (!ModelState.IsValid) return View(vm);
 
             vm.NormalizeModes();
 
-            // ✅ 伺服器端重複檢查
+            // 伺服器端重複檢查
             var duplicateCode = await _context.Promotions.AnyAsync(p => p.CouponCode == vm.CouponCode);
             var duplicateName = await _context.Promotions.AnyAsync(p => p.Name == vm.Name);
             if (duplicateCode) ModelState.AddModelError(nameof(vm.CouponCode), "優惠代碼已存在！");
             if (duplicateName) ModelState.AddModelError(nameof(vm.Name), "優惠名稱已存在！");
             if (!ModelState.IsValid) return View(vm);
 
-            // ✅ 商業驗證（啟用期間需涵蓋現在；可重複 -> 每人 >= 2）
+            // 商業驗證
             var businessErrors = vm.ValidateBusinessRules(DateTime.Now);
             if (businessErrors.Any())
             {
                 foreach (var e in businessErrors) ModelState.AddModelError(string.Empty, e);
-                ViewBag.PopupError = string.Join("\n", businessErrors); // ✅ 交給 View 用 Modal 顯示
+                ViewBag.PopupError = string.Join("\n", businessErrors);
                 return View(vm);
             }
 
-            // ✅ 修正：用 execution strategy 包住「使用者交易」
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
                 await using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    // Promotion
                     var entity = vm.ToEntity();
                     _context.Promotions.Add(entity);
-                    await _context.SaveChangesAsync(); // 取得 entity.No
+                    await _context.SaveChangesAsync();
 
-                    // PromotionRule
                     var rule = vm.ToRuleEntity(entity.No);
                     _context.PromotionRules.Add(rule);
                     await _context.SaveChangesAsync();
@@ -161,6 +160,7 @@ namespace StarProject.Controllers
         }
 
         // ============ 重複檢查（Create/ Edit 共用）===========
+
         [HttpPost]
         public async Task<IActionResult> CheckDuplicate(string? couponCode, string? name, int? id)
         {
@@ -168,10 +168,6 @@ namespace StarProject.Controllers
             var nm = (name ?? "").Trim();
 
             var query = _context.Promotions.AsQueryable();
-
-            // ✅ 正確邏輯：
-            // - Create 時：id 是 null，檢查所有記錄
-            // - Edit 時：id 有值，排除自己，檢查其他記錄
             if (id.HasValue)
                 query = query.Where(p => p.No != id.Value);
 
@@ -195,7 +191,6 @@ namespace StarProject.Controllers
 
             var vm = PromotionFormViewModel.FromEntity(entity);
 
-            // ✅ 載入對應規則
             var rule = await _context.PromotionRules
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Promotion_No == entity.No);
@@ -226,18 +221,19 @@ namespace StarProject.Controllers
                 .ToListAsync();
             vm.FillCategoryOptions(dbCategories);
 
+            // ✅ 修改：移除 TargetCategory 的 ModelState 錯誤，避免英文錯誤訊息
+            ModelState.Remove("TargetCategory");
+
             if (!ModelState.IsValid) return View(vm);
 
             vm.NormalizeModes();
 
-            // ✅ 伺服器端重複檢查（排除自己）
             var duplicateCode = await _context.Promotions.AnyAsync(p => p.No != id && p.CouponCode == vm.CouponCode);
             var duplicateName = await _context.Promotions.AnyAsync(p => p.No != id && p.Name == vm.Name);
             if (duplicateCode) ModelState.AddModelError(nameof(vm.CouponCode), "優惠代碼已存在！");
             if (duplicateName) ModelState.AddModelError(nameof(vm.Name), "優惠名稱已存在！");
             if (!ModelState.IsValid) return View(vm);
 
-            // ✅ 商業驗證
             var businessErrors = vm.ValidateBusinessRules(DateTime.Now);
             if (businessErrors.Any())
             {
@@ -246,7 +242,6 @@ namespace StarProject.Controllers
                 return View(vm);
             }
 
-            // ✅ 修正：execution strategy + user transaction
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
@@ -268,7 +263,7 @@ namespace StarProject.Controllers
                     }
                     else
                     {
-                        vm.ToRuleEntity(id, rule); // 覆寫欄位
+                        vm.ToRuleEntity(id, rule);
                         _context.PromotionRules.Update(rule);
                     }
                     await _context.SaveChangesAsync();
@@ -289,12 +284,14 @@ namespace StarProject.Controllers
         // ============ Delete ============
 
         [HttpPost]
+        [ValidateAntiForgeryToken] // ★ 修改：加上防偽，避免 CSRF
         public async Task<IActionResult> Delete(int id)
         {
             var promotion = await _context.Promotions.FindAsync(id);
             if (promotion == null)
                 return Json(new { success = false, message = "找不到該優惠券" });
 
+            // 同步刪除規則
             var rules = _context.PromotionRules.Where(r => r.Promotion_No == id);
             _context.PromotionRules.RemoveRange(rules);
 

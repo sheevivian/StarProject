@@ -19,8 +19,18 @@
         <td>@item.StartDate.ToString("yyyy-MM-dd")</td>
         <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
         <td><span class="status-badge @statusClass">@status</span></td>
-        <td style="width:116px; text-align:center;">
-            <a class="btn btn-color btn-sm" asp-controller="Promotion" asp-action="Edit" asp-route-id="@item.No">編輯</a>
+        <td style="width:170px; text-align:center;">
+            <a class="btn btn-color btn-sm" 
+               asp-controller="Promotion" asp-action="Edit" asp-route-id="@item.No">編輯</a>
+
+            <!-- ★ 新增：刪除按鈕（不跳系統提示），改用 Modal -->
+            <button type="button"
+                    class="btn btn-outline-delect btn-sm ms-1 br20px btn-delete"
+                    data-id="@item.No"
+                    data-name="@item.Name"
+                    data-code="@item.CouponCode">
+                刪除
+            </button>
         </td>
     </tr>
 }

@@ -29,6 +29,7 @@
             <input type="hidden" asp-for="LimitMode" id="limitMode" />
             <input type="hidden" asp-for="UsesTimeMode" id="usesTimeMode" />
 
+            <!-- 基本資訊 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">基本資訊</legend>
 
@@ -38,6 +39,7 @@
                         <input asp-for="Name" class="form-control" required />
                         <span asp-validation-for="Name" class="text-danger small"></span>
                         <div id="duplicateNameAlert" class="text-danger small mt-1" style="display:none;">優惠名稱已存在！</div>
+                        <!-- ★ 修改：加入「名稱已存在」的就地提示 -->
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -46,10 +48,10 @@
                                oninput="this.value = this.value.toUpperCase();" required />
                         <span asp-validation-for="CouponCode" class="text-danger small"></span>
                         <div id="duplicateCodeAlert" class="text-danger small mt-1" style="display:none;">優惠代碼已存在！</div>
+                        <!-- ★ 修改：加入「代碼已存在」的就地提示 -->
                     </div>
                 </div>
 
-                <!-- ✅ 新增區域：加入 Category 和 Status 欄位（原本遺漏） -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="Category" class="form-label">適用類別 <span class="text-danger">*</span></label>
@@ -69,6 +71,7 @@
                 </div>
             </fieldset>
 
+            <!-- 有效期間 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">有效期間</legend>
                 <div class="row">
@@ -85,6 +88,7 @@
                 </div>
             </fieldset>
 
+            <!-- 使用限制 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">使用限制</legend>
                 <div class="row">
@@ -114,6 +118,7 @@
                 </div>
             </fieldset>
 
+            <!-- 優惠規則 -->
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">優惠規則</legend>
                 <div class="row">
@@ -165,7 +170,6 @@
                     </div>
                 </div>
 
-                <!-- ✅ 新增區域：加入 Description 欄位（原本遺漏） -->
                 <div class="row">
                     <div class="col-12 mb-3">
                         <label asp-for="Description" class="form-label">優惠說明 <span class="text-danger">*</span></label>
@@ -183,35 +187,47 @@
     </div>
 </div>
 
-<!-- Modal：置中顯示驗證錯誤 -->
-<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+<!-- ★ 新增：表單驗證錯誤（Danger）Modal：置中、圓角、danger色 -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel"
+     aria-hidden="true" data-bs-backdrop="false">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">錯誤！</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content modal-danger">
+            <!-- ★ 使用 promotion.css 的 .modal-danger -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">表單驗證錯誤</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                @if (ViewBag.PopupError != null)
-                {
-                    <div class="alert alert-danger mb-3">@ViewBag.PopupError</div>
-                }
-                <div class="alert alert-danger">
-                    <div asp-validation-summary="All" class="text-danger m-0"></div>
+                <div class="bg-white rounded p-2">
+                    @Html.ValidationSummary(excludePropertyErrors: true)  <!-- 只顯示模型層級錯誤 -->
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">我知道了</button>
             </div>
         </div>
     </div>
 </div>
 
+@* ★ 旗標：伺服器端有錯（ModelState/PopupError）就讓前端自動彈出 *@
+@if (!ViewData.ModelState.IsValid || !string.IsNullOrEmpty(ViewBag.PopupError as string))
+{
+    <div id="serverHasError" data-error="1"></div>
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // 初始化折扣提示
-            updateDiscountHint(document.getElementById('RuleType').value || '');
+            // ★ 有錯就彈出錯誤 Modal
+            var hasError = document.getElementById('serverHasError');
+            if (hasError) {
+                var modal = new bootstrap.Modal(document.getElementById('errorModal'));
+                modal.show();
+            }
 
-            // 初始化條件欄位顯示
+            // 初始化折扣提示 & 門檻顯示
+            updateDiscountHint(document.getElementById('RuleType').value || '');
             toggleConditionFields(document.getElementById('ConditionType').value || 'Amount');
 
             // 名稱/代碼重複檢查（Edit -> 帶 id 排除自己）
@@ -222,42 +238,34 @@
             function triggerDupCheck() {
                 const code = codeInput.value || '';
                 const name = nameInput.value || '';
-    
-                // 如果沒有輸入就不檢查
                 if (!code && !name) return;
-    
+
                 fetch('@Url.Action("CheckDuplicate", "Promotion")', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
                     },
-                    body: 'couponCode=' + encodeURIComponent(code) + 
-                          '&name=' + encodeURIComponent(name) + 
-                          '&id=' + encodeURIComponent(id)  // 傳入目前編輯的 ID
+                    body: 'couponCode=' + encodeURIComponent(code) +
+                          '&name=' + encodeURIComponent(name) +
+                          '&id=' + encodeURIComponent(id)
                 }).then(r => r.json()).then(res => {
-                    // 只有當其他記錄使用相同值時才顯示錯誤
                     document.getElementById('duplicateCodeAlert').style.display = res.duplicateCode ? 'block' : 'none';
                     document.getElementById('duplicateNameAlert').style.display = res.duplicateName ? 'block' : 'none';
                 });
             }
+            codeInput.addEventListener('blur', triggerDupCheck);
+            nameInput.addEventListener('blur', triggerDupCheck);
 
             // 可重複 -> 每人次數至少 2
             const uses = document.getElementById('UsesTime');
             const usesMode = document.getElementById('usesTimeMode');
             document.getElementById('Reuse').addEventListener('change', function () {
                 if (this.checked) {
-                    if (!uses.value || parseInt(uses.value) < 2) uses.value = '2';
+                    if (!uses.value || parseInt(uses.value, 10) < 2) uses.value = '2';
                     usesMode.value = 'limited';
                 }
             });
-
-            // 有錯就顯示 Modal
-            const hasErrors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(!ViewData.ModelState.IsValid || ViewBag.PopupError != null));
-            if (hasErrors) {
-                const modal = new bootstrap.Modal(document.getElementById('errorModal'));
-                modal.show();
-            }
 
             // 防重送
             var form = document.getElementById('promotionForm');
@@ -272,6 +280,7 @@
             }
         });
 
+        // ====== 共用互動 ======
         function updateLimitMode(input) {
             document.getElementById('limitMode').value = (input.value && input.value !== '0') ? 'limited' : 'unlimited';
         }

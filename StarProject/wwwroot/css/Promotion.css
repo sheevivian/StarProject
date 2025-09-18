@@ -213,3 +213,29 @@
     background: #f8d7da;
     color: #58151c;
 }
+
+/* ===== Error Modal（Danger 皮膚）— 唯一版 ===== */
+.modal-danger {
+    border: 1px solid #dee2e6; /* 灰色外框 */
+    border-radius: 15px; /* 圓角 */
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+
+    .modal-danger .modal-header {
+        background-color: #dc3545; /* Danger 紅 */
+        color: #fff;
+    }
+
+    .modal-danger .btn-close {
+        filter: invert(1);
+        opacity: .9;
+    }
+
+/* （選用）一般確認用外框：刪除確認等 */
+.modal-bordered {
+    border: 1px solid #dee2e6;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}

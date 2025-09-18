@@ -38,7 +38,7 @@
             </div>
         }
 
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" method="post" id="editEmpForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <!-- 隱藏欄位 -->
@@ -50,19 +50,44 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
-            <!-- 修復：移除空值選項，因為這是編輯頁面，應該要有預設值 -->
+            <!-- 改進的部門選單 -->
             <div class="form-group mb-3">
-                <label asp-for="RoleNo" class="control-label"></label>
-                <select asp-for="RoleNo" class="form-control" asp-items="@Model.Roles">
-                </select>
-                <span asp-validation-for="RoleNo" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="DeptNo" class="control-label"></label>
-                <select asp-for="DeptNo" class="form-control" asp-items="@Model.Depts">
+                <label asp-for="DeptNo" class="control-label">部門</label>
+                <select asp-for="DeptNo" class="form-control" id="deptSelect">
+                    @if (Model.Depts != null && Model.Depts.Any())
+                    {
+                        @foreach (var dept in Model.Depts)
+                        {
+                            <option value="@dept.Value" selected="@dept.Selected">@dept.Text</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="">無可用的部門選項</option>
+                    }
                 </select>
                 <span asp-validation-for="DeptNo" class="text-danger"></span>
+                <small class="form-text text-muted">目前選中: <span id="deptInfo">@Model.DeptNo</span></small>
+            </div>
+
+            <!-- 改進的職位選單 -->
+            <div class="form-group mb-3">
+                <label asp-for="RoleNo" class="control-label">職位</label>
+                <select asp-for="RoleNo" class="form-control" id="roleSelect">
+                    @if (Model.Roles != null && Model.Roles.Any())
+                    {
+                        @foreach (var role in Model.Roles)
+                        {
+                            <option value="@role.Value" selected="@role.Selected">@role.Text</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="">無可用的職位選項</option>
+                    }
+                </select>
+                <span asp-validation-for="RoleNo" class="text-danger"></span>
+                <small class="form-text text-muted">目前選中: <span id="roleInfo">@Model.RoleNo</span></small>
             </div>
 
             <div class="form-group mb-3">
@@ -109,25 +134,92 @@
             </div>
         </form>
     </div>
+
+    <!-- 除錯資訊面板 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>除錯資訊</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>員工編號:</strong> @Model.No</p>
+                <p><strong>目前部門編號:</strong> @Model.DeptNo</p>
+                <p><strong>目前職位編號:</strong> @Model.RoleNo</p>
+                <p><strong>部門選項數量:</strong> @(Model.Depts?.Count() ?? 0)</p>
+                <p><strong>職位選項數量:</strong> @(Model.Roles?.Count() ?? 0)</p>
+                <div id="debugInfo"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('editEmpForm');
+            const deptSelect = document.getElementById('deptSelect');
+            const roleSelect = document.getElementById('roleSelect');
+            const debugInfo = document.getElementById('debugInfo');
+
+            // 更新資訊顯示
+            function updateInfo() {
+                document.getElementById('deptInfo').textContent = deptSelect.value;
+                document.getElementById('roleInfo').textContent = roleSelect.value;
+            }
+
+            // 監聽選單變化
+            deptSelect.addEventListener('change', function() {
+                console.log('部門選擇變更為:', this.value);
+                updateInfo();
+            });
+
+            roleSelect.addEventListener('change', function() {
+                console.log('職位選擇變更為:', this.value);
+                updateInfo();
+            });
+
+            // 表單提交時的除錯
+            // form.addEventListener('submit', function(e) {
+            //     console.log('=== 表單提交除錯資訊 ===');
+            //     console.log('員工編號:', document.querySelector('[name="No"]').value);
+            //     console.log('姓名:', document.querySelector('[name="Name"]').value);
+            //     console.log('部門編號:', document.querySelector('[name="DeptNo"]').value);
+            //     console.log('職位編號:', document.querySelector('[name="RoleNo"]').value);
+            //     console.log('Email:', document.querySelector('[name="Email"]').value);
+            //     console.log('電話:', document.querySelector('[name="Phone"]').value);
+            //     console.log('身分證:', document.querySelector('[name="IdNumber"]').value);
+            //     console.log('啟用狀態:', document.querySelector('[name="Status"]').checked);
+
+            //     顯示所有表單資料
+            //     const formData = new FormData(form);
+            //     let debugText = '<h6>表單資料:</h6><ul>';
+            //     for (let [key, value] of formData.entries()) {
+            //         console.log(key + ':', value);
+            //         debugText += `<li><strong>${key}:</strong> ${value}</li>`;
+            //     }
+            //     debugText += '</ul>';
+            //     debugInfo.innerHTML = debugText;
+
+            //     檢查必要欄位
+            //     if (!deptSelect.value || deptSelect.value === '') {
+            //         alert('請選擇部門');
+            //         e.preventDefault();
+            //         return false;
+            //     }
+
+            //     if (!roleSelect.value || roleSelect.value === '') {
+            //         alert('請選擇職位');
+            //         e.preventDefault();
+            //         return false;
+            //     }
+            // });
+
+            // 初始化資訊顯示
+            updateInfo();
+        });
+    </script>
 }
-
-<script>
-    // 除錯用：表單提交時檢查
-    document.querySelector('form').addEventListener('submit', function(e) {
-        console.log('表單正在提交...');
-        console.log('DeptNo:', document.querySelector('[name="DeptNo"]').value);
-        console.log('RoleNo:', document.querySelector('[name="RoleNo"]').value);
-
-        // 檢查表單資料
-        const formData = new FormData(this);
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
-        }
-    });
-</script>

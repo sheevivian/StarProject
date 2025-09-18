@@ -19,53 +19,24 @@ html {
     transition: background-color 0.3s, border-color 0.3s;
 }
 
-    .btn-purple:hover {
-        background-color: #73a8fc !important;
-        border-color: #73a8fc !important;
-        color: white !important;
-    }
-
-.card-darkblue {
-    color: white;
-    border: dashed 3px #ffffff;
-    padding: 20px;
-    border-radius: 26px;
-    background: #121830;
-}
-.card-blue {
-    color: white;
-    border: dashed 3px #ffffff;
-    padding: 20px;
-    background: #375fae;
-    border-radius: 26px;
-}
-
-.card-yellow {
-    color: white;
-    border: dashed 3px #ffffff;
-    padding: 20px;
-    background-color: #ffbb00;
-    border-radius: 26px;
-}
-
-.card-red {
-    color: white;
-    border: dashed 3px #ffffff;
-    padding: 20px;
-    background: #551302;
-    border-radius: 26px;
+.btn-purple:hover {
+    background-color: #73a8fc !important;
+    border-color: #73a8fc !important;
+    color: white !important;
 }
 
 
 
-.cardsetting {
+
+
+/*.cardsetting {
     color: black;
     border: 2px #ffffff;
     padding: 5px;
     border-radius: 26px;
-    background: linear-gradient(145deg, #e6e6e6, #ffffff);
+    background: #FFFFFF;
     box-shadow: 20px 20px 15px #bdbdbd, -20px -20px 15px #ffffff;
-}
+}*/
 
 .timeline {
     list-style: none;
@@ -97,3 +68,32 @@ html {
     position: relative;
     min-height: 100%;
 }
+
+/* 訊息動畫 */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 響應式 */
+@media (max-width: 768px) {
+    .clock-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .attendance-container {
+        padding: 20px;
+        margin: 10px;
+    }
+
+    .current-time {
+        font-size: 24px;
+    }

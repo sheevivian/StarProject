@@ -11,73 +11,350 @@
        /* /* background-image: url(https://cdn.pixabay.com/photo/2016/09/08/20/52/starry-sky-1655503_1280.jpg) */
          
     }
-    </style>
+
+    .fs60px{
+        font-size: 60px;
+    }
+
+    .kpi-grid-wrapper {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 200px);
+        grid-template-rows: repeat(2, 160px);
+        gap: 1rem;
+    }
+
+    .card-size {
+        width: 200px;
+        height: 160px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-card {
+        flex: 1;
+        background: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+    }
+
+    /* 打卡區塊 */
+    .clock-section {
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    /* 顯示當前時間 */
+    .current-time {
+        font-size: 28px;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+
+    /* 顯示日期 */
+    .current-date {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    /* 員工資訊 */
+    .employee-info {
+        font-size: 18px;
+        color: #666;
+    }
+
+    /* 打卡按鈕容器 */
+    .clock-buttons {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .clock-button-container {
+        text-align: center;
+    }
+
+    /* 打卡按鈕 */
+    .clock-btn {
+        font-size: 18px;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        min-width: 150px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+        .clock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+    /* 上班打卡按鈕 */
+    .btn-clock-in {
+        background-color: #28a745;
+        color: white;
+    }
+
+        .btn-clock-in:hover {
+            background-color: #218838;
+        }
+
+    /* 下班打卡按鈕 */
+    .btn-clock-out {
+        background-color: #dc3545;
+        color: white;
+    }
+
+        .btn-clock-out:hover {
+            background-color: #c82333;
+        }
+
+    /* 顯示打卡時間 */
+    .clock-time {
+        display: block;
+        font-size: 14px;
+        color: #28a745;
+        margin-top: 8px;
+        font-weight: bold;
+    }
+
+    /* 導覽按鈕容器 */
+    .nav-buttons {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    /* 導覽按鈕 */
+    .nav-btn {
+        display: inline-block;
+        margin: 0 15px;
+        padding: 12px 25px;
+        text-decoration: none;
+        color: white;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+        .nav-btn:hover {
+            transform: translateY(-1px);
+            text-decoration: none;
+            color: white;
+        }
+
+    /* 請假按鈕 */
+    .btn-leave {
+        background-color: #17a2b8;
+    }
+
+        .btn-leave:hover {
+            background-color: #138496;
+        }
 
 
+    /* 訊息提示樣式 */
+    .message-alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        min-width: 300px;
+        padding: 15px 20px;
+        border-radius: 6px;
+        font-weight: bold;
+        display: none;
+        animation: slideIn 0.3s ease-out;
+    }
 
-    <!-- 第一列圖表 -->
+    .message-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .message-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .led-clock {
+        color: #3d78ee;
+        text-align: center;
+        padding: 10px 20px;
+        background: rgba(0,0,0,0); /* 完全透明 */
+        border-radius: 10px;
+        user-select: none;
+    }
+
+    .clocktime{
+        font-size: 75px; /* 時鐘大小 */
+    }
+
+    .text-hometitle{
+        letter-spacing: 3px
+    }
+
+        .led-clock .date {
+            font-size: 20px; /* 日期字體較小 */
+            margin-top: 5px;
+            display: block;
+        }
+
+        .led-clock span {
+            min-width: 2ch; /* 每個數字寬度一致 */
+        }
+
+    .imgsize{
+        width:200px;
+        height: auto;
+        right: 20px !important;
+        border-radius: 26px;
+    }
+
+    .imgmeteorsize {
+        width: 150px;
+        height: auto;
+        left:20px !important;
+        top: 5px !important;
+        border-radius: 26px;
+    }
+
+    .card-darkblue {
+        color: #423A3A;
+        border: solid 1px #89BEEB;
+        padding: 20px;
+        border-radius: 26px;
+        background: #89BEEB;
+    }
+
+    .card-user {
+        color: #423A3A;
+        border: solid 1px #DCDCDC;
+        padding: 20px;
+        background: #DCDCDC;
+        border-radius: 26px;
+    }
+
+    .card-money {
+        color: #423A3A;
+        border: solid 1px #C0C6DD;
+        padding: 20px;
+        background-color: #C0C6DD;
+        border-radius: 26px;
+    }
+
+    .card-stock {
+        color: #423A3A;
+        border: solid 1px #FEA757;
+        padding: 20px;
+        background-color: #FEA757;
+        border-radius: 26px;
+    }
+
+    .letter-spaced {
+        letter-spacing: 0.4em; /* 調整字距，越大越分開 */
+    }
+</style>
+
+<!-- 第一列圖表 -->
 <div class="container-fluid p-4">
-    <div class="row g-8">
-        <!-- 左側：商品 & 票券分析 -->
-        <div class="col-md-6">
-            
-                <div class="cardsetting">
-                    <h5 class="card-title text-center">商品營收分析</h5>
-                    <div id="productChart" style="height:340px;"></div>
-                <h5 class="card-title text-center">票券營收分析</h5>
-                    <div id="ticketChart" style="height:340px; margin-top:10px;"></div>
+    <div class="row g-4">
+        <!-- 左側：自動撐滿剩餘空間的白底卡 -->
+        <div class="col-md">
+            <div class="card shadow-sm bg-white rounded-4 h-100">
+                <div class="card-body d-flex justify-content-center align-items-center position-relative">
+                    @await Html.PartialAsync("_AttendanceCardPartial")
                 </div>
-
-           
+            </div>
         </div>
 
-        <!-- 右側：KPI + 活動報名 -->
+        <!-- 右側：固定寬度 2x2 卡片 -->
+        <div class="col-auto">
+            <div class="kpi-grid">
+                <div class="card shadow-sm text-center p-3 card-stock card-size">
+                    <i class="bi bi-box2-heart fs-1"></i>
+                    <h5 class="card-title mt-2 fw-bold">庫存預警</h5>
+                    <p class="card-text">5項商品低庫存</p>
+                </div>
+                <div class="card shadow-sm text-center p-3 card-darkblue card-size">
+                    <i class="bi bi-cart-check fs-1"></i>
+                    <h5 class="card-title mt-2 fw-bold">本月訪客數</h5>
+                    <p class="card-text">1200人</p>
+                </div>
+                <div class="card shadow-sm text-center p-3 card-money card-size">
+                    <i class="bi bi-cash-coin fs-1"></i>
+                    <h5 class="card-title mt-2 fw-bold">累計營收</h5>
+                    <p class="card-text">$15,000</p>
+                </div>
+                <div class="card shadow-sm text-center p-3 card-user card-size">
+                    <i class="bi bi-people fs-1"></i>
+                    <h5 class="card-title mt-2 fw-bold">新增會員數</h5>
+                    <p class="card-text">20人</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 訊息提示區域 -->
+<div id="messageAlert" class="message-alert">
+    <span id="messageText"></span>
+</div>
+
+<!-- 第二列：商品和票券營收分析圖表 -->
+<div class="container-fluid p-4">
+    <div class="row g-4">
         <div class="col-md-6">
-            <div class="row g-4">
-                <div class="col-6">
-                    <div class="card shadow-sm text-center p-3 card-red text-light">
-                        <i class="bi bi-box2-heart fs-1"></i>
-                        <h5 class="card-title mt-2">庫存預警</h5>
-                        <p class="card-text"> 5項商品低庫存</p>
-                    </div>
+            <div class="card shadow-sm bg-white rounded-4 h-100">
+                <div class="card-header fw-bold fs-4 text-center letter-spaced">
+                    商品營收分析
                 </div>
-                <div class="col-6">
-                    <div class="card shadow-sm text-center p-3 card-darkblue text-light">
-                        <i class="bi bi-cart-check fs-1"></i>
-                        <h5 class="card-title mt-2">本月訪客數</h5>
-                        <p class="card-text">1200人</p>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="card shadow-sm text-center p-3 card-yellow text-light">
-                        <i class="bi bi-cash-coin fs-1"></i>
-                        <h5 class="card-title mt-2">累計營收</h5>
-                        <p class="card-text">$15,000</p>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="card shadow-sm text-center p-3 card-blue text-light">
-                        <i class="bi bi-people fs-1"></i>
-                        <h5 class="card-title mt-2">新增會員數</h5>
-                        <p class="card-text">20人</p>
-                    </div>
-                </div>
-            </div>
-
-            
-            <!-- 活動報名柱狀圖 -->
-            <div class="col-12 mt-4">
                 
-                    <div class="cardsetting">
-                        <h5 class="card-title text-center">活動參與統計</h5>
-                        <div id="categoryChart" style="height:335px;"></div>
-                       
-                      
-                    </div>
+                <div id="productChart" style="height:340px;"></div>
                 
             </div>
+        </div>
+        <!-- 右側可以添加其他內容或保持空白 -->
+        <div class="col-md-6">
+            <div class="card shadow-sm bg-white rounded-4 h-100">
+                <div class="card-header fw-bold fs-4 text-center letter-spaced">
+                    票券營收分析
+                </div>
 
-   
+                <div id="ticketChart" style="height:340px; margin-top:10px;"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid p-4">
+    <div class="row g-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm bg-white rounded-4 h-100">
+                <div class="card-header fw-bold fs-4 text-center letter-spaced">
+                    活動參與統計
+                </div>
+
+                <div id="categoryChart" style="height:500px; margin-top:10px;"></div>
+
+            </div>
         </div>
     </div>
 </div>
@@ -88,8 +365,8 @@
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- ECharts CDN -->
-
-
+@* 加入防偽令牌 *@
+@Html.AntiForgeryToken()
 
 <script>
           
@@ -172,56 +449,176 @@
             ticketChart.setOption(option);
         });
 
-            var chartDom = document.getElementById('categoryChart');
-    var myChart = echarts.init(chartDom);
+        var chartDom = document.getElementById('categoryChart');
+        var myChart = echarts.init(chartDom);
 
-    fetch('/Chart/GetCategoryStats')
-        .then(res => res.json())
-        .then(data => {
-            if (!data || data.length === 0) {
-                chartDom.innerHTML = "沒有資料";
-                return;
-            }
+        fetch('/Chart/GetCategoryStats')
+            .then(res => res.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    chartDom.innerHTML = "沒有資料";
+                    return;
+                }
 
-            let categories = data.map(d => d.category);
-            let counts = data.map(d => d.participantCount);
-              const colors = ['#3453a2', '#75c8f9', '#499b8a', '#82d38d', '#f1c232', '#b9635d', '#811313', '#F44336'];
-            myChart.setOption({
+                let categories = data.map(d => d.category);
+                let counts = data.map(d => d.participantCount);
+                  const colors = ['#3453a2', '#75c8f9', '#499b8a', '#82d38d', '#f1c232', '#b9635d', '#811313', '#F44336'];
+                myChart.setOption({
                 
-    tooltip: {},
-    grid: {
-        left: '10px',   // 左邊距離
-        right: '10px',  // 右邊距離
-        top: '30px',    // 上邊距離
-        bottom: '30px', // 下邊距離
-        containLabel: true // 確保軸標籤顯示
-    },
-    xAxis: {
-        type: 'category',
-        data: categories,
-        axisLabel: {
-            interval: 0, // 每個都顯示
-            rotate: 30   // 適度旋轉防重疊
-        }
-    },
-    yAxis: { type: 'value' },
-        series: [{
-        name: '參與人數',
-        type: 'bar',
-        data: counts.map((c, i) => ({
-            value: c,
-            itemStyle: { color: colors[i % colors.length] }, // 每個柱子不同顏色
-            label: { show: true, position: 'top', formatter: '{c}' } // 顯示數字
-        }))
-    }]
+                tooltip: {},
+                grid: {
+                    left: '10px',   // 左邊距離
+                    right: '10px',  // 右邊距離
+                    top: '30px',    // 上邊距離
+                    bottom: '30px', // 下邊距離
+                    containLabel: true // 確保軸標籤顯示
+                },
+                xAxis: {
+                    type: 'category',
+                    data: categories,
+                    axisLabel: {
+                        interval: 0, // 每個都顯示
+                        rotate: 30   // 適度旋轉防重疊
+                    }
+                },
+                yAxis: { type: 'value' },
+                    series: [{
+                    name: '參與人數',
+                    type: 'bar',
+                    data: counts.map((c, i) => ({
+                        value: c,
+                        itemStyle: { color: colors[i % colors.length] }, // 每個柱子不同顏色
+                        label: { show: true, position: 'top', formatter: '{c}' } // 顯示數字
+                         }))
+                }]  
             });
         });
 
-
-     
-
-
-
-
-
     </script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // 顯示訊息
+    function showMessage(message, isError = false) {
+        const alertDiv = document.getElementById('messageAlert');
+        const messageText = document.getElementById('messageText');
+
+        messageText.textContent = message;
+        alertDiv.className = `message-alert ${isError ? 'message-error' : 'message-success'}`;
+        alertDiv.style.display = 'block';
+
+        setTimeout(() => {
+            alertDiv.style.display = 'none';
+        }, 4000);
+    }
+
+        function updateDateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('zh-TW', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false   // 強制 24 小時制
+        });
+        const dateString = now.toLocaleDateString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            weekday: 'long'
+        });
+        document.getElementById('currentTime').textContent = timeString;
+        document.getElementById('currentDate').textContent = dateString;
+    }
+
+    async function clockIn() {
+         const button = document.getElementById('clockInBtn');
+         button.disabled = true;
+         button.textContent = '打卡中...';
+
+         try {
+             const response = await fetch('@Url.Action("ClockIn", "Home")', {
+                 method: 'POST',
+                 headers: {
+                     'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                 }
+             });
+
+             // 🔥 關鍵修正：先檢查響應狀態
+             if (!response.ok) {
+                 const errorText = await response.text();
+                 console.error('Server error:', response.status, errorText);
+                 showMessage(`伺服器錯誤 (${response.status})`, true);
+                 return;
+             }
+
+             // 🔥 關鍵修正：檢查響應內容類型
+             const contentType = response.headers.get('content-type');
+             if (!contentType || !contentType.includes('application/json')) {
+                 const text = await response.text();
+                 console.error('Non-JSON response:', text);
+                 showMessage('伺服器響應格式錯誤', true);
+                 return;
+             }
+
+             const result = await response.json();
+             showMessage(result.message, !result.success);
+
+             if (result.success) {
+                 setTimeout(() => location.reload(), 2000);
+             }
+         } catch (error) {
+             console.error('Request failed:', error);
+             showMessage(`請求失敗：${error.message}`, true);
+         } finally {
+             button.disabled = false;
+             button.innerHTML = '🕐 上班打卡';
+         }
+     }
+
+    async function clockOut() {
+        const button = document.getElementById('clockOutBtn');
+        button.disabled = true;
+        button.textContent = '打卡中...';
+
+        try {
+            const response = await fetch('@Url.Action("ClockOut", "Home")', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                }
+            });
+
+            // 🔥 關鍵修正：先檢查響應狀態
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server error:', response.status, errorText);
+                showMessage(`伺服器錯誤 (${response.status})`, true);
+                return;
+            }
+
+            // 🔥 關鍵修正：檢查響應內容類型
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text);
+                showMessage('伺服器響應格式錯誤', true);
+                return;
+            }
+
+            const result = await response.json();
+            showMessage(result.message, !result.success);
+
+            if (result.success) {
+                setTimeout(() => location.reload(), 2000);
+            }
+        } catch (error) {
+            console.error('Request failed:', error);
+            showMessage(`請求失敗：${error.message}`, true);
+        } finally {
+            button.disabled = false;
+            button.innerHTML = '🕕 下班打卡';
+        }
+    }
+
+    $(document).ready(function(){ updateDateTime(); setInterval(updateDateTime,1000); });
+</script>

@@ -1,33 +1,43 @@
 ﻿@model PagedResult<StarProject.Models.OrderMaster>
 @using Microsoft.AspNetCore.Mvc.Rendering
 
-
+<style>
+    body {
+         background-image: url(https://cdn.pixabay.com/photo/2021/01/17/02/02/planets-5923806_1280.jpg); 
+        background-color: black;
+    }
+    </style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 <link href="orderstyle.css" rel="stylesheet"> <!-- 你的自訂 CSS -->
 @{
     ViewData["Title"] = "訂單紀錄查詢";
 }
+<head>
+    <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
+</head>
+<h1 class="text-center my-4 text-white">訂單管理</h1>
 
-<h1 class="text-center my-4">訂單管理</h1>
+
 
 <!-- 查詢表單 -->
+<div class="table-rounded position-relative mt-3">
 <form method="get" asp-action="Index" class="mb-3">
     <div class="row g-2 align-items-end">
         <!-- 會員姓名 -->
         <div class="col-md-3">
-            <label class="fw-bold">會員姓名</label>
+                <label class="fw-bold text-white">會員姓名</label>
             <input type="text" name="userName" class="form-control" value="@ViewBag.SelectedUserName" placeholder="輸入姓名">
         </div>
         <!-- 訂單種類 -->
         <div class="col-md-3">
-            <label class="fw-bold">訂單種類</label>
+                <label class="fw-bold text-white">訂單種類</label>
             <select name="category" class="form-control" asp-items="ViewBag.Categories"></select>
         </div>
 
         <!-- 付款狀態 -->
         <div class="col-md-3">
-            <label class="fw-bold">付款狀態</label>
+                <label class="fw-bold text-white">付款狀態</label>
             <select name="paymentStatus" class="form-control" asp-items="ViewBag.PaymentStatuses"></select>
         </div>
 
@@ -41,7 +51,7 @@
         </div>
     </div>
 </form>
-<a asp-action="ExportExcel" asp-route-category="@ViewBag.SelectedCategoryValue"
+@* <a asp-action="ExportExcel" asp-route-category="@ViewBag.SelectedCategoryValue"
    asp-route-paymentStatus="@ViewBag.SelectedPaymentStatusValue"
    asp-route-userName="@ViewBag.SelectedUserName"
    class="btn btn-purple btn-sm">匯出 Excel</a>
@@ -49,7 +59,7 @@
 <a asp-action="ExportCsv" asp-route-category="@ViewBag.SelectedCategoryValue"
    asp-route-paymentStatus="@ViewBag.SelectedPaymentStatusValue"
    asp-route-userName="@ViewBag.SelectedUserName"
-   class="btn btn-warning btn-sm">匯出 CSV</a>
+   class="btn btn-warning btn-sm">匯出 CSV</a> *@
 <!-- 訂單表格 -->
 <table class="table table-hover">
     <thead>
@@ -58,9 +68,9 @@
             <th>訂單編號</th>
             <th>會員姓名</th>
             <th>會員編號</th>
-            <th>商品種類</th>
+            <th>種類</th>
             <th>總金額</th>
-            <th>使用折扣</th>
+            <th>優惠</th>
             <th>折扣後金額</th>
             <th>日期</th>
             <th>購買明細</th>
@@ -76,9 +86,9 @@
                 <td>@order.UserNoNavigation.Name</td>
                 <td>@order.UserNo</td>
                 <td>@order.Category</td>
-                <td>@order.Total</td>
+                <td>@((order?.Total ?? 0).ToString("N0")) 元</td>
                 <td>@order.DiscountType</td>
-                <td>@order.AllTotal</td>
+                <td>@((order?.AllTotal ?? 0).ToString("N0")) 元</td>
                 <td>@order.Date.ToString("yyyy-MM-dd")</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@order.No" class="btn btn-purple btn-sm">明細</a>
@@ -90,7 +100,7 @@
         }
     </tbody>
 </table>
-
+</div>
 <!-- 分頁 -->
 <div class="d-flex justify-content-center my-3">
     @if (Model.HasPreviousPage)

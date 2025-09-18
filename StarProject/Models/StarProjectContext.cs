@@ -628,6 +628,7 @@ public partial class StarProjectContext : DbContext
         {
             entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063A62086B4");
 
+
             entity.ToTable("OrderStatus");
 
             entity.Property(e => e.Notes).HasMaxLength(200);
@@ -714,8 +715,8 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A88AEDB099");
 
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A88AEDB099");
             entity.ToTable("ProCategory");
 
             entity.Property(e => e.No).HasMaxLength(6);
@@ -827,6 +828,7 @@ public partial class StarProjectContext : DbContext
         modelBuilder.Entity<ProductStock>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8DFF6CDC9");
+
 
 
             entity.ToTable("ProductStock");

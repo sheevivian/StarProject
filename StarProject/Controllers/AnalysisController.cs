@@ -106,7 +106,62 @@ public class AnalysisController : Controller
         return Json(data);
     }
 
+    // 依類別抓出前三名商品
+    // 🟢 1. 商品類別 → 該類別前三名商品 (依 Quantity 排序)
+    [HttpGet]
+    public IActionResult GetTopProductsByCategory(string category)
+    {
+        // 商品類別清單（非票券）
+        var productCategories = new List<string> {
+        "卡片書籤","服包飾品","益智桌遊","地球儀","生活雜貨",
+        "書籍刊物","餐廚用品","交通卡","設計文具","望遠鏡"
+    };
 
+        if (!productCategories.Contains(category))
+            return Json(new List<object>());
 
+        var data = _context.OrderItems
+            .Where(o => o.Category == category)
+            .GroupBy(o => o.Name)
+            .Select(g => new {
+                name = g.Key,
+                value = g.Sum(x => x.Quantity)
+            })
+            .OrderByDescending(x => x.value)
+            .Take(3)
+            .ToList();
+
+        return Json(data);
+    }
+
+    // 🟢 2. 年月 → 票券 Type 總數量
+    [HttpGet]
+    public IActionResult GetTicketTypeCountsByMonth(int year, int month)
+    {
+        var ticketCategories = new List<string> {
+        "星際探險","常設展覽","星空劇院","優惠套票","特別展覽","立體劇場"
+    };
+
+        var data = (from item in _context.OrderItems
+                    join order in _context.OrderMasters
+                    on item.OrderNo equals order.No
+                    where ticketCategories.Contains(item.Category)
+                          && order.Date.Year == year
+                          && order.Date.Month == month
+                    group item by item.Type into g
+                    select new
+                    {
+                        name = g.Key,
+                        value = g.Sum(x => x.Quantity)
+                    })
+                    .OrderByDescending(x => x.value)
+                    .ToList();
+
+        return Json(data);
+    }
 
 }
+
+
+
+

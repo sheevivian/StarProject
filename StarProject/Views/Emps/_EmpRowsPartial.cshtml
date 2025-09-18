@@ -1,0 +1,79 @@
+﻿@model IEnumerable<StarProject.Models.Emp>
+@using StarProject.Helpers
+
+@foreach (var item in Model)
+{
+    // 根據你的實際資料結構
+    var deptCode = item.DeptNoNavigation?.DeptCode ?? "UNKNOWN";
+    var roleInfo = RoleHelper.GetRoleDisplayInfo(deptCode, item.RoleNoNavigation);
+
+    <tr data-emp-id="@item.No"
+        data-emp-code="@item.EmpCode"
+        data-name="@item.Name"
+        data-department="@deptCode"
+        data-role="@item.RoleNoNavigation?.RoleName"
+        data-hire-date="@item.HireDate.ToString("yyyy-MM-dd")"
+        data-status="@(item.Status ? "在職" : "離職")"
+        data-department-display="@roleInfo.DepartmentDisplayName"
+        data-role-display="@roleInfo.RoleDisplayName">
+
+        <td style="width:50px">
+            <input class="form-check-input ms-4 checkbox" type="checkbox" data-emp-id="@item.No">
+        </td>
+
+        <td style="width:200px">
+            <div>@item.Name</div>
+        </td>
+
+        <td style="width:150px">
+            <span>@item.EmpCode</span>
+        </td>
+
+        <td>
+            <div>@roleInfo.DepartmentDisplayName</div>
+        </td>
+
+        <td>
+            <div>
+                <span>@roleInfo.RoleDisplayName</span>
+            </div>
+            <small class="text-muted d-block">
+                @roleInfo.PermissionSummary
+            </small>
+        </td>
+
+        <td>
+            <span>@item.HireDate.ToString("yyyy/MM/dd")</span>
+            <small class="text-muted d-block">
+                @{
+                    var years = DateTime.Now.Year - item.HireDate.Year;
+                    var months = DateTime.Now.Month - item.HireDate.Month;
+                    if (months < 0) { years--; months += 12; }
+                }
+                年資 @years 年 @months 個月
+            </small>
+        </td>
+
+        <td>
+            @if (item.Status)
+            {
+                <span>在職</span>
+            }
+            else
+            {
+                <span>離職</span>
+            }
+        </td>
+
+        <td style="width:116px">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasDetail"
+                        onclick="loadEmployeeDetails('@item.No', '@item.EmpCode', '@item.Name', '@roleInfo.DepartmentDisplayName', '@roleInfo.RoleDisplayName', '@item.HireDate.ToString("yyyy-MM-dd")', '@(item.Status ? "在職" : "離職")')">
+                    詳細內容
+                </button>
+            </div>
+        </td>
+    </tr>
+}

@@ -1,0 +1,52 @@
+﻿@model IEnumerable<StarProject.Models.Event>
+
+@foreach (var item in Model)
+{
+    var img = string.IsNullOrWhiteSpace(item.Image) ? "/img/logo.png" : item.Image;
+
+    <tr>
+        <td style="width:50px">
+            <input type="checkbox" class="checkbox form-check-input ms-4" value="@item.No" />
+        </td>
+
+        <td style="width:64px;">
+            <div class="thumbnail-container">
+                <img src="@img"
+                     alt="@item.Title"
+                     class="thumb-img"
+                     loading="lazy"
+                     decoding="async"
+                     referrerpolicy="no-referrer" />
+            </div>
+        </td>
+
+        <td>@item.Title</td>
+        <td>@item.Category</td>
+        <td>@item.Status</td>
+        <td>@item.StartDate.ToString("yyyy-MM-dd HH:mm")</td>
+        <td>@item.Location</td>
+        <td>@(item.Fee == null? "": (item.Fee == 0 ? "免付費" : item.Fee.ToString()))
+    </td>
+
+        <td style="width:116px; text-align:center;">
+            <button type="button"
+                    class="btn btn-color btn-sm btn-detail"
+                    data-id="@item.No"
+                    data-title="@item.Title"
+                    data-category="@item.Category"
+                    data-status="@item.Status"
+                    data-start="@($"{item.StartDate:yyyy-MM-dd HH:mm}")"
+                    data-end="@(item.EndDate.HasValue ? $"{item.EndDate:yyyy-MM-dd HH:mm}" : "")"
+                    data-created="@($"{item.CreatedTime:yyyy-MM-dd HH:mm}")"
+                    data-updated="@($"{item.UpdatedTime:yyyy-MM-dd HH:mm}")"
+                    data-location="@item.Location"
+                    data-fee="@item.Fee"
+                    data-deposit="@item.Deposit"
+                    data-max-participants="@item.MaxParticipants"
+                    data-desc="@item.Desc"
+                    data-image="@img">
+                詳細內容
+            </button>
+        </td>
+    </tr>
+}

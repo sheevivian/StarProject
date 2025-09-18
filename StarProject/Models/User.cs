@@ -33,6 +33,8 @@ public partial class User
 
     public virtual ICollection<OrderC> OrderCs { get; set; } = new List<OrderC>();
 
+    public virtual ICollection<OrderDelivery> OrderDeliveries { get; set; } = new List<OrderDelivery>();
+
     public virtual ICollection<OrderMaster> OrderMasters { get; set; } = new List<OrderMaster>();
 
     public virtual ICollection<Participant> Participants { get; set; } = new List<Participant>();

@@ -1,0 +1,42 @@
+﻿@* 左側白色圓角卡片打卡區 *@
+<!-- 左邊：LED 時鐘 -->
+<div class="d-flex flex-column align-items-center pe-5">
+    <h1 class="fw-bold text-hometitle mb-4">
+        員工打卡系統
+    </h1>
+    
+    <div class="led-clock">
+        <div class="employee-info">@ViewBag.EmployeeName (@ViewBag.DepartmentName)</div>
+        <div id="currentTime" class="fw-bolder clocktime"></div>
+        <div id="currentDate" class="date text-secondary"></div>
+    </div>
+</div>
+
+<!-- 中間：垂直打卡按鈕區 -->
+<div class="clock-section text-center me-4 d-flex flex-column align-items-center mb-0 mt-4">
+    <div class="clock-button-container mb-3">
+        <button id="clockInBtn" class="clock-btn btn-clock-in mb-2">🕐 上班打卡</button>
+        @if (ViewBag.TodayRecord?.ClockInTime != null)
+        {
+            <span id="clockInTime" class="clock-time">
+                上班時間: @(((DateTime)ViewBag.TodayRecord.ClockInTime).ToString("HH:mm:ss"))
+            </span>
+        }
+    </div>
+
+    <div class="clock-button-container mb-3">
+        <button id="clockOutBtn" class="clock-btn btn-clock-out mb-2">🕕 下班打卡</button>
+        @if (ViewBag.TodayRecord?.ClockOutTime != null)
+        {
+            var workHours = (DateTime)ViewBag.TodayRecord.ClockOutTime - (DateTime)ViewBag.TodayRecord.ClockInTime;
+            <span id="clockOutTime" class="clock-time">
+                下班時間: @(((DateTime)ViewBag.TodayRecord.ClockOutTime).ToString("HH:mm:ss"))<br>
+            </span>
+        }
+    </div>
+</div>
+
+<div class="d-flex flex-column align-items-end pe-4">
+    <img src="~/img/astronaut123.gif" class="position-absolute bottom-0 end-0 imgsize" />
+    <img src="~/img/moon.gif" class="position-absolute top-0 start-0 imgmeteorsize" />
+</div>

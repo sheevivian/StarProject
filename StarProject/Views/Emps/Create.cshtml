@@ -1,4 +1,5 @@
 ﻿@model StarProject.ViewModels.CreateEmpViewModel
+@using StarProject.Helpers
 
 @{
     ViewData["Title"] = "新增員工";
@@ -6,32 +7,7 @@
 
 <h1>新增員工</h1>
 
-<!-- 顯示ModelState錯誤 -->
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger">
-        <h4>表單驗證錯誤：</h4>
-        <ul>
-            @foreach (var modelError in ViewData.ModelState)
-            {
-                foreach (var error in modelError.Value.Errors)
-                {
-                    <li><strong>@modelError.Key:</strong> @error.ErrorMessage</li>
-                }
-            }
-        </ul>
-    </div>
-}
-
-<!-- 顯示ViewBag資料狀態 -->
-<div class="alert alert-info">
-    <strong>除錯資訊：</strong>
-    <p>部門選項數量: @(ViewBag.DeptNo != null ? ((SelectList)ViewBag.DeptNo).Count() : 0)</p>
-    <p>職位選項數量: @(ViewBag.RoleNo != null ? ((SelectList)ViewBag.RoleNo).Count() : 0)</p>
-</div>
-
 <form asp-action="Create" method="post" id="empForm">
-    <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="row">
         <div class="col-md-6">
@@ -54,7 +30,7 @@
         <div class="col-md-6">
             <div class="form-group mb-3">
                 <label asp-for="DeptNo" class="form-label">部門 <span class="text-danger">*</span></label>
-                <select asp-for="DeptNo" class="form-control" asp-items="ViewBag.DeptNo">
+                <select asp-for="DeptNo" class="form-control" asp-items="@Model.Depts">
                     <option value="">請選擇部門</option>
                 </select>
                 <span asp-validation-for="DeptNo" class="text-danger"></span>
@@ -63,8 +39,18 @@
         <div class="col-md-6">
             <div class="form-group mb-3">
                 <label asp-for="RoleNo" class="form-label">職位 <span class="text-danger">*</span></label>
-                <select asp-for="RoleNo" class="form-control" asp-items="ViewBag.RoleNo">
+                <select asp-for="RoleNo" class="form-control">
                     <option value="">請選擇職位</option>
+                    @if (Model.Roles != null)
+                    {
+                        @foreach (var role in Model.Roles)
+                        {
+                            var isSelected = Model.RoleNo.ToString() == role.Value ? "selected" : "";
+                            <option value="@role.Value" @@isSelected>
+                                @RoleHelper.GetRoleDisplayName(role.Text)
+                            </option>
+                        }
+                    }
                 </select>
                 <span asp-validation-for="RoleNo" class="text-danger"></span>
             </div>
@@ -123,7 +109,6 @@
         @if (TempData["EmailSent"] != null)
         {
             <br>
-    
             <span class="text-success">登入通知已成功發送至員工信箱</span>
         }
         <button type="button" class="close" data-dismiss="alert">
@@ -151,6 +136,10 @@
                 var today = new Date().toISOString().split('T')[0];
                 hireDateInput.value = today;
             }
+
+            // Debug: 檢查下拉選單是否正確載入
+            console.log('部門選項數量:', document.querySelector('select[name="DeptNo"]').options.length);
+            console.log('職位選項數量:', document.querySelector('select[name="RoleNo"]').options.length);
         });
 
         function validateAndSubmit() {
@@ -162,8 +151,8 @@
 
             console.log('表單驗證開始...');
             console.log('姓名:', name);
-            console.log('部門:', deptNo);
-            console.log('職位:', roleNo);
+            console.log('部門編號:', deptNo);
+            console.log('職位編號:', roleNo);
             console.log('到職日:', hireDate);
 
             var errors = [];
@@ -187,6 +176,12 @@
             console.log('表單提交事件觸發');
             console.log('Action:', this.action);
             console.log('Method:', this.method);
+            
+            // Debug: 輸出所有表單數據
+            var formData = new FormData(this);
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
         });
     </script>
 

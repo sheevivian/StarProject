@@ -20,7 +20,7 @@
                 <div class="d-flex justify-content-between align-items-center w-100">
 
                     <div>
-                        <strong class="me-3">Q@(i + 1).</strong>@Html.DisplayFor(m => item.Question)
+                        <strong class="me-3">Q@(i + 1).</strong><span class=" fw-bold fs-6">@Html.DisplayFor(m => item.Question)</span>
                     </div>
 
                     <span class="badge rounded-pill @GetCategoryClass(item.CategoryNoNavigation?.No ?? 0) me-3 custom-badge">
@@ -33,7 +33,8 @@
         </div>
 
         <div id="@collapseId" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-            <div class="accordion-body">
+            <div class="accordion-body ">
+                <span class="fw-bold pe-2">A:</span>
                 @Html.Raw(item.Answer)
                 <div class="text-secondary text-end">
                     @Html.DisplayNameFor(model => model.UpdateDate)：@Html.DisplayFor(modelItem => item.UpdateDate)

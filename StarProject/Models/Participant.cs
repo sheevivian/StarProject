@@ -17,7 +17,9 @@ public partial class Participant
 
     public string Status { get; set; } = null!;
 
-    public int? PaymentNo { get; set; }
+    public string? PaymentNo { get; set; }
+
+    public string? Code { get; set; }
 
     public virtual Event EventNoNavigation { get; set; } = null!;
 

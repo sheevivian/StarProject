@@ -1,0 +1,117 @@
+﻿@model PagedResult<StarProject.Models.OrderMaster>
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<link href="orderstyle.css" rel="stylesheet"> <!-- 你的自訂 CSS -->
+@{
+    ViewData["Title"] = "訂單紀錄查詢";
+}
+
+<h1 class="text-center my-4">訂單管理</h1>
+
+<!-- 查詢表單 -->
+<form method="get" asp-action="Index" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <!-- 會員姓名 -->
+        <div class="col-md-3">
+            <label class="fw-bold">會員姓名</label>
+            <input type="text" name="userName" class="form-control" value="@ViewBag.SelectedUserName" placeholder="輸入姓名">
+        </div>
+        <!-- 訂單種類 -->
+        <div class="col-md-3">
+            <label class="fw-bold">訂單種類</label>
+            <select name="category" class="form-control" asp-items="ViewBag.Categories"></select>
+        </div>
+
+        <!-- 付款狀態 -->
+        <div class="col-md-3">
+            <label class="fw-bold">付款狀態</label>
+            <select name="paymentStatus" class="form-control" asp-items="ViewBag.PaymentStatuses"></select>
+        </div>
+
+       
+
+        <!-- 查詢按鈕 -->
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-purple w-100">
+                <i class="bi bi-search"></i>搜尋
+            </button>
+        </div>
+    </div>
+</form>
+<a asp-action="ExportExcel" asp-route-category="@ViewBag.SelectedCategoryValue"
+   asp-route-paymentStatus="@ViewBag.SelectedPaymentStatusValue"
+   asp-route-userName="@ViewBag.SelectedUserName"
+   class="btn btn-purple btn-sm">匯出 Excel</a>
+
+<a asp-action="ExportCsv" asp-route-category="@ViewBag.SelectedCategoryValue"
+   asp-route-paymentStatus="@ViewBag.SelectedPaymentStatusValue"
+   asp-route-userName="@ViewBag.SelectedUserName"
+   class="btn btn-warning btn-sm">匯出 CSV</a>
+<!-- 訂單表格 -->
+<table class="table table-hover">
+    <thead>
+        <tr>
+           
+            <th>訂單編號</th>
+            <th>會員姓名</th>
+            <th>會員編號</th>
+            <th>商品種類</th>
+            <th>總金額</th>
+            <th>使用折扣</th>
+            <th>折扣後金額</th>
+            <th>日期</th>
+            <th>購買明細</th>
+            <th>付款狀態</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model.Items)
+        {
+            <tr>
+                <td>@order.No</td>
+                <td>@order.UserNoNavigation.Name</td>
+                <td>@order.UserNo</td>
+                <td>@order.Category</td>
+                <td>@order.Total</td>
+                <td>@order.DiscountType</td>
+                <td>@order.AllTotal</td>
+                <td>@order.Date.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@order.No" class="btn btn-purple btn-sm">明細</a>
+                </td>
+                <td class="@(order.PaymentStatus == "未付款" || order.PaymentStatus == "待確認" ? "text-danger" : "text-success")">
+                    @order.PaymentStatus
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- 分頁 -->
+<div class="d-flex justify-content-center my-3">
+    @if (Model.HasPreviousPage)
+    {
+        <a asp-action="Index"
+           asp-route-page="@(Model.PageNumber - 1)"
+           asp-route-category="@ViewBag.SelectedCategoryValue"
+           asp-route-paymentStatus="@ViewBag.SelectedPaymentStatusValue"
+           asp-route-userName="@ViewBag.SelectedUserName"
+           class="btn btn-purple me-2">上一頁</a>
+    }
+
+    @if (Model.HasNextPage)
+    {
+        <a asp-action="Index"
+           asp-route-page="@(Model.PageNumber + 1)"
+           asp-route-category="@ViewBag.SelectedCategoryValue"
+           asp-route-paymentStatus="@ViewBag.SelectedPaymentStatusValue"
+           asp-route-userName="@ViewBag.SelectedUserName"
+           class="btn btn-purple">下一頁</a>
+    }
+</div>
+
+

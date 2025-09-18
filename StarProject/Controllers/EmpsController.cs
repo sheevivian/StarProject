@@ -497,7 +497,7 @@ namespace StarProject.Controllers
 			return View(viewModel);
 		}
 
-		// POST: Emps/Edit/5
+		// 在 Edit POST 方法中加入額外的驗證邏輯
 		[HttpPost]
 		[Permission("emp")]
 		[ValidateAntiForgeryToken]
@@ -507,16 +507,35 @@ namespace StarProject.Controllers
 				return NotFound();
 
 			System.Diagnostics.Debug.WriteLine($"收到編輯資料: Name={viewModel.Name}, DeptNo={viewModel.DeptNo}, RoleNo={viewModel.RoleNo}");
+
+			// 額外檢查：確保 DeptNo 和 RoleNo 有有效值
+			if (viewModel.DeptNo <= 0)
+			{
+				ModelState.AddModelError("DeptNo", "請選擇部門");
+			}
+
+			if (viewModel.RoleNo <= 0)
+			{
+				ModelState.AddModelError("RoleNo", "請選擇職位");
+			}
+
+			// 檢查部門和職位是否存在於資料庫中
+			if (viewModel.DeptNo > 0 && !await _context.Depts.AnyAsync(d => d.No == viewModel.DeptNo))
+			{
+				ModelState.AddModelError("DeptNo", "選擇的部門不存在");
+			}
+
+			if (viewModel.RoleNo > 0 && !await _context.Roles.AnyAsync(r => r.No == viewModel.RoleNo))
+			{
+				ModelState.AddModelError("RoleNo", "選擇的職位不存在");
+			}
+
 			System.Diagnostics.Debug.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
 
 			if (!ModelState.IsValid)
 			{
 				// ❗先重新載入下拉選單
 				LoadDropdowns(viewModel);
-
-				// 除錯用：檢查下拉選單是否成功載入
-				System.Diagnostics.Debug.WriteLine("Depts is null? " + (viewModel.Depts == null));
-				System.Diagnostics.Debug.WriteLine("Roles is null? " + (viewModel.Roles == null));
 
 				// 列出驗證錯誤
 				System.Diagnostics.Debug.WriteLine("ModelState驗證失敗:");
@@ -527,7 +546,6 @@ namespace StarProject.Controllers
 
 				return View(viewModel);
 			}
-
 
 			try
 			{
@@ -685,31 +703,23 @@ namespace StarProject.Controllers
 		// 建立一個私有方法來載入編輯頁面的下拉式選單資料
 		private void LoadDropdowns(EditEmpViewModel viewModel)
 		{
-			// 部門下拉選單：直接用 DeptDescription 當顯示文字
-			viewModel.Depts = new SelectList(
-				_context.Depts
-					.Select(d => new
-					{
-						No = d.No,
-						DisplayName = d.DeptDescription
-					}),
-				"No",
-				"DisplayName",
-				viewModel.DeptNo
-			);
+			// 部門下拉選單 - 和 Create 保持一致
+			viewModel.Depts = new SelectList(_context.Depts, "No", "DeptDescription", viewModel.DeptNo);
 
-			// 職位下拉選單：用 RoleDisplayMap 轉換
-			viewModel.Roles = new SelectList(
-				_context.Roles
-					.Select(r => new
-					{
-						No = r.No,
-						DisplayName = RoleHelper.GetRoleDisplayName(r.RoleName)
-					}),
-				"No",
-				"DisplayName",
-				viewModel.RoleNo
-			);
+			// 職位下拉選單 - 和 Create 保持一致
+			var rolesWithDisplay = _context.Roles
+				.Select(r => new
+				{
+					No = r.No,
+					DisplayName = RoleHelper.GetRoleDisplayName(r.RoleName)
+				})
+				.ToList();
+
+			viewModel.Roles = new SelectList(rolesWithDisplay, "No", "DisplayName", viewModel.RoleNo);
+
+			// Debug 輸出，檢查選中值
+			System.Diagnostics.Debug.WriteLine($"EditEmp - DeptNo: {viewModel.DeptNo}, RoleNo: {viewModel.RoleNo}");
+			System.Diagnostics.Debug.WriteLine($"載入了 {_context.Depts.Count()} 個部門，{_context.Roles.Count()} 個職位");
 		}
 
 		private bool EmpExists(string id)

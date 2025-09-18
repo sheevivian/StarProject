@@ -15,117 +15,127 @@
     }
 </style>
 
-<h1 class="fw-bold">新增員工</h1>
-<hr />
+<div class="position-relative">
+    <h1 class="fw-bold">新增員工</h1>
+    <hr />
 
-<div class="row">
-    <div class="d-flex">
-        <form asp-action="Create" method="post" id="empForm" class="w-100">
-            <div class="row g-4">
-                <!-- 左欄：基本資料 -->
-                <div class="col-lg-6">
-                    <div class="card h-100">
-                        <div class="card-header"><strong>基本資料</strong></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="control-label fw-bold fs-6">員工編號</label>
-                                <input type="text" class="form-control" value="系統自動編號無須輸入" disabled
-                                       style="background-color:#e9ecef;cursor:not-allowed;" />
-                            </div>
+    <div class="row">
+        <div class="d-flex">
+            <form asp-action="Create" method="post" id="empForm" class="w-100">
+                <div class="row g-4">
+                    <!-- 左欄：基本資料 -->
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header"><strong>基本資料</strong></div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="control-label fw-bold fs-6">員工編號</label>
+                                    <input type="text" class="form-control" value="系統自動編號無須輸入" disabled
+                                           style="background-color:#e9ecef;cursor:not-allowed;" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Name" class="control-label fw-bold fs-6">姓名 <span class="text-danger">*</span></label>
-                                <input asp-for="Name" class="form-control" placeholder="請輸入員工姓名" />
-                                <span asp-validation-for="Name" class="text-danger"></span>
-                            </div>
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="control-label fw-bold fs-6">姓名 <span class="text-danger">*</span></label>
+                                    <input asp-for="Name" class="form-control" placeholder="請輸入員工姓名" id="inputName" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Email" class="control-label fw-bold fs-6">Email</label>
-                                <input asp-for="Email" type="email" class="form-control" placeholder="example@company.com" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
-                            </div>
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="control-label fw-bold fs-6">Email</label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="example@company.com" id="inputEmail" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Phone" class="control-label fw-bold fs-6">電話</label>
-                                <input asp-for="Phone" class="form-control" placeholder="請輸入聯絡電話" />
-                                <span asp-validation-for="Phone" class="text-danger"></span>
-                            </div>
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="control-label fw-bold fs-6">電話</label>
+                                    <input asp-for="Phone" class="form-control" placeholder="請輸入聯絡電話" id="inputPhone" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
 
-                            <div class="mb-3">
-                                <label asp-for="DeptNo" class="control-label fw-bold fs-6">部門 <span class="text-danger">*</span></label>
-                                <select asp-for="DeptNo" class="form-select" asp-items="@Model.Depts">
-                                    <option value="">請選擇部門</option>
-                                </select>
-                                <span asp-validation-for="DeptNo" class="text-danger"></span>
-                            </div>
+                                <div class="mb-3">
+                                    <label asp-for="DeptNo" class="control-label fw-bold fs-6">部門 <span class="text-danger">*</span></label>
+                                    <select asp-for="DeptNo" class="form-select" asp-items="@Model.Depts" id="inputDept">
+                                        <option value="">請選擇部門</option>
+                                    </select>
+                                    <span asp-validation-for="DeptNo" class="text-danger"></span>
+                                </div>
 
-                            <div class="mb-3">
-                                <label asp-for="RoleNo" class="control-label fw-bold fs-6">職位 <span class="text-danger">*</span></label>
-                                <select asp-for="RoleNo" class="form-select">
-                                    <option value="">請選擇職位</option>
-                                    @if (Model.Roles != null)
-                                    {
-                                        @foreach (var role in Model.Roles)
+                                <div class="mb-3">
+                                    <label asp-for="RoleNo" class="control-label fw-bold fs-6">職位 <span class="text-danger">*</span></label>
+                                    <select asp-for="RoleNo" class="form-select" id="inputRole">
+                                        <option value="">請選擇職位</option>
+                                        @if (Model.Roles != null)
                                         {
-                                            var isSelected = Model.RoleNo.ToString() == role.Value ? "selected" : "";
-                                            <option value="@role.Value" @@isSelected>
-                                                @RoleHelper.GetRoleDisplayName(role.Text)
-                                            </option>
+                                            @foreach (var role in Model.Roles)
+                                            {
+                                                var isSelected = Model.RoleNo.ToString() == role.Value ? "selected" : "";
+                                                <option value="@role.Value" @@isSelected>
+                                                    @RoleHelper.GetRoleDisplayName(role.Text)
+                                                </option>
+                                            }
                                         }
-                                    }
-                                </select>
-                                <span asp-validation-for="RoleNo" class="text-danger"></span>
+                                    </select>
+                                    <span asp-validation-for="RoleNo" class="text-danger"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-lg-6 d-flex flex-column h-100">
+                        <!-- 個人資料 -->
+                        <div class="card flex-fill mb-3">
+                            <div class="card-header"><strong>個人資料</strong></div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label asp-for="IdNumber" class="control-label fw-bold fs-6">身分證字號</label>
+                                    <input asp-for="IdNumber" class="form-control" placeholder="請輸入身分證字號" maxlength="10" id="inputID" />
+                                    <span asp-validation-for="IdNumber" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="BirthDate" class="control-label fw-bold fs-6">生日</label>
+                                    <input asp-for="BirthDate" type="date" class="form-control" id="inputBirthDate" />
+                                    <span asp-validation-for="BirthDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 到職資訊 -->
+                        <div class="card flex-fill">
+                            <div class="card-header"><strong>到職資訊</strong></div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label asp-for="HireDate" class="control-label fw-bold fs-6">到職日期 <span class="text-danger">*</span></label>
+                                    <input asp-for="HireDate" type="date" class="form-control" />
+                                    <span asp-validation-for="HireDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="col-lg-6 d-flex flex-column h-100">
-                    <!-- 個人資料 -->
-                    <div class="card flex-fill mb-3">
-                        <div class="card-header"><strong>個人資料</strong></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label asp-for="IdNumber" class="control-label fw-bold fs-6">身分證字號</label>
-                                <input asp-for="IdNumber" class="form-control" placeholder="請輸入身分證字號" maxlength="10" />
-                                <span asp-validation-for="IdNumber" class="text-danger"></span>
-                            </div>
-                            <div class="mb-3">
-                                <label asp-for="BirthDate" class="control-label fw-bold fs-6">生日</label>
-                                <input asp-for="BirthDate" type="date" class="form-control" />
-                                <span asp-validation-for="BirthDate" class="text-danger"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 到職資訊 -->
-                    <div class="card flex-fill">
-                        <div class="card-header"><strong>到職資訊</strong></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label asp-for="HireDate" class="control-label fw-bold fs-6">到職日期 <span class="text-danger">*</span></label>
-                                <input asp-for="HireDate" type="date" class="form-control" />
-                                <span asp-validation-for="HireDate" class="text-danger"></span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group d-flex gap-2 mt-2 justify-content-center">
+                    <button type="submit" class="btn btn-warning fw-bold fs-5 text-distance" style="width:303px"
+                            onclick="return validateAndSubmit()">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-danger fw-bold fs-5" style="width:303px">
+                        返回列表
+                    </a>
                 </div>
 
-            </div>
+            </form>
+        </div>
+    </div>
 
-            <div class="form-group d-flex gap-2 mt-2 justify-content-center">
-                <button type="submit" class="btn btn-warning fw-bold fs-5 text-distance" style="width:303px"
-                        onclick="return validateAndSubmit()">
-                    <i class="fa-solid fa-plus"></i> 新增
-                </button>
-                <a asp-action="Index" class="btn btn-outline-danger fw-bold fs-5" style="width:303px">
-                    返回列表
-                </a>
-            </div>
-
-        </form>
+    <div class="position-absolute top-0 end-0 m-2 me-4">
+        <button type="button" id="fillTestData" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center"
+                style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+            <i class="fa-solid fa-wand-sparkles"></i>
+        </button>
     </div>
 </div>
+
 
 <!-- 成功訊息 -->
 @if (TempData["NewEmpCode"] != null)
@@ -157,6 +167,16 @@
 
 @section Scripts {
     <script>
+        $("#fillTestData").on("click", function() {
+                $("#inputName").val("李熊吉");
+                $("#inputEmail").val("yfh1507tw@gmail.com");
+                $('#inputPhone').val("0952185943");
+                $('#inputDept').val("1").trigger("change");
+                $('#inputRole').val("1").trigger("change");
+                $('#inputID').val("F184962175");
+                $('#inputBirthDate').val("1990-09-20");
+        })
+
         // 設置今天為預設到職日期
         document.addEventListener('DOMContentLoaded', function() {
             var hireDateInput = document.querySelector('input[name="HireDate"]');

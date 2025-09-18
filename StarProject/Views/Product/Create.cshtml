@@ -147,17 +147,13 @@
             <div class="modal-body fs-5">
                 <div id="importResultMessage"><!-- 動態塞訊息 --></div>
                 <a id="downloadLink" class="text-secondary">若未自動下載檔案請按此連結</a>
-                <form asp-controller="Product" asp-action="CreateImageMultiple" method="post" enctype="multipart/form-data" id="excelImageForm">
+                <form asp-controller="Product" asp-action="CreateImageMultiple" method="post" enctype="multipart/form-data" id="excelImageForm" class="mt-3">
                     <input type="file" class="form-control fs-5" name="excelFile">
                     <div class="form-group d-flex gap-2 mt-3">
                         <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5" for="excelFile">上傳匯入</button>
                         <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
                     </div>
                 </form>
-            </div>
-            <div class="modal-footer">
-                
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
             </div>
         </div>
     </div>

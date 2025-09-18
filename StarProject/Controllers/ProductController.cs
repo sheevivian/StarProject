@@ -205,7 +205,6 @@ namespace StarProject.Controllers
 						"ProductTemplate.xlsx");
 		}
 
-
 		// 新品上架-多筆(POST)
 		// POST: Product/CreateMultiple
 		[HttpPost]
@@ -280,7 +279,7 @@ namespace StarProject.Controllers
 
 			// 回傳下載連結
 			var downloadUrl = Url.Content("~/exceltemps/" + fileName);
-			return Json(new { success = true, message = $"已成功建立{products.Count}筆商品檔案", downloadUrl });
+			return Json(new { success = true, message = $"已成功建立{products.Count}筆商品檔案！", downloadUrl });
 		}
 
 		// 新品上架-多筆上傳圖片(POST)
@@ -291,7 +290,7 @@ namespace StarProject.Controllers
 			if (excelFile == null || excelFile.Length == 0)
 			{
 				ModelState.AddModelError("", "請選擇檔案");
-				return View();
+				return View("Error");
 			}
 
 			var productImages = new List<ProductImage>();
@@ -334,10 +333,9 @@ namespace StarProject.Controllers
 
 				await _context.SaveChangesAsync();
 			}
-			TempData["Success"] = $"成功匯入 {productImages.Count} 筆資料";
+			TempData["Success"] = $"成功匯入 {productImages.Count} 筆資料！";
 			return RedirectToAction("Index");
 		}
-
 
 		// 編輯商品(GET)
 		// GET: Product/Edit/5
@@ -521,7 +519,19 @@ namespace StarProject.Controllers
 			return PartialView("_PicturePartial", vm);
 		}
 
-        private bool ProductExists(int id)
+		// 新增商品介紹(GET)
+		// GET: Product/Article/5
+		[HttpGet]
+		public async Task<IActionResult> Article(int id)
+		{
+			var proIntro = _context.ProductIntroduces
+								   .Include(pi => pi.ProductNoNavigation)
+								   .FirstOrDefault(p => p.ProductNo == id);
+			return View(proIntro);
+		}
+
+
+		private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.No == id);
         }

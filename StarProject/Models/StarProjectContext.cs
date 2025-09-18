@@ -647,7 +647,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8070DBC6B");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A824D3DE34");
 
             entity.ToTable("ProCategory");
 
@@ -719,15 +719,17 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductIntroduce>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("ProductIntroduce");
+            entity.HasKey(e => e.ProductNo);
 
+            entity.ToTable("ProductIntroduce");
+
+            entity.Property(e => e.ProductNo)
+                .ValueGeneratedNever()
+                .HasColumnName("Product_No");
             entity.Property(e => e.Point).HasMaxLength(50);
-            entity.Property(e => e.ProductNo).HasColumnName("Product_No");
 
-            entity.HasOne(d => d.ProductNoNavigation).WithMany()
-                .HasForeignKey(d => d.ProductNo)
+            entity.HasOne(d => d.ProductNoNavigation).WithOne(p => p.ProductIntroduce)
+                .HasForeignKey<ProductIntroduce>(d => d.ProductNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Intro_ProNo_FK");
         });
@@ -757,7 +759,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A897872B61");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8C27ADAC2");
 
             entity.ToTable("ProductStock");
 
@@ -865,7 +867,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8774F13C0");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A86F5B5956");
 
             entity.ToTable("TicCategory");
 

@@ -168,7 +168,7 @@ namespace StarProject.ViewModels
         public PromotionRule ToRuleEntity(int promotionNo, PromotionRule? existing = null)
         {
             var r = existing ?? new PromotionRule();
-            r.Promotion_No = promotionNo;
+            r.PromotionNo = promotionNo;
             r.RuleType = this.RuleType;
             r.DiscountValue = this.DiscountValue;
             r.ConditionType = this.ConditionType;

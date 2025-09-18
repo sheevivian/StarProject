@@ -193,7 +193,7 @@ namespace StarProject.Controllers
 
             var rule = await _context.PromotionRules
                 .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Promotion_No == entity.No);
+                .FirstOrDefaultAsync(r => r.PromotionNo == entity.No);
             vm.ApplyRule(rule);
 
             var dbCategories = await _context.Promotions
@@ -255,7 +255,7 @@ namespace StarProject.Controllers
                     _context.Update(existing);
                     await _context.SaveChangesAsync();
 
-                    var rule = await _context.PromotionRules.FirstOrDefaultAsync(r => r.Promotion_No == id);
+                    var rule = await _context.PromotionRules.FirstOrDefaultAsync(r => r.PromotionNo == id);
                     if (rule == null)
                     {
                         rule = vm.ToRuleEntity(id);
@@ -292,7 +292,7 @@ namespace StarProject.Controllers
                 return Json(new { success = false, message = "找不到該優惠券" });
 
             // 同步刪除規則
-            var rules = _context.PromotionRules.Where(r => r.Promotion_No == id);
+            var rules = _context.PromotionRules.Where(r => r.PromotionNo == id);
             _context.PromotionRules.RemoveRange(rules);
 
             _context.Promotions.Remove(promotion);

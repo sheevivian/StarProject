@@ -5,6 +5,8 @@ namespace StarProject.Models;
 
 public partial class PromotionRule
 {
+    public int No { get; set; }
+
     public int PromotionNo { get; set; }
 
     public string RuleType { get; set; } = null!;
@@ -20,6 +22,4 @@ public partial class PromotionRule
     public string? ConditionType { get; set; }
 
     public string? MemberLevel { get; set; }
-
-    public virtual Promotion PromotionNoNavigation { get; set; } = null!;
 }

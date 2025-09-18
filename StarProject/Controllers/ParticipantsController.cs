@@ -69,13 +69,14 @@ namespace StarProject.Controllers
 		// =========================
 		public async Task<IActionResult> Index()
         {
-            // (原程式碼不變)
-            var counts = await _context.Participants
-                .AsNoTracking()
-                .GroupBy(p => p.EventNo)
-                .Select(g => new { EventNo = g.Key, Count = g.Count() })
-                .ToListAsync();
-            var map = counts.ToDictionary(x => x.EventNo, x => x.Count);
+			var counts = await _context.Participants
+				.AsNoTracking()
+				.Where(p => p.Status == "報名成功" || p.Status == "Success")   // ← 關鍵
+				.GroupBy(p => p.EventNo)
+				.Select(g => new { EventNo = g.Key, Count = g.Count() })
+				.ToListAsync();
+
+			var map = counts.ToDictionary(x => x.EventNo, x => x.Count);
 
             var cards = await _context.Events
                 .AsNoTracking()

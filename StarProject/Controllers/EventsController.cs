@@ -345,17 +345,30 @@ namespace StarProject.Controllers
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(
-			int id,
-			[Bind("No,Title,Category,Desc,Location,StartDate,EndDate,MaxParticipants,Fee,Deposit,Status,ImageFile")]
-			EventInfoVM evm,
-			string PublishMode,
-			DateTime? ReleaseDate,
-			DateTime? ExpirationDate)
+	int id,
+	[Bind("No,Title,Category,Desc,Location,StartDate,EndDate,MaxParticipants,Fee,Deposit,Status,ImageFile")]
+	EventInfoVM evm,
+	string PublishMode,
+	DateTime? ReleaseDate,
+	DateTime? ExpirationDate)
 		{
 			if (id != evm.No) return NotFound();
 
 			var original = await _context.Events.AsNoTracking().FirstOrDefaultAsync(x => x.No == id);
 			if (original == null) return NotFound();
+
+			// ✅ 僅在「編輯」時放寬圖片必填：不強迫重傳
+			// 若你的 ViewModel 對 ImageFile 有 [Required]，或前端 input 有 required，都會卡住 ModelState
+			// 這裡先移除該欄位的模型驗證，讓使用者可以不選新檔而保存其他欄位
+			ModelState.Remove(nameof(evm.ImageFile));
+			// 若你 ViewModel 對 Image 也有驗證，可一起移除
+			ModelState.Remove(nameof(evm.Image));
+
+			// ✅ 但若「沒有舊圖」且「沒上傳新圖」，仍要擋住
+			if ((evm.ImageFile == null || evm.ImageFile.Length == 0) && string.IsNullOrWhiteSpace(original.Image))
+			{
+				ModelState.AddModelError("ImageFile", "請上傳一張活動圖片。");
+			}
 
 			if (!ModelState.IsValid)
 			{
@@ -369,7 +382,7 @@ namespace StarProject.Controllers
 				var entity = await _context.Events.FindAsync(id);
 				if (entity == null) return NotFound();
 
-				// 圖片
+				// ✅ 預設沿用舊圖；只有選了新檔才更新
 				string imageUrl = original.Image ?? "/img/logo.png";
 				if (evm.ImageFile != null && evm.ImageFile.Length > 0)
 				{
@@ -381,10 +394,10 @@ namespace StarProject.Controllers
 						ViewBag.ScheduleExpirationDate = ExpirationDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 						return View(evm);
 					}
-					imageUrl = uploadedUrl;
+					imageUrl = uploadedUrl; // ← 只有成功上傳才覆蓋
 				}
 
-				// 欄位
+				// 其餘欄位更新
 				entity.Title = evm.Title;
 				entity.Category = evm.Category;
 				entity.Location = evm.Location;
@@ -397,11 +410,11 @@ namespace StarProject.Controllers
 				entity.Status = evm.Status;
 				entity.Fee = evm.Fee;
 				entity.Deposit = evm.Deposit;
-				entity.Image = imageUrl;
+				entity.Image = imageUrl; // ← 保留或覆蓋
 
 				await _context.SaveChangesAsync();
 
-				// 排程
+				// （排程邏輯維持原樣）
 				var nowMin = TrimToMinute(DateTime.Now);
 				var s = await _context.Schedules.FirstOrDefaultAsync(x => x.EventNo == id)
 						?? new Schedule { EventNo = id };
@@ -440,6 +453,7 @@ namespace StarProject.Controllers
 			ViewBag.ScheduleExpirationDate = ExpirationDate?.ToString("yyyy-MM-ddTHH\\:mm") ?? "";
 			return View(evm);
 		}
+
 
 		// =================== 刪除 ==================
 		[HttpGet]

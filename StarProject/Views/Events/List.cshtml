@@ -6,11 +6,16 @@
     ViewData["Title"] = "活動列表";
 }
 
-<head>
+@section Styles {
     <style>
         * {
             margin: 0;
             padding: 0;
+        }
+
+        /* ✅ 僅在右側保留捲軸空間，避免左邊空白 */
+        html {
+            scrollbar-gutter: stable;
         }
 
         img {
@@ -41,7 +46,7 @@
 
         .table > thead > tr > th {
             font-size: 18px !important;
-            color: #FFFFFF;
+            color: #fff;
             background-color: #2B4C8C;
             letter-spacing: .2rem;
         }
@@ -149,10 +154,6 @@
             height: 100%;
         }
 
-        html {
-            scrollbar-gutter: stable both-edges;
-        }
-
         .filterCount {
             display: inline-flex;
             width: 24px;
@@ -165,14 +166,14 @@
             justify-content: center;
         }
 
-        .input-group .dropdown .dropdown-menu {
-            right: 0;
-            left: auto;
-        }
-
         .input-group {
             position: relative;
         }
+
+            .input-group .dropdown .dropdown-menu {
+                right: 0;
+                left: auto;
+            }
 
             .input-group .dropdown-menu {
                 max-height: 60vh;
@@ -221,7 +222,7 @@
             margin: 0 auto 1rem;
         }
 
-        /* hover縮圖 */
+        /* hover 縮圖預覽 */
         #global-image-preview {
             position: fixed;
             display: none;
@@ -253,18 +254,19 @@
             display: none !important;
         }
 
-        /* 外框線 */
-    .table-bordered-gray {
-        border: 1px solid gray !important;
-    }
+        /* 表格外框線 */
+        .table-bordered-gray {
+            border: 1px solid gray !important;
+        }
 
-
-    /* 控制整體寬度 */
-    .custom-table-width {
-        max-width: 1200px;   /* 你可以調整成 1000px、1100px */
-        margin: auto;        /* 置中 */
+        /* ✅ 補上大括號：控制排程表寬度 */
+        .custom-table-width {
+            max-width: 1200px;
+            margin: auto;
+        }
     </style>
-</head>
+}
+
 
 <main class="flex-fill position-relative">
     <div class="d-flex align-items-center mb-3">
@@ -279,7 +281,7 @@
                   class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
                   style="display:none">0</span>
         </button>
-        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-star" style="color: #000000;"></i></i> 新增</a>
+        <a asp-action="Create" class="btn btn-search fw-bold text-dark"><i class="fa-solid fa-star" style="color: #000000;"></i></i> 新增</a>
     </div>
 
     <form id="deleteForm">@Html.AntiForgeryToken()</form>
@@ -457,10 +459,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="scheduledEmpty" class="text-secondary" style="display:none;">目前沒有排程中的活動。</div>
+                    
                     <div class="custom-table-width">
-                        <table class="table table-hover align-middle mb-0 table-bordered-gray">
-                            <thead class="table-light text-center">
+                        <table class="table table-hover align-middle mb-0 table-bordered-gray text-center">
+                            <thead class="table-light align-items-center">
                                 <tr>
                                     <th style="width:120px">圖片</th>
                                     <th>活動名稱</th>
@@ -474,10 +476,11 @@
                                 <!-- 由 JS 動態塞入 -->
                             </tbody>
                         </table>
+                        <div id="scheduledEmpty" class="text-secondary" style="display:none;">目前沒有排程中的活動。</div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <small class="text-secondary me-auto">*發佈日期大於現在時間且未發佈。</small>
+                    <small class="text-secondary me-auto">*發佈日期大於現在時間，且尚未發佈。</small>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
                 </div>
             </div>

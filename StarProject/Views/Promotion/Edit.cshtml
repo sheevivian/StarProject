@@ -1,6 +1,6 @@
 ﻿@model StarProject.ViewModels.PromotionFormViewModel
 @{
-    ViewData["Title"] = "新增優惠券";
+    ViewData["Title"] = "編輯優惠券";
 }
 
 <head>
@@ -20,13 +20,14 @@
 
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
-        <h4 class="mb-0"><i class="fi fi-ss-money-wings me-2"></i>新增優惠券</h4>
+        <h4 class="mb-0"><i class="fi fi-ss-money-wings me-2"></i>編輯優惠券</h4>
     </div>
 
     <div class="card-body">
-        <form asp-action="Create" method="post" id="promotionForm">
-            <input type="hidden" asp-for="LimitMode" id="limitMode" value="unlimited" />
-            <input type="hidden" asp-for="UsesTimeMode" id="usesTimeMode" value="unlimited" />
+        <form asp-action="Edit" method="post" id="promotionForm">
+            <input type="hidden" asp-for="No" />
+            <input type="hidden" asp-for="LimitMode" id="limitMode" />
+            <input type="hidden" asp-for="UsesTimeMode" id="usesTimeMode" />
 
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="w-auto px-2 fs-6 fw-bold">基本資訊</legend>
@@ -48,6 +49,7 @@
                     </div>
                 </div>
 
+                <!-- ✅ 新增區域：加入 Category 和 Status 欄位（原本遺漏） -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="Category" class="form-label">適用類別 <span class="text-danger">*</span></label>
@@ -163,6 +165,7 @@
                     </div>
                 </div>
 
+                <!-- ✅ 新增區域：加入 Description 欄位（原本遺漏） -->
                 <div class="row">
                     <div class="col-12 mb-3">
                         <label asp-for="Description" class="form-label">優惠說明 <span class="text-danger">*</span></label>
@@ -174,13 +177,13 @@
 
             <div class="d-flex justify-content-end gap-2">
                 <a asp-action="Index" class="btn btn-secondary"><i class="fa-solid fa-xmark me-2"></i>取消</a>
-                <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fa-solid fa-check me-2"></i>儲存</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fa-solid fa-check me-2"></i>儲存修改</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ✅ Modal：置中顯示驗證錯誤（含紅色區塊） -->
+<!-- Modal：置中顯示驗證錯誤 -->
 <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -189,7 +192,10 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                @if (ViewBag.PopupError != null){}
+                @if (ViewBag.PopupError != null)
+                {
+                    <div class="alert alert-danger mb-3">@ViewBag.PopupError</div>
+                }
                 <div class="alert alert-danger">
                     <div asp-validation-summary="All" class="text-danger m-0"></div>
                 </div>
@@ -202,15 +208,43 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // 預設 UsesTime = 1 並 limited（若空）
-            const uses = document.getElementById('UsesTime');
-            const usesMode = document.getElementById('usesTimeMode');
-            if (uses && (!uses.value || uses.value === '')) { uses.value = '1'; usesMode.value = 'limited'; }
-            else { usesMode.value = (uses.value && uses.value !== '0') ? 'limited' : 'unlimited'; }
+            // 初始化折扣提示
+            updateDiscountHint(document.getElementById('RuleType').value || '');
 
+            // 初始化條件欄位顯示
             toggleConditionFields(document.getElementById('ConditionType').value || 'Amount');
 
-            // ✅ 可重複 -> 每人次數至少 2
+            // 名稱/代碼重複檢查（Edit -> 帶 id 排除自己）
+            const codeInput = document.getElementById('CouponCode');
+            const nameInput = document.getElementById('Name');
+            const id = document.getElementById('No').value;
+
+            function triggerDupCheck() {
+                const code = codeInput.value || '';
+                const name = nameInput.value || '';
+    
+                // 如果沒有輸入就不檢查
+                if (!code && !name) return;
+    
+                fetch('@Url.Action("CheckDuplicate", "Promotion")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
+                    },
+                    body: 'couponCode=' + encodeURIComponent(code) + 
+                          '&name=' + encodeURIComponent(name) + 
+                          '&id=' + encodeURIComponent(id)  // 傳入目前編輯的 ID
+                }).then(r => r.json()).then(res => {
+                    // 只有當其他記錄使用相同值時才顯示錯誤
+                    document.getElementById('duplicateCodeAlert').style.display = res.duplicateCode ? 'block' : 'none';
+                    document.getElementById('duplicateNameAlert').style.display = res.duplicateName ? 'block' : 'none';
+                });
+            }
+
+            // 可重複 -> 每人次數至少 2
+            const uses = document.getElementById('UsesTime');
+            const usesMode = document.getElementById('usesTimeMode');
             document.getElementById('Reuse').addEventListener('change', function () {
                 if (this.checked) {
                     if (!uses.value || parseInt(uses.value) < 2) uses.value = '2';
@@ -218,32 +252,7 @@
                 }
             });
 
-            // ✅ 名稱/代碼重複檢查（Create）
-            const codeInput = document.getElementById('CouponCode');
-            const nameInput = document.getElementById('Name');
-                    // ✅ Create 頁面：不傳 id，檢查整個資料庫
-            function triggerDupCheck() {
-                const code = codeInput.value || '';
-                const name = nameInput.value || '';
-                if (!code && !name) return;
-
-                fetch('@Url.Action("CheckDuplicate", "Promotion")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
-                    },
-                    // ✅ 注意：Create 不傳 id 參數
-                    body: 'couponCode=' + encodeURIComponent(code) + '&name=' + encodeURIComponent(name)
-                }).then(r => r.json()).then(res => {
-                    document.getElementById('duplicateCodeAlert').style.display = res.duplicateCode ? 'block' : 'none';
-                    document.getElementById('duplicateNameAlert').style.display = res.duplicateName ? 'block' : 'none';
-                });
-            }
-            codeInput.addEventListener('blur', triggerDupCheck);
-            nameInput.addEventListener('blur', triggerDupCheck);
-
-            // ✅ 有錯誤就彈 Modal（避免 7111 亂碼的 alert）
+            // 有錯就顯示 Modal
             const hasErrors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(!ViewData.ModelState.IsValid || ViewBag.PopupError != null));
             if (hasErrors) {
                 const modal = new bootstrap.Modal(document.getElementById('errorModal'));
@@ -302,7 +311,7 @@
                 case 'FreeShipping':
                     unit.textContent = '';
                     hint.textContent = '免運費優惠，無需輸入數值';
-                    discountInput.value = '80'; // 依你目前行為
+                    discountInput.value = '80';
                     discountInput.disabled = true; break;
                 case 'BuyXGetY':
                     unit.textContent = '元';

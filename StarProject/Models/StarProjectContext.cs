@@ -846,27 +846,28 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(20);
         });
 
+        // ✅ 修改原因：加入完整的表格和欄位配置，讓 EF Core 正確識別
         modelBuilder.Entity<PromotionRule>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("PromotionRule");
+            entity.ToTable("PromotionRule");  // ✅ 新增：明確指定表格名稱
 
-            entity.Property(e => e.ConditionType).HasMaxLength(20);
-            entity.Property(e => e.Description).HasMaxLength(255);
-            entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
+            entity.HasKey(e => e.Promotion_No);  // 設定主鍵
+
+            // ✅ 新增：配置所有欄位屬性
+            entity.Property(e => e.Promotion_No).HasColumnName("Promotion_No");
+            entity.Property(e => e.RuleType).HasMaxLength(50);
+            entity.Property(e => e.DiscountValue).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConditionType).HasMaxLength(50);
+            entity.Property(e => e.ConditionAmount);
             entity.Property(e => e.MemberLevel).HasMaxLength(50);
-            entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
-            entity.Property(e => e.RuleType)
-                .HasMaxLength(50)
-                .HasDefaultValue("Percentage");
-            entity.Property(e => e.TargetCategory)
-                .HasMaxLength(50)
-                .HasDefaultValue("ALL");
+            entity.Property(e => e.TargetCategory).HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(1000);
 
-            entity.HasOne(d => d.PromotionNoNavigation).WithMany()
-                .HasForeignKey(d => d.PromotionNo)
-                .HasConstraintName("FK_PromotionRule_PromotionNo");
+            entity.HasOne(d => d.PromotionNoNavigation)
+                .WithOne()  // 一對一關係
+                .HasForeignKey<PromotionRule>(d => d.Promotion_No)
+                .OnDelete(DeleteBehavior.Cascade)  // 刪除 Promotion 時連動刪除 Rule
+                .HasConstraintName("FK_PromotionRule_Promotion");
         });
 
         modelBuilder.Entity<PromotionUsage>(entity =>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace StarProject.ViewModels
@@ -12,13 +13,15 @@ namespace StarProject.ViewModels
 		[StringLength(50, ErrorMessage = "姓名長度不能超過50個字元")]
 		public string Name { get; set; }
 
-		[Required(ErrorMessage = "請選擇角色")]
-		[Display(Name = "角色")]
+		[Required(ErrorMessage = "請選擇權限")]
+		[Display(Name = "權限")]
 		public int RoleNo { get; set; }
+		public SelectList Roles { get; set; } 
 
 		[Required(ErrorMessage = "請選擇部門")]
 		[Display(Name = "部門")]
 		public int DeptNo { get; set; }
+		public SelectList Depts { get; set; } 
 
 		[Required(ErrorMessage = "到職日期為必填欄位")]
 		[Display(Name = "到職日期")]

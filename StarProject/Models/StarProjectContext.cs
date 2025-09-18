@@ -626,6 +626,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<OrderStatus>(entity =>
         {
+
             entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063F2BA48E0");
 
             entity.ToTable("OrderStatus");
@@ -709,7 +710,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8070DBC6B");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A836DD95B0");
 
             entity.ToTable("ProCategory");
 
@@ -819,7 +820,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A897872B61");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A86FED989C");
 
             entity.ToTable("ProductStock");
 
@@ -933,7 +934,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8774F13C0");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8A221D291");
 
             entity.ToTable("TicCategory");
 

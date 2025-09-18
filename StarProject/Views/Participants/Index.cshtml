@@ -1,5 +1,5 @@
-﻿@model StarProject.ViewModels.ParticipantsIndexVm
-@using StarProject.ViewModels
+﻿@model StarProject.ViewModel.ParticipantsIndexVm
+@using StarProject.ViewModel
 @using System.Linq
 
 @{
@@ -288,123 +288,133 @@
 
 @section Scripts {
     <script>
-        let currentEventId = 0;
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentEventId = 0;
 
-        // 開啟 Modal：支援點整張卡片（.cardDetail）或覆蓋連結（a.stretched-link）
-        document.addEventListener('click', function (e) {
-            const trigger = e.target.closest('.cardDetail, a.stretched-link');
-            if (!trigger) return;
+            // 用 Url.Action 產生正確路徑（避免硬碼根目錄問題）
+            const listUrl = '@Url.Action("ListByEvent", "Participants")';
+            const csvUrl  = '@Url.Action("ExportCsv", "Participants")';
+            const xlsUrl  = '@Url.Action("ExportExcel", "Participants")';
+            const bulkUrl = '@Url.Action("BulkDelete", "Participants")';
 
-            const card = trigger.classList.contains('cardDetail') ? trigger : trigger.closest('.cardDetail');
-            if (!card) return;
+            // 事件委派：點整張卡片或 stretched-link 都算
+            document.addEventListener('click', function (e) {
+                const trigger = e.target.closest('.cardDetail, a.stretched-link');
+                if (!trigger) return;
 
-            currentEventId = Number(card.getAttribute('data-event-id')) || 0;
-            const title = card.getAttribute('data-event-title') || '參與者名單';
+                const card = trigger.classList.contains('cardDetail') ? trigger : trigger.closest('.cardDetail');
+                if (!card) return;
 
-            document.getElementById('participantsModalLabel').textContent = title;
-            document.getElementById('modalEventId').textContent = currentEventId;
+                currentEventId = Number(card.getAttribute('data-event-id')) || 0;
+                const title = card.getAttribute('data-event-title') || '參與者名單';
 
-            // 設定單一活動匯出連結
-            const csv = document.getElementById('btnExportCsv');
-            const xls = document.getElementById('btnExportExcel');
-            csv.setAttribute('href', `/Participants/ExportCsv?eventId=${currentEventId}`);
-            xls.setAttribute('href', `/Participants/ExportExcel?eventId=${currentEventId}`);
+                const $title = document.getElementById('participantsModalLabel');
+                const $id    = document.getElementById('modalEventId');
+                if ($title) $title.textContent = title;
+                if ($id)    $id.textContent    = currentEventId;
 
-            loadParticipantsTable(currentEventId);
-        });
+                // 設定匯出連結
+                const $csv = document.getElementById('btnExportCsv');
+                const $xls = document.getElementById('btnExportExcel');
+                if ($csv) $csv.href = `${csvUrl}?eventId=${currentEventId}`;
+                if ($xls) $xls.href = `${xlsUrl}?eventId=${currentEventId}`;
 
-        // 給表格「一次性」掛上全選/反選的委派（動態載入也可用）
-        function wireSelectAllOnce(){
-            const container = document.getElementById('participantsTableContainer');
-            if (container.dataset.selectAllWired === '1') return;
-
-            container.addEventListener('change', function(e){
-                const t = e.target;
-                // 1) 偵測 header 全選：支援多種常見寫法
-                if (t.matches('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]')){
-                    const checked = t.checked;
-                    container.querySelectorAll('tbody input[type="checkbox"]').forEach(cb=>{
-                        if (!cb.matches('[data-check-all], #checkAll, .js-check-all')) cb.checked = checked;
-                    });
-                    t.indeterminate = false;
-                    return;
-                }
-
-                // 2) 當任一列 checkbox 改變時，更新 header 的全選狀態
-                if (t.matches('tbody input[type="checkbox"]')){
-                    const rows = Array.from(container.querySelectorAll('tbody input[type="checkbox"]'))
-                        .filter(cb => !cb.matches('[data-check-all], #checkAll, .js-check-all'));
-                    const header = container.querySelector('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]');
-                    if (header){
-                        const allChecked = rows.length>0 && rows.every(cb => cb.checked);
-                        const someChecked = rows.some(cb => cb.checked);
-                        header.checked = allChecked;
-                        header.indeterminate = !allChecked && someChecked;
-                    }
-                }
+                // 載入表格
+                loadParticipantsTable(currentEventId);
             });
 
-            container.dataset.selectAllWired = '1';
-        }
+            async function loadParticipantsTable(eventId) {
+                const container = document.getElementById('participantsTableContainer');
+                if (!container) return;
 
-        // 載入該活動的參與者表格（部分檢視）
-        async function loadParticipantsTable(eventId){
-            const container = document.getElementById('participantsTableContainer');
-            container.innerHTML = `
-                <div class="text-center text-muted py-5" id="tableLoading">
-                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                    載入中…
-                </div>
-            `;
+                container.innerHTML = `
+                    <div class="text-center text-muted py-5" id="tableLoading">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        載入中…
+                    </div>`;
 
-            try {
-                const res = await fetch(`/Participants/ListByEvent?eventId=${encodeURIComponent(eventId)}`, {
-                    method:'GET',
-                    headers:{ 'X-Requested-With':'XMLHttpRequest' },
-                    cache:'no-store'
-                });
-                if(!res.ok) throw new Error('HTTP ' + res.status);
-                const html = await res.text();
-                container.innerHTML = html;
-
-                // 每次載入完表格後，確保「全選委派」已掛上（僅掛一次）
-                wireSelectAllOnce();
-            } catch(err){
-                container.innerHTML = `<div class="alert alert-danger">載入失敗：${err.message || err}</div>`;
-            }
-        }
-
-        // 批次刪除（Modal 內）
-        document.getElementById('btnBulkDelete').addEventListener('click', async function () {
-            if (!currentEventId) return;
-
-            // 收集已勾選的參與者 id（支援 data-id 或 value）
-            const checks = Array.from(document.querySelectorAll('#participantsTableContainer input[type="checkbox"]'))
-                .filter(x => x.checked && (x.dataset.id || x.value));
-            const ids = checks.map(x => Number(x.dataset.id || x.value)).filter(n => !isNaN(n));
-
-            if (ids.length === 0) { alert('請先勾選要刪除的項目。'); return; }
-            if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？`)) return;
-
-            const token = document.querySelector('#bulkForm input[name="__RequestVerificationToken"]').value;
-
-            try {
-                const form = new FormData();
-                form.append('__RequestVerificationToken', token);
-                form.append('eventId', currentEventId);
-                ids.forEach(id => form.append('ids', id.toString()));
-
-                const res = await fetch('/Participants/BulkDelete', { method:'POST', body: form });
-                const json = await res.json();
-
-                if (json.success) {
-                    await loadParticipantsTable(currentEventId); // 重新載入表格
-                } else {
-                    alert(json.message || '刪除失敗。');
+                try {
+                    const res = await fetch(`${listUrl}?eventId=${encodeURIComponent(eventId)}`, {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        cache: 'no-store'
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const html = await res.text();
+                    container.innerHTML = html;
+                    wireSelectAllOnce();
+                } catch (err) {
+                    container.innerHTML = `<div class="alert alert-danger">載入失敗：${err.message || err}</div>`;
                 }
-            } catch(err){
-                alert('刪除失敗：' + err);
+            }
+
+            function wireSelectAllOnce() {
+                const container = document.getElementById('participantsTableContainer');
+                if (!container || container.dataset.selectAllWired === '1') return;
+
+                container.addEventListener('change', function (e) {
+                    const t = e.target;
+
+                    // Header 全選
+                    if (t.matches('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]')) {
+                        const checked = t.checked;
+                        container.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
+                            if (!cb.matches('[data-check-all], #checkAll, .js-check-all')) cb.checked = checked;
+                        });
+                        t.indeterminate = false;
+                        return;
+                    }
+
+                    // 單列勾選 → 更新 Header 狀態
+                    if (t.matches('tbody input[type="checkbox"]')) {
+                        const rows = Array.from(container.querySelectorAll('tbody input[type="checkbox"]'))
+                            .filter(cb => !cb.matches('[data-check-all], #checkAll, .js-check-all'));
+                        const header = container.querySelector('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]');
+                        if (header) {
+                            const allChecked = rows.length > 0 && rows.every(cb => cb.checked);
+                            const someChecked = rows.some(cb => cb.checked);
+                            header.checked = allChecked;
+                            header.indeterminate = !allChecked && someChecked;
+                        }
+                    }
+                });
+
+                container.dataset.selectAllWired = '1';
+            }
+
+            // 批次刪除（加防呆）
+            const bulkBtn = document.getElementById('btnBulkDelete');
+            if (bulkBtn) {
+                bulkBtn.addEventListener('click', async function () {
+                    if (!currentEventId) return;
+
+                    const checks = Array.from(document.querySelectorAll('#participantsTableContainer input[type="checkbox"]'))
+                        .filter(x => x.checked && (x.dataset.id || x.value));
+                    const ids = checks.map(x => Number(x.dataset.id || x.value)).filter(n => !isNaN(n));
+
+                    if (ids.length === 0) { alert('請先勾選要刪除的項目。'); return; }
+                    if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？`)) return;
+
+                    const tokenEl = document.querySelector('#bulkForm input[name="__RequestVerificationToken"]');
+                    const form = new FormData();
+                    if (tokenEl) form.append('__RequestVerificationToken', tokenEl.value);
+                    form.append('eventId', currentEventId);
+                    ids.forEach(id => form.append('ids', String(id)));
+
+                    try {
+                        const res = await fetch(bulkUrl, { method: 'POST', body: form });
+                        const json = await res.json();
+                        if (json.success) {
+                            await loadParticipantsTable(currentEventId);
+                        } else {
+                            alert(json.message || '刪除失敗。');
+                        }
+                    } catch (err) {
+                        alert('刪除失敗：' + (err.message || err));
+                    }
+                });
             }
         });
     </script>
 }
+

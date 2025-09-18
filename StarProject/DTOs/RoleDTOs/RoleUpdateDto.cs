@@ -1,4 +1,4 @@
-﻿namespace StarProject.DTOs
+﻿namespace StarProject.DTOs.RoleDTOs
 {
 	// DTO for role updates
 	public class RoleUpdateDto

@@ -1,27 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using StarProject.Attributes;
 using StarProject.DTOs.UsersDTOs;
 using StarProject.Helpers;
 using StarProject.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace StarProject.Controllers
 {
     public class UsersController : Controller
     {
-        private readonly StarProjectContext _context;
+		[Permission("emp")]
+		private readonly StarProjectContext _context;
 
         public UsersController(StarProjectContext context)
         {
             _context = context;
         }
-
-        // GET: Users
-        public async Task<IActionResult> Index()
+		[Permission("emp")]
+		// GET: Users
+		public async Task<IActionResult> Index()
         {
 			var result = await _context.Users
 		.Select(u => new UsersDTO

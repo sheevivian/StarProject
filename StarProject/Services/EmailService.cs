@@ -2,6 +2,9 @@
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using QRCoder;
+using StarProject.Models;
+using System.Net;
 
 namespace StarProject.Services
 {
@@ -19,7 +22,9 @@ namespace StarProject.Services
 	public interface IEmailService
 	{
 		Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = true);
+		Task SendEmailAsync(MailMessageModel message);
 		Task SendWelcomeEmailAsync(string toEmail, string empName, string empCode, string password, DateTime hireDate);
+		Task SendRegistrationSuccessEmail(string to, string eventName, DateTime eventTime, string? qrPayload = null, string? recipientName = null);
 	}
 
 	public class EmailService : IEmailService
@@ -51,11 +56,25 @@ namespace StarProject.Services
 				}
 				message.Body = bodyBuilder.ToMessageBody();
 
-				using var client = new SmtpClient();
-				await client.ConnectAsync(_emailSettings.Server, 587, SecureSocketOptions.StartTls); 
-				await client.AuthenticateAsync(_emailSettings.Account, _emailSettings.Password);
-				await client.SendAsync(message);
-				await client.DisconnectAsync(true);
+				await SendMessageAsync(message);
+			}
+			catch (Exception ex)
+			{
+				throw new Exception($"Email發送失敗：{ex.Message}", ex);
+			}
+		}
+
+		public async Task SendEmailAsync(MailMessageModel message)
+		{
+			try
+			{
+				var email = new MimeMessage();
+				email.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
+				email.To.Add(MailboxAddress.Parse(message.To));
+				email.Subject = message.Subject;
+				email.Body = new TextPart("html") { Text = message.Body };
+
+				await SendMessageAsync(email);
 			}
 			catch (Exception ex)
 			{
@@ -107,6 +126,75 @@ namespace StarProject.Services
             </div>";
 
 			await SendEmailAsync(toEmail, "歡迎加入阿波羅天文館 - 帳號資訊通知", htmlBody, true);
+		}
+
+		public async Task SendRegistrationSuccessEmail(string to, string eventName, DateTime eventTime, string? qrPayload = null, string? recipientName = null)
+		{
+			try
+			{
+				qrPayload ??= $"SP|EV={eventName}|DT={eventTime:yyyyMMddHHmm}|K={Guid.NewGuid():N}";
+				var qrBytes = GenerateQrPng(qrPayload);
+
+				var namePart = !string.IsNullOrWhiteSpace(recipientName)
+					? WebUtility.HtmlEncode(recipientName.Trim()) + " "
+					: string.Empty;
+				var greeting = $"{namePart}星際旅伴 您好";
+				var safeEventName = WebUtility.HtmlEncode(eventName);
+
+				var msg = new MimeMessage();
+				msg.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
+				msg.To.Add(MailboxAddress.Parse(to));
+				msg.Subject = $"【{eventName}】報名成功通知";
+
+				var cid = "qr1";
+				var builder = new BodyBuilder
+				{
+					HtmlBody =
+						$"<p>{greeting}，您已成功報名活動：<strong>{safeEventName}</strong></p>" +
+						$"<p>活動時間為 {eventTime:yyyy-MM-dd HH:mm}</p>" +
+						$"<p>這是您的入場 QR Code（請於報到時出示）：</p>" +
+						$"<p><img alt=\"QR Code\" src=\"cid:{cid}\" style=\"max-width:240px;\"/></p>" +
+						"<p>期待您的參與！</p>" +
+						"<p>阿波羅天文館</p>"
+				};
+
+				var image = new MimePart("image", "png")
+				{
+					Content = new MimeContent(new MemoryStream(qrBytes)),
+					ContentId = cid,
+					ContentDisposition = new ContentDisposition(ContentDisposition.Inline),
+					ContentTransferEncoding = ContentEncoding.Base64,
+					FileName = "qrcode.png"
+				};
+				builder.LinkedResources.Add(image);
+				msg.Body = builder.ToMessageBody();
+
+				await SendMessageAsync(msg);
+			}
+			catch (Exception ex)
+			{
+				throw new Exception($"報名成功通知Email發送失敗：{ex.Message}", ex);
+			}
+		}
+
+		// 統一的寄信邏輯
+		private async Task SendMessageAsync(MimeMessage message)
+		{
+			using var client = new SmtpClient();
+			await client.ConnectAsync(_emailSettings.Server, _emailSettings.Port,
+				_emailSettings.Security ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+			await client.AuthenticateAsync(_emailSettings.Account, _emailSettings.Password);
+			await client.SendAsync(message);
+			await client.DisconnectAsync(true);
+		}
+
+		// 產生 QR 圖（PNG bytes）
+		private static byte[] GenerateQrPng(string text)
+		{
+			using var generator = new QRCodeGenerator();
+			using var data = generator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
+			var png = new PngByteQRCode(data);
+			return png.GetGraphic(20);
 		}
 	}
 }

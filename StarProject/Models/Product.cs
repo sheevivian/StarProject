@@ -24,4 +24,8 @@ public partial class Product
     public virtual ProCategory ProCategoryNoNavigation { get; set; } = null!;
 
     public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+
+    public virtual ProductIntroduce? ProductIntroduce { get; set; }
+
+    public virtual ICollection<ProductStock> ProductStocks { get; set; } = new List<ProductStock>();
 }

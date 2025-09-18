@@ -626,8 +626,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<OrderStatus>(entity =>
         {
-
-            entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063F2BA48E0");
+            entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063A62086B4");
 
             entity.ToTable("OrderStatus");
 
@@ -710,7 +709,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A836DD95B0");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A88AEDB099");
 
             entity.ToTable("ProCategory");
 
@@ -782,15 +781,17 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductIntroduce>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("ProductIntroduce");
+            entity.HasKey(e => e.ProductNo);
 
+            entity.ToTable("ProductIntroduce");
+
+            entity.Property(e => e.ProductNo)
+                .ValueGeneratedNever()
+                .HasColumnName("Product_No");
             entity.Property(e => e.Point).HasMaxLength(50);
-            entity.Property(e => e.ProductNo).HasColumnName("Product_No");
 
-            entity.HasOne(d => d.ProductNoNavigation).WithMany()
-                .HasForeignKey(d => d.ProductNo)
+            entity.HasOne(d => d.ProductNoNavigation).WithOne(p => p.ProductIntroduce)
+                .HasForeignKey<ProductIntroduce>(d => d.ProductNo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Intro_ProNo_FK");
         });
@@ -820,7 +821,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A86FED989C");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8DFF6CDC9");
 
             entity.ToTable("ProductStock");
 
@@ -828,6 +829,11 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Note).HasMaxLength(50);
             entity.Property(e => e.ProductNo).HasColumnName("Product_No");
             entity.Property(e => e.Type).HasMaxLength(10);
+
+            entity.HasOne(d => d.ProductNoNavigation).WithMany(p => p.ProductStocks)
+                .HasForeignKey(d => d.ProductNo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductStock_Product");
         });
 
         modelBuilder.Entity<Promotion>(entity =>
@@ -846,28 +852,27 @@ public partial class StarProjectContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(20);
         });
 
-        // ✅ 修改原因：加入完整的表格和欄位配置，讓 EF Core 正確識別
         modelBuilder.Entity<PromotionRule>(entity =>
         {
-            entity.ToTable("PromotionRule");  // ✅ 新增：明確指定表格名稱
+            entity
+                .HasNoKey()
+                .ToTable("PromotionRule");
 
-            entity.HasKey(e => e.Promotion_No);  // 設定主鍵
-
-            // ✅ 新增：配置所有欄位屬性
-            entity.Property(e => e.Promotion_No).HasColumnName("Promotion_No");
-            entity.Property(e => e.RuleType).HasMaxLength(50);
-            entity.Property(e => e.DiscountValue).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.ConditionType).HasMaxLength(50);
-            entity.Property(e => e.ConditionAmount);
+            entity.Property(e => e.ConditionType).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(255);
+            entity.Property(e => e.DiscountValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.MemberLevel).HasMaxLength(50);
-            entity.Property(e => e.TargetCategory).HasMaxLength(50);
-            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
+            entity.Property(e => e.RuleType)
+                .HasMaxLength(50)
+                .HasDefaultValue("Percentage");
+            entity.Property(e => e.TargetCategory)
+                .HasMaxLength(50)
+                .HasDefaultValue("ALL");
 
-            entity.HasOne(d => d.PromotionNoNavigation)
-                .WithOne()  // 一對一關係
-                .HasForeignKey<PromotionRule>(d => d.Promotion_No)
-                .OnDelete(DeleteBehavior.Cascade)  // 刪除 Promotion 時連動刪除 Rule
-                .HasConstraintName("FK_PromotionRule_Promotion");
+            entity.HasOne(d => d.PromotionNoNavigation).WithMany()
+                .HasForeignKey(d => d.PromotionNo)
+                .HasConstraintName("FK_PromotionRule_PromotionNo");
         });
 
         modelBuilder.Entity<PromotionUsage>(entity =>
@@ -935,7 +940,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8A221D291");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8E1C7D298");
 
             entity.ToTable("TicCategory");
 

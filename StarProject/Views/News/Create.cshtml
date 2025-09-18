@@ -62,105 +62,114 @@
     
 </head>
 
-<h1 class="fw-bold">官網公告新增</h1>
-<hr />
+<div class="position-relative">
+    <h1 class="fw-bold">官網公告新增</h1>
+    <hr />
 
-<div class="row">
-    <form asp-action="Create" method="post" enctype="multipart/form-data" style="width:100%">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="row g-3 align-items-stretch">
-            <!-- 左側：基本資訊 + 圖片 -->
-            <div class="col-lg-6 d-flex flex-column gap-3">
-                <div class="card  h-100">
-                    <div class="card-header fw-bold fs-4"><strong>公告資訊</strong></div>
-                    <div class="card-body">
-                        <div class="form-group mb-2">
-                            <label asp-for="Title" class="control-label fw-bold fs-5"></label><span asp-validation-for="Title" class="text-danger ms-3"></span>
-                            <input asp-for="Title" class="form-control" />
-                        </div>
+    <div class="row">
+        <form asp-action="Create" method="post" enctype="multipart/form-data" style="width:100%">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row g-3 align-items-stretch">
+                <!-- 左側：基本資訊 + 圖片 -->
+                <div class="col-lg-6 d-flex flex-column gap-3">
+                    <div class="card  h-100">
+                        <div class="card-header fw-bold fs-4"><strong>公告資訊</strong></div>
+                        <div class="card-body">
+                            <div class="form-group mb-2">
+                                <label asp-for="Title" class="control-label fw-bold fs-5"></label><span asp-validation-for="Title" class="text-danger ms-3"></span>
+                                <input asp-for="Title" class="form-control" id="inputTitle" />
+                            </div>
 
-                        <div class="form-group mb-2">
-                            <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
-                            <select asp-for="Category" class="form-select">
-                                <option value="">請選擇</option>
-                                <option value="最新消息">最新消息</option>
-                                <option value="館區動態">館區動態</option>
-                                <option value="展覽公告">展覽公告</option>
-                                <option value="活動資訊">活動資訊</option>
-                                <option value="最新天象">最新天象</option>
-                                <option value="觀測公告">觀測公告</option>
-                                <option value="宇宙探索">宇宙探索</option>
-                                <option value="系統公告">系統公告</option>
-                                <option value="其他消息">其他消息</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group mb-2">
-                            <label asp-for="PublishDate" class="control-label fw-bold fs-5"></label><span asp-validation-for="PublishDate" class="text-danger ms-3"></span>
-                            <input asp-for="PublishDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd HH:mm")" />
-                        </div>
-                        
-                        <div class="form-group mb-2">
-                            <label asp-for="Content" class="control-label fw-bold fs-5"></label><span asp-validation-for="Content" class="text-danger ms-3"></span>
-                            <textarea asp-for="Content" id="editor" class="form-control"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            <div class="form-group mb-2">
+                                <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger ms-3"></span>
+                                <select asp-for="Category" class="form-select" id="categorySelect">
+                                    <option value="">請選擇</option>
+                                    <option value="最新消息">最新消息</option>
+                                    <option value="館區動態">館區動態</option>
+                                    <option value="展覽公告">展覽公告</option>
+                                    <option value="活動資訊">活動資訊</option>
+                                    <option value="最新天象">最新天象</option>
+                                    <option value="觀測公告">觀測公告</option>
+                                    <option value="宇宙探索">宇宙探索</option>
+                                    <option value="系統公告">系統公告</option>
+                                    <option value="其他消息">其他消息</option>
+                                </select>
+                            </div>
 
-            <!-- 右側：圖片區 -->
-            <div class="col-lg-6">
-                <div class="card h-100">
-                    <div class="card-header fw-bold fs-4"><strong>公告封面</strong></div>
-                    <div class="card-body d-flex flex-column">
-                        <!-- 多圖上傳 -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold fs-5">上傳圖片</label><small class="text-muted ms-3">可選多張上傳</small>
-                            <input type="file" class="form-control" multiple id="imageFilesInput" name="ImageFiles" />
-                        </div>
+                            <div class="form-group mb-2">
+                                <label asp-for="PublishDate" class="control-label fw-bold fs-5"></label><span asp-validation-for="PublishDate" class="text-danger ms-3"></span>
+                                <input asp-for="PublishDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd HH:mm")" id="inputPublishDate" />
+                            </div>
 
-                        <!-- Carousel 預覽 + 拖曳排序 -->
-                        <div class="mb-3">
-                            <div id="carouselExampleIndicators" class="carousel slide">
-                                <div class="carousel-indicators" id="carouselIndicators">
-                                    <!-- 動態生成 indicator -->
-                                </div>
-                                <div class="carousel-inner" id="carouselInner">
-                                    <!-- 動態生成 carousel-item -->
-                                </div>
-                                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">上一張</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">下一張</span>
-                                </button>
+                            <div class="form-group mb-2">
+                                <label asp-for="Content" class="control-label fw-bold fs-5"></label><span asp-validation-for="Content" class="text-danger ms-3"></span>
+                                <textarea asp-for="Content" id="editor" class="form-control"></textarea>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- 縮圖拖曳區 -->
-                        <div class="mb-2">
-                            <ul id="imagePreviewList" class="list-unstyled d-flex gap-2">
-                                <!-- 動態生成縮圖 -->
-                            </ul>
-                            <small id="dragTip" class="text-muted" style="display:none;">可拖曳排序圖片</small>
+                <!-- 右側：圖片區 -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header fw-bold fs-4"><strong>公告封面</strong></div>
+                        <div class="card-body d-flex flex-column">
+                            <!-- 多圖上傳 -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold fs-5">上傳圖片</label><small class="text-muted ms-3">可選多張上傳</small>
+                                <input type="file" class="form-control" multiple id="imageFilesInput" name="ImageFiles" />
+                            </div>
+
+                            <!-- Carousel 預覽 + 拖曳排序 -->
+                            <div class="mb-3">
+                                <div id="carouselExampleIndicators" class="carousel slide">
+                                    <div class="carousel-indicators" id="carouselIndicators">
+                                        <!-- 動態生成 indicator -->
+                                    </div>
+                                    <div class="carousel-inner" id="carouselInner">
+                                        <!-- 動態生成 carousel-item -->
+                                    </div>
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">上一張</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">下一張</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 縮圖拖曳區 -->
+                            <div class="mb-2">
+                                <ul id="imagePreviewList" class="list-unstyled d-flex gap-2">
+                                    <!-- 動態生成縮圖 -->
+                                </ul>
+                                <small id="dragTip" class="text-muted" style="display:none;">可拖曳排序圖片</small>
+                            </div>
+
+
                         </div>
-                        
-                        
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
-            <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
-                <i class="fa-solid fa-plus"></i>新增
-            </button>
-            <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
-        </div>
-    </form>
+            <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
+                <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
+                    <i class="fa-solid fa-plus"></i>新增
+                </button>
+                <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
+            </div>
+        </form>
+    </div>
+    <div class="position-absolute top-0 end-0 m-2 me-4">
+        <button type="button" id="fillTestData" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center"
+                style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+            <i class="fa-solid fa-wand-sparkles"></i>
+        </button>
+    </div>
 </div>
+
 
 
 @section Scripts {
@@ -284,32 +293,51 @@
     <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const textarea = document.querySelector('#editor');
+        let myEditor; // 全域變數
 
-            ClassicEditor
-                .create(textarea, {
-                    language: 'zh',
-                    toolbar: [
-                        'heading', '|',
-                        'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
-                        'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
-                        'undo', 'redo'
-                    ],
-                    ckfinder: {
-                        uploadUrl: '/CompanyNotifies/UploadImage'
-                    }
-                })
-                .then(editor => {
-                    // 只綁一次事件
-                    editor.model.document.on('change:data', () => {
-                        textarea.value = editor.getData();
-                        // console.log(textarea.value); // 可以保留或刪掉
-                    });
-                })
-                .catch(error => {
-                    console.error(error);
+        $(document).ready(function(){
+
+            // 初始化 CKEditor
+            ClassicEditor.create(document.querySelector('#editor'), {
+                language: 'zh',
+                toolbar: [
+                    'heading', '|',
+                    'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
+                    'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
+                    'undo', 'redo'
+                ],
+                ckfinder: {
+                    uploadUrl: '/CompanyNotifies/UploadImage'
+                }
+            }).then(editor => {
+                myEditor = editor;
+                editor.model.document.on('change:data', () => {
+                    $("#editor").val(editor.getData());
                 });
+            }).catch(error => console.error(error));
+
+
+            // 填入測試資料按鈕
+            // 填入測試資料按鈕
+            $("#fillTestData").on("click", function() {
+                // 填入問題
+                $("#inputTitle").val("【宇宙探索】金星介紹：探索天空中最亮的“星星”");
+
+                // 選擇分類，改成對應 value
+                $("#categorySelect").val("宇宙探索").trigger("change"); // 假設 1 對應「商品/服務資訊」
+                $('#inputPublishDate').val("2025-09-19 15:00");
+
+                // 填入內容到 CKEditor
+                const faqContent = `
+                    <h3><strong>金星事實</strong></h3><ul><li>類型：類地行星</li><li>半徑：6051.8公裏</li><li>質量：4.867×10²⁴公斤</li><li>遠日點：10893.9萬公裏</li><li>近日點：10747.6萬公裏</li><li>與地球的平均距離：2.61億公裏至4000萬公裏</li><li>表面溫度：438 °C至482 °C</li><li>太陽日長度：116.75個地球日</li><li>恒星日長：243.022個地球日</li><li>年長：224.701個地球日</li><li>年齡：45.03億年</li><li>命名：羅馬愛與美的女神</li></ul><h3><strong>關于金星的有趣事實</strong></h3><p>以下是一些關于金星的驚人事實。</p><ul><li>金星是整個太陽系中最熱的行星。</li><li>金星有硫酸雨，但它們永遠不會到達表面。</li><li>與大多數其他行星相比，金星以相反的方向繞軸自轉。</li><li>在金星大氣層中，風速驚人地高，高達300公裏/小時。</li><li>金星沒有衛星或光環。然而，它有一顆名為Zoozve的准衛星！</li><li>金星擁有太陽系中所有行星中最長的一天，它持續約243個地球日。</li><li>金星年（大約 225 個地球日）比金星日短。</li><li>金星上的大氣壓力大約是地球上的92倍。它相當于地球海洋約1公裏深處的壓力。</li><li>多個航天器已成功登陸金星，但由于金星表面條件惡劣，它們的使用壽命非常短。</li></ul><h4><strong>誰發現了金星？</strong></h4><p>由于金星非常明亮，自古以來就被不同文明的古代天文學家觀測到。因此，我們不知道是誰發現了金星。然而，尼古拉·哥白尼（Nicolaus Copernicus）和伽利略（Galileo Galilei）將金星歸類為行星。伽利略號在1610年對金星進行了首次精確觀測：他通過望遠鏡觀察了行星，發現了行星的相位，這與月相相似。這一發現證明了哥白尼學說，就是行星繞太陽公轉。</p><h4><strong>你能從地球上看到金星嗎？</strong></h4><p>金星是用肉眼很容易看到的，因為它是夜空中僅次于月亮的第二亮天體。然而，由于金星比地球更靠近太陽，因此大部分時間太陽的強光都蓋過地球。它僅在某些時間段對地面觀察者可見。 觀看金星的最佳時間是當這顆行星達到最大伸長率時，換句話說，從地球上看，它與太陽的距離最大。</p><figure class="image ck-widget" contenteditable="false"><img src="https://starwalk.space/gallery/images/venus-elongations/zh-Hant/1920x1080.jpg" alt="Greatest Elongations of Venus"><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder ck-hidden" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><p>金星的大距大約每9個月發生一次。金星西大距也被稱為“黎明大距”，因為在此期間，金星在黎明前的天空中發光，故名“晨星”。東大距被稱為“黃昏大距”，因為金星在日落後出現在天空中。</p><br><strong>金星的雙重可見性</strong></h4><p>金星被稱為“昏星”和“晨星”，這取決于它在天空中出現的時間。但在極少數情況下，它在下合期間前後幾天可以同時出現在清晨和傍晚的天空中。這種罕見現象最近一次發生在2025年3月，短暫地為北半球的觀測者帶來了驚喜。下一次類似的機會要等到2033年。</p><figure class="image ck-widget" contenteditable="false"><img src="https://starwalk.space/gallery/images/venus-dual-visibility/1920x1080.jpg" alt="2025年金星雙重可見"><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder ck-hidden" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><p>當金星在下合期間位于黃道緯度最大的點時，就會發生這種雙重可見現象。這意味著從我們的視角來看，金星不會完全與太陽對齊，而是略高于太陽的位置。</p><p>天文季節也會影響金星的可見性。在春季和夏季，黃道在傍晚與地平線形成較大的夾角，而在清晨則較低。換句話說，太陽在傍晚迅速落下，在清晨緩慢升起。由于這種排列，金星在下合前的傍晚仍可見，而在下合前的清晨也開始在天空中出現。</p><p>在下合附近觀察金星對望遠鏡愛好者來說尤其有趣。這時，金星距離地球最近，視直徑最大，但其照明度極低，僅為百分之一甚至更少。然而，在靠近太陽的區域觀測時一定要格外小心。</p><h4><strong>金星的相位</strong></h4><p>與月球類似，金星在繞太陽運行時也會經曆不同的相位。以下是各個相位的簡單介紹（更多關于這些相位的天文機制可在專門文章中了解）：</p><p>新相 發生在下合時，即金星位于太陽和地球之間。如果金星正好從太陽表面前方經過，就會形成一次金星淩日，金星看起來像一個黑點穿過太陽表面。不過，這一現象只能通過特殊的太陽濾鏡安全觀測，絕對不要直視太陽！</p><p>滿相 發生在上合時，即從地球看去，金星位于太陽的背後。這一相位完全無法觀測，因為太陽的光輝會淹沒金星。</p><p>弦相 發生在最大距角時，即金星在天空中看起來距離太陽最遠的時候。</p><p>凸月相 介于滿相和最大距角之間，此時金星的可見表面照亮超過一半。</p><p>新月相 介于新相和最大距角之間，此時金星的可見表面照亮不足一半。</p><p>金星的相位最早由伽利略·伽利萊于1610年發現，這一發現提供了重要證據，證明了行星圍繞太陽運行。金星的相位可以通過小型望遠鏡輕松觀測，尤其是新月相，有時甚至可以用雙筒望遠鏡看到，而在極少數情況下，視力極佳的人甚至能用肉眼辨認。</p><figure class="image ck-widget" contenteditable="false"><img src="https://starwalk.space/gallery/images/venus-phases/1920x1080.jpg" alt="Venus phases"><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder ck-hidden" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><p>有趣的是，與月球不同，金星在滿相時並不是最亮的。這是因為金星的亮度取決于其相位和與地球的距離。在滿相時，金星位于最遠點，看起來較小且較暗。然而，在新月相時，金星離地球更近，盡管只有部分表面被照亮，但其視直徑更大。當金星的照亮部分少于一半時，它達到最大亮度，因為此時它的可見表面積在地球上的角度範圍最大。</p><h4><strong>金星有多少顆衛星？</strong></h4><p>實際上，金星根本沒有衛星！ 金星和水星是太陽系中唯一沒有天然衛星的行星。科學家認為，金星可能曾經具有由于碰撞而形成的衛星。 後來，又一次碰撞摧毀了這顆衛星。</p><p>金星沒有任何衛星的主要原因是它離太陽很近。太陽強大的引力影響使得衛星很難形成並保持在穩定的軌道上。</p><h4><strong>Zoozve：金星的准衛星</strong></h4><p>524522 Zoozve（也稱為2002 VE68）是一顆具有潛在危險的小行星和金星的准衛星。Zoozve的軌道看起來像是繞金星運行，但實際上不受金星引力約束。Zoozve于2002年被發現，成為在太陽系行星附近發現的第一顆准衛星。</p><figure class="image ck-widget" contenteditable="false"><img src="https://starwalk.space/gallery/images/venus-zoozve/1920x1080.jpg" alt="Zoozve — a quasi-moon of Venus"><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder ck-hidden" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><p>金星的准衛星為什麽叫“Zoozve”？這個奇怪的名字是由于誤會而産生的。Radiolab播客的聯合主持人拉蒂夫·納賽爾 (Latif Nasser) 偶然發現了一張名為“ZOOZVE”的金星衛星海報。後來透露，該海報的創作者亞曆克斯·福斯特 (Alex Foster) 由于誤讀了“2002 VE”名稱而想出了“ZOOZVE”這個詞。受到這個奇怪名字的啓發，拉蒂夫·納賽爾開始積極尋求重新命名金星准衛星，並于2024年2月，國際天文學聯合會批准“Zoozve”一詞作為該天體的正式名稱！</p><h4><strong>金星有多大?</strong></h4><figure class="image ck-widget" contenteditable="false"><img src="https://starwalk.space/gallery/images/venus-size/zh-Hant/1920x1080.jpg" alt="Diameters of terrestrial planets"><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder ck-hidden" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><p>金星的平均半徑為 6,052 公裏。繞金星赤道一周將覆蓋大約38,025公裏的距離。與許多其他具有赤道隆起的太陽系行星不同，金星是一個近乎完美的球體，因此它的半徑在兩極和赤道沒有差異。赤道隆起之所以沒有形成，是因為金星繞其軸旋轉得非常緩慢。</p><h4><strong>金星比地球大嗎？</strong></h4><p>金星比地球略小：它的直徑大約等于地球直徑的95%。金星的質量（4.867×10²⁴公斤）約為地球的81%。</p><h4><strong>金星是什麽顔色？</strong></h4><p>通過望遠鏡觀察時，金星呈現白色或黃白色。原因是它被厚厚的二氧化碳大氣和硫酸雲所覆蓋。</p><p>這顆行星的雲層遮擋了直接觀測，因此無法准確了解金星表面的顔色。然而，根據航天器任務收集的數據，科學家們認為它可能呈現出各種紅色、棕色和灰色。</p><h4><strong>金星的溫度</strong></h4><p>金星的平均表面溫度約為462 °C，這使其成為太陽系中最熱的地方之一。這種令人難以置信的熱量主要是金星厚厚的大氣層造成的，大氣層主要由二氧化碳組成。二氧化碳産生溫室效應，捕獲太陽輻射並將溫度升高到如此極端的水平。此外，這顆行星靠近太陽，導致其異常高溫。</p><h3><strong>金星的軌道和自轉</strong></h3><h4><strong>金星上的一天持續多久?</strong></h4><p>與地球的一天大約有24小時不同，金星需要更長的時間才能完成繞其軸的單次自轉。金星的一天持續大約243個地球日或5,832個地球小時！試想一下，一天會持續好幾個月！</p><h4><strong>金星上的一年有多長？</strong></h4><p>在地球上，我們習慣于一年大約有365天。金星上一年的持續時間（它繞太陽的軌道周期）大約是225個地球日。令人驚訝的是，這意味著金星年實際上比金星日短！</p><h4><strong>為什麽金星逆向旋轉？</strong></h4><p>與太陽系中的大多數行星相比，金星以相反的方向旋轉。這種現象稱為逆行旋轉（不要與逆行運動混淆）。由于這種旋轉，金星上的太陽從西邊升起，從東邊落下（衆所周知，在地球上，太陽從東向西移動）。金星逆行自轉的原因仍然知之甚少。</p><p>根據一種理論，金星可能在某個時刻與一顆巨大的小行星相撞。 天王星也可能發生類似的情況，這就是為什麽這顆行星現在在一側旋轉。</p><p>另一個可能的原因是金星和太陽之間的引力相互作用。隨著時間的推移，太陽的引力可能會減慢金星的自轉速度，並最終逆轉它。</p><h3><strong>金星有多遠？</strong></h3><h4>金星離太陽有多遠？</h4><p>金星是距離太陽的第二顆行星；它與我們的恒星的距離剛剛超過地球和太陽之間距離的70%。由于金星的軌道偏心是所有行星中最小，因此它離太陽最近（1.074億公裏）和最遠（1.089億公裏）的點之間沒有顯著差異。金星與太陽的平均距離為1.082億公裏。</p><h4><strong>金星離地球有多遠？</strong></h4><p>金星是最接近地球的行星，盡管兩顆行星之間的距離不斷變化，因為它們在橢圓軌道移動。在最接近地球的時候（每584天發生一次），金星與我們的行星之間的距離大約為4000萬公裏。</p><h4><strong>探索金星的任務</strong></h4><figure class="image ck-widget" contenteditable="false"><img src="https://starwalk.space/gallery/images/venera-7/1920x1080.jpg" alt="Venera 7"><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder ck-hidden" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><h4><strong>歷史性的金星任務</strong></h4><p>很長一段時間，由于金星大氣層厚厚的雲層，沒有人能夠看到金星的表面。因此，人們相信金星可能像地球一樣擁有茂密的叢林和大片水域。然而，航天器任務揭示了一個完全不同的現實：一顆地獄般的火山行星，具有極高的溫度和壓垮大氣的壓力。總共有超過40個航天器探索過金星，但並非所有航天器都實現了目標。以下是最成功的金星任務的簡短列表。</p><ul><li>“水手2號”：首次成功飛越金星（1962年）</li><li>“金星7號”：首次成功登陸金星（1970年）</li><li>“金星9號”和“金星10號”：進入軌道並登陸金星（1975年）</li><li>“麥哲倫號”：獲取金星整個表面的圖像（1989年）</li><li>“伽利略號”：在飛往木星的途中飛越金星 (1989年)</li><li>“卡西尼號”：在飛往土星的途中飛越金星（1998年和1999年）</li><li>“金星快車”：第一個設計用于研究金星的歐洲軌道飛行器（2005年）</li><li>“破曉號”：第一個設計用于研究金星的日本軌道飛行器（2015年）</li></ul><h4><strong>即將開展的金星探測任務</strong></h4><p>未來幾年，多項令人期待的新任務將陸續發射，旨在揭示金星濃厚雲層之下的秘密，並探索這顆行星神秘的過去。</p><p>Shukrayaan-1（印度空間研究組織，計劃于2028年）——印度首個金星探測任務，將研究金星的大氣和表面。</p><p>DAVINCI（美國國家航空航天局，計劃于2030年）——將向金星大氣投放探測器，分析其化學成分和結構。</p><p>VERITAS（美國國家航空航天局，計劃于2031年）——將以高分辨率繪制金星表面地圖。</p><p>EnVision（歐洲航天局，計劃于2034年）——將從軌道上研究金星內部結構及其氣候演化。</p><p>這些任務有望揭示金星是否曾與地球相似，以及為什麽這兩顆“姐妹行星”最終走上了截然不同的發展道路。</p><h4><strong>到達金星需要多長時間？</strong></h4><p>平均而言，航天器需要3到5個月才能到達金星。飛行時間取決于幾個因素，包括航天器的軌迹以及地球和金星在其軌道上的相對位置。蘇聯航天器金星1號（1961年）僅用了97 天（大約3個月多一點）就接近金星，但最終與金星相距約100,000公裏。 NASA的水手2號太空探測器（1962 年）在110天（大約3個月零20天）內抵達金星。歐空局的金星快車（2005）花了153天（大約5個月）到達金星。</p><h4><strong>金星由什麽形成?</strong></h4><p>不幸的是，關于金星的內部結構的信息很少。</p><h4><strong>金星的形成</strong></h4><p>金星與其他太陽系行星一起形成。大約45億年前，一團巨大的星際氣體和塵埃雲在自身引力作用下坍塌並扁平化成一個原行星盤。金星和其他岩石行星形成在這個行星盤的內部，而氣態巨行星則定居在年輕太陽系的外部區域。</p><h4><strong>金星的結構</strong></h4><p>由于金星和地球在大小和質量上相似，科學家相信兩顆行星具有相似的內部結構。金星可能有地殼，岩石地幔和液內核。 但是，內核可能是堅固的，甚至可能根本沒有內核。</p><h4><strong>金星的大氣</strong></h4><p>金星的大氣層最初是由俄羅斯科學家米哈伊爾·羅蒙諾索夫（Mikhail Lomonosov）于1761年發現的。羅蒙諾索夫觀察到金星穿過太陽圓盤時，在其圓盤周圍發現了一個光環。他正確地認為，這種現象可能是由太陽光線折射在金星的濃厚大氣中引起的。</p><figure class="image ck-widget" contenteditable="false"><img src="https://starwalk.space/gallery/images/venus-atmosphere/1920x1080.jpg" alt="Venus's atmosphere"><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder ck-hidden" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><p>金星的大氣層由96.5％的二氧化碳，3.5％的氮氣和微量其他氣體組成。由硫酸和水蒸氣組成的厚雲層覆蓋行星的表面，並反射了到達金星的約70％的陽光：這就是這個行星如此明亮的原因。</p><h3><strong>2025年金星何時何地可見？</strong></h3><p>2025年，金星將全年在天空中呈現壯觀的景象。它以“夜星”身份在水瓶座開始新的一年，並在1月初達到遠日點，因此很容易觀察到。到了2月中旬，金星在轉移到雙魚座時，亮度最高（視星等-4.6）。</p><p>在3月下旬，金星在接近太陽時，會在北半球短暫地同時出現為“夜星”和“晨星”。之後，它變成晨星，會在日出前升起。</p><p>這顆行星在6月再次最佳可見，6月1日在晨空中達到與太陽的最大距離。它將從6月到8月移動經過白羊座、金牛座（靠近昴星團）和雙子座。</p><p>從9月到11月，金星將穿越巨蟹座、獅子座、處女座和天秤座，在黎明前的天空中發光。在12月，它將穿越蛇夫座和射手座，在晨空中接近太陽，為2026年初的下一次日合做准備。</p><h3><strong>即將到來的事件</strong></h3><h4><strong>9月19日：金星接近軒轅十四</strong></h4><ul><li>合相時間：08:59 GMT（北京時間16:59）</li><li>合相距離：0°30ʹ</li><li>最接近時間：15:58 GMT（北京時間23:58）</li><li>最接近距離：0°28ʹ</li></ul><p>9月19日，金星（視星等-3.9）將接近軒轅十四（視星等1.4）。可在日出前觀察這對天體，附近還有一彎細小的新月。</p><h4><strong>9月19日：月亮與金星；月掩金星</strong></h4><ul><li>掩始時間：10:34 GMT（北京時間18:34）</li><li>掩終時間：14:26 GMT（北京時間22:26）</li><li>合相時間：11:46 GMT（北京時間19:46）</li><li>合相距離：0°48′</li><li>接近時間：12:30 GMT（北京時間20:30）</li><li>接近距離：0°43′</li></ul><p>9月19日，月亮將僅有6%的亮面，在天空中接近金星（亮度-3.9等）。在獅子座中可以用肉眼或望遠鏡欣賞這一美景。此外，月掩金星將在非洲、歐洲、俄羅斯西部、加拿大、格陵蘭和亞洲可見。盡管掩星只能在部分地區觀測到，但月亮與金星的同框仍然是全球可賞的視覺盛宴。</p><figure class="image ck-widget ck-widget_selected" contenteditable="false"><img src="https://starwalk.space/gallery/images/venus-moon-occultation-19-09-2025/zh-Hant/1920x1080.jpg" alt="Visibility map of the lunar occultation of Venus on September 19, 2025."><figcaption class="ck-editor__editable ck-editor__nested-editable ck-placeholder" data-placeholder="Enter image caption" contenteditable="true"><br data-cke-filler="true"></figcaption></figure><h4><strong>10月19日：月亮接近金星</strong></h4><ul><li>接近時間：18:41 GMT（北京時間10月20日02:41）</li><li>接近距離：3°48′</li><li>合相時間：21:00 GMT（北京時間10月20日05:00）</li><li>合相距離：4°00′</li></ul><p>10月19日，月亮將僅有3%的亮面，在天空中接近金星（亮度-3.9等）。請在清晨的室女座中尋找它們。金星將異常明亮，肉眼輕松可見。不過，月亮正處于細細的殘月階段，可能較難察覺。</p><h4><strong>11月2日：金星與角宿一</strong></h4><ul><li>接近時間：08:04 GMT（北京時間16:04）</li><li>接近距離：3°30'</li></ul><p>11月2日，藍色的角宿一（1.0等）將在清晨的天空中與明亮的金星（-3.9等）相遇。日出前，請在東方地平線上尋找這兩個天體。它們將肉眼可見。閃耀的金星和角宿一（處女座的璀璨明珠）將為拍攝暮光照片提供絕佳的機會。</p><h3><strong>常見問題</strong></h3><h4><strong>金星有多熱？</strong></h4><p>濃厚的金星大氣不讓熱量散發，並導致表面溫度高于480°C。這就是為什麽金星比離太陽最近的水星更熱的原因。</p><h4><strong>金星有表面嗎？</strong></h4><p>是的，金星在其濃密的大氣層下有一個堅固的表面。金星的表面由類似于地球上發現的岩石材料組成。它覆蓋著火山、山脈、廣闊的平原和高原。</p><h4><strong>金星幾歲了？</strong></h4><p>與太陽系中的其他天體一樣，金星形成于大約46億年前太陽系演化的早期階段。它起源于無數原行星和星子的吸積和碰撞。當這些物體聚集在一起時，它們的引力相互作用導致了金星的逐漸形成。</p><h4><strong>金星是晨星嗎？</strong></h4><p>有趣的是，古代的觀星者認為金星是兩個獨立的天體：晨星和晚星。讓我們看一下曆史，以了解有關金星的更多有趣事實。</p><h4><strong>總結</strong></h4><p>金星有時被稱為地球的“姊妹行星”，因為它的大小、質量和結構相似。然而，這兩顆行星在許多其他方面有很大不同。金星溫度極高，被厚厚的硫酸雲層包圍，自轉緩慢且逆行。這是一個不太好客但仍然非常有趣的行星！對于觀測者來說，金星是一個絕佳的目標，它是夜空中最亮的行星。</p>
+                `;
+
+                if (myEditor) {
+                    myEditor.setData(faqContent);
+                } else {
+                    $("#editor").val(faqContent);
+                }
+                    });
         });
     </script>
 }

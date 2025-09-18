@@ -232,9 +232,9 @@
 
                 <div id="collapseOrd" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="https://localhost:7111/Orders">訂單紀錄</a>
-                        <a class="collapse-item" href="https://localhost:7111/OrderStatus/Index">出貨管理</a>
-                        <a class="collapse-item" href="https://localhost:7111/OrderDelivery/Index">出貨單列表</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Orders" asp-action="Index">訂單紀錄</a>
+                        <a class="collapse-item" asp-area="" asp-controller="OrderStatus" asp-action="Index">出貨管理</a>
+                        <a class="collapse-item" asp-area="" asp-controller="OrderDelivery" asp-action="Index">出貨單列表</a>
                     </div>
                 </div>
             </li>
@@ -334,7 +334,6 @@
                                 <img class="img-profile rounded-circle" src="~/img/astronaut.gif" />
                             </a>
                             <ul class="dropdown-menu mt-1 dropdownlist dropdown-menu-1000px-end">
-                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i>個人資料</a></li>
                                 <li>
                                     <a class="dropdown-item" asp-area="" asp-controller="Attendance" asp-action="Index">
                                         <i class="fa-regular fa-calendar-days"></i>出勤紀錄

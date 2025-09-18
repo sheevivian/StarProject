@@ -7,15 +7,26 @@
     var cards = Model?.Cards ?? new List<EventCardVm>();
 }
 
+@Html.AntiForgeryToken()
+
 <!-- 標題 & 匯出「全部」 -->
 <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="fw-bold text-white">報名管理</h1>
-    <div class="d-flex gap-2">
-        <a class="btn btn-warning text-dark" asp-controller="Participants" asp-action="Create">
+    <h1 class="fw-bold text-black">報名管理</h1>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-warning text-dark fw-bold"
+                data-bs-toggle="modal" data-bs-target="#createParticipantModal">
             <i class="fi fi-sr-alien"></i> 新增
+        </button>
+
+        <!-- 跟 _ParticipantsTable 風格一致：細框、btn-sm、方角、帶圖示 -->
+        <a class="btn btn-outline-success btn-export"
+           asp-controller="Participants" asp-action="ExportExcel">
+            <i class="fa-solid fa-file-excel me-1"></i> 匯出全部 Excel
         </a>
-        <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportExcel">匯出全部 Excel</a>
-        <a class="btn btn-outline-light" asp-controller="Participants" asp-action="ExportCsv">匯出全部 CSV</a>
+        <a class="btn btn-outline-primary btn-export"
+           asp-controller="Participants" asp-action="ExportCsv">
+            <i class="fa-solid fa-file-csv me-1"></i> 匯出全部 CSV
+        </a>
     </div>
 </div>
 
@@ -24,19 +35,17 @@
 <!-- 卡片網格-->
 <section class="wrapper">
     <div class="container">
-        <!-- 一行四張：lg 以上 4 欄；md 2 欄；xs 1 欄 -->
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="eventCardGrid">
             @if (!cards.Any())
             {
                 <div class="col-12">
-                    <div class="alert alert-warning">目前沒有可顯示的活動。</div>
+                    <div class="alert alert-warning mb-0">目前沒有可顯示的活動。</div>
                 </div>
             }
             else
             {
                 @foreach (var e in cards)
                 {
-                    // 背景圖處理（沿用你的邏輯）
                     var raw = e.CoverImageUrl ?? "";
                     string bg;
                     if (string.IsNullOrWhiteSpace(raw))
@@ -53,7 +62,6 @@
                         bg = Url.Content(normalized);
                     }
 
-                    // ===== 狀態 → 右下角 icon + 文字（報名中=藍、已結束=灰、已取消=紅）=====
                     var rawStatus = (e.Status ?? "").Trim();
                     var norm = rawStatus.ToLowerInvariant();
 
@@ -65,40 +73,21 @@
                     bool isEnded = !isCancelled && endKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
                     bool isOpen = !isCancelled && !isEnded && openKeys.Any(k => norm.Contains(k.ToLowerInvariant()));
 
-                    // fallback：若完全判不到，就用中性灰（避免誤標為開放）
                     string statusLabel, pillClass, statusIcon;
-                    if (isCancelled)
-                    {
-                        statusLabel = "已取消"; pillClass = "pill-cancelled"; statusIcon = "bi bi-x-circle-fill";
-                    }
-                    else if (isEnded)
-                    {
-                        statusLabel = "已結束"; pillClass = "pill-ended"; statusIcon = "bi bi-check-circle-fill";
-                    }
-                    else if (isOpen)
-                    {
-                        statusLabel = "報名中"; pillClass = "pill-open"; statusIcon = "bi bi-play-fill";
-                    }
-                    else
-                    {
-                        statusLabel = string.IsNullOrEmpty(rawStatus) ? "狀態未設定" : rawStatus;
-                        pillClass = "pill-ended";    // 中性灰
-                        statusIcon = "bi bi-info-circle-fill";
-                    }
+                    if (isCancelled) { statusLabel = "已取消"; pillClass = "pill-cancelled"; statusIcon = "bi bi-x-circle-fill"; }
+                    else if (isEnded) { statusLabel = "已結束"; pillClass = "pill-ended"; statusIcon = "bi bi-check-circle-fill"; }
+                    else if (isOpen) { statusLabel = "報名中"; pillClass = "pill-open"; statusIcon = "bi bi-play-fill"; }
+                    else { statusLabel = string.IsNullOrEmpty(rawStatus) ? "狀態未設定" : rawStatus; pillClass = "pill-ended"; statusIcon = "bi bi-info-circle-fill"; }
 
                     <div class="col">
                         <div class="card h-100 event-card position-relative shadow-sm cardDetail"
                              data-event-id="@e.No"
                              data-event-title="@e.Title"
-                             data-bs-toggle="modal"
-                             data-bs-target="#participantsModal"
                              role="button"
                              aria-label="檢視 @e.Title 的報名名單">
 
-                            <!-- 上：固定比例的封面（16:9），圖片一致裁切 -->
                             <div class="card-thumb" style="background-image:url('@bg');" aria-label="@e.Title"></div>
 
-                            <!-- 下：只保留 標題 / 時間 / 人數 -->
                             <div class="card-body d-flex flex-column">
                                 <h5 class="card-title fw-bold text-truncate mb-2" title="@e.Title">@e.Title</h5>
 
@@ -112,13 +101,11 @@
                                     <small>@e.CurrentCount / @e.MaxParticipants 人</small>
                                 </div>
 
-                                <!-- 右下角狀態膠囊（不擋點擊） -->
                                 <div class="status-pill @pillClass">
                                     <i class="@statusIcon"></i>
                                     <span class="ms-1">@statusLabel</span>
                                 </div>
 
-                                <!-- 覆蓋整張可點 -->
                                 <a class="stretched-link" href="javascript:void(0)"></a>
                             </div>
                         </div>
@@ -129,39 +116,30 @@
     </div>
 </section>
 
-
 <!-- Modal：顯示單一活動的參與者名單 -->
-<div class="modal fade" id="participantsModal" tabindex="-1" aria-labelledby="participantsModalLabel" aria-hidden="true">
+<div class="modal fade" id="participantsModal" tabindex="-1" aria-labelledby="participantsModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header d-flex justify-content-between align-items-center">
                 <div>
                     <h4 class="modal-title fw-bold mb-1" id="participantsModalLabel">參與者名單</h4>
                     <div class="small text-muted" id="participantsModalSub">活動編號：<span id="modalEventId">-</span></div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
-            </div>
 
-            <div class="modal-body">
-                <!-- 工具列：單一活動匯出、批次刪除 -->
-                <div class="d-flex align-items-center gap-2 mb-3">
+                <!-- 匯出按鈕區 -->
+                <div class="d-flex gap-2">
                     <a class="btn btn-outline-primary" id="btnExportCsv" target="_blank" rel="noopener">
                         <i class="fa-solid fa-file-csv me-1"></i> 匯出 CSV（本活動）
                     </a>
                     <a class="btn btn-outline-success" id="btnExportExcel" target="_blank" rel="noopener">
                         <i class="fa-solid fa-file-excel me-1"></i> 匯出 Excel（本活動）
                     </a>
-
-                    <form id="bulkForm" class="ms-auto">
-                        @Html.AntiForgeryToken()
-                        <button type="button" class="btn btn-outline-danger" id="btnBulkDelete">
-                            <i class="fa-solid fa-trash-can me-1"></i> 刪除已勾選
-                        </button>
-                    </form>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
                 </div>
+            </div>
 
-                <!-- 名單容器（AJAX 載入 _ParticipantsTable 部分檢視） -->
-                <div id="participantsTableContainer" class="border rounded p-2 position-relative" style="min-height:180px">
+            <div class="modal-body">
+                <div id="participantsTableContainer" class="position-relative" style="min-height:180px">
                     <div class="text-center text-muted py-5" id="tableLoading">
                         <div class="spinner-border spinner-border-sm me-2" role="status"></div>
                         載入中…
@@ -172,22 +150,76 @@
     </div>
 </div>
 
-<!-- 樣式 -->
+<!-- Modal：新增報名（垂直置中） -->
+<div class="modal fade" id="createParticipantModal" tabindex="-1" aria-labelledby="createParticipantLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <!-- 垂直置中 + 略寬 -->
+        <div class="modal-content">
+            <form id="createParticipantForm" method="post" action="@Url.Action("Create","Participants")">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="createParticipantLabel">新增報名</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- 活動（僅顯示「報名中」的活動；由 JS 載入選項） -->
+                        <div class="col-12">
+                            <label for="Create_EventNo" class="form-label fw-bold">活動</label>
+                            <select name="EventNo" id="Create_EventNo" class="form-select" required>
+                                <option value="">載入中…</option>
+                            </select>
+                            <div class="text-danger small d-none" id="errEvent">請選擇活動</div>
+                        </div>
+
+                        <!-- 會員 -->
+                        <div class="col-12">
+                            <label for="Create_UsersNo" class="form-label fw-bold">會員</label>
+                            <select name="UsersNo" id="Create_UsersNo" class="form-select" required>
+                                <option value="">載入中…</option>
+                            </select>
+                            <div class="text-danger small d-none" id="errUser">請選擇會員</div>
+                        </div>
+
+                        <!-- 狀態 -->
+                        <div class="col-12">
+                            <label for="Create_Status" class="form-label fw-bold">狀態</label>
+                            <select name="Status" id="Create_Status" class="form-select" required>
+                                <option value="報名成功">報名成功</option>
+                                <option value="報名取消已退款">報名取消已退款</option>
+                            </select>
+                        </div>
+
+                        <!-- 重複報名警示 -->
+                        <div class="col-12">
+                            <div id="dupWarnCreate" class="alert alert-danger d-none" role="alert" aria-live="assertive">
+                                <strong>重複報名！</strong> 此會員已報名該活動（狀態：報名成功），請勿重複建立。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" id="btnCreateSubmit" class="btn btn-primary">建立</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 @section Styles {
     <style>
-        body {
-            background: #161616;
-        }
-
         h1 {
-            color: #fff;
+            color: #000000;
         }
 
         .wrapper {
             margin: 2rem 0;
         }
 
-        /* 視覺層次：白底卡片＋陰影（建立堆疊脈絡以放置狀態膠囊與 stretched-link） */
         .event-card {
             border: none;
             border-radius: 16px;
@@ -202,7 +234,6 @@
                 box-shadow: 0 8px 24px rgba(0,0,0,.18);
             }
 
-        /* 上半：固定比例縮圖 (16:9) + cover，確保整齊 */
         .card-thumb {
             aspect-ratio: 16/9;
             width: 100%;
@@ -211,7 +242,6 @@
             background-repeat: no-repeat;
         }
 
-        /* 下半：內容層次清楚、左對齊（並作為狀態膠囊的定位容器） */
         .card-body {
             position: relative;
             padding: 14px 16px 16px 16px;
@@ -221,7 +251,6 @@
             line-height: 1.25;
         }
 
-        /* 讓狀態膠囊浮在 stretched-link 之上，但不吃點擊 */
         .event-card .stretched-link::after {
             z-index: 1;
         }
@@ -248,24 +277,21 @@
                 line-height: 1;
             }
 
-        /* 狀態色系：開=藍、結束=灰、取消=紅 */
         .pill-open {
             background: rgba(13,110,253,.95);
             color: #fff;
         }
-        /* Bootstrap primary 藍 */
+
         .pill-ended {
             background: rgba(222,226,230,.95);
             color: #333;
         }
-        /* secondary 淺灰 */
+
         .pill-cancelled {
             background: rgba(220,53,69,.95);
             color: #fff;
         }
-        /* danger 紅 */
 
-        /* RWD 高度微調（四欄時仍清爽） */
         @@media (min-width:992px) {
             .event-card {
                 min-height: 320px;
@@ -278,142 +304,462 @@
             }
         }
 
-        /* Modal 內表格對齊（保留） */
         #participantsTableContainer table td,
         #participantsTableContainer table th {
             vertical-align: middle;
         }
+        /* ===== 按鈕強化 ===== */
+        .btn-outline-primary.btn-sm i,
+        .btn-outline-danger.btn-sm i {
+            pointer-events: none;
+        }
+
+        .btn-outline-primary.btn-sm:is(:hover,:focus) {
+            box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+        }
+
+        .btn-outline-danger.btn-sm:is(:hover,:focus) {
+            box-shadow: 0 0 0 .2rem rgba(220,53,69,.12);
+        }
+
+        /* 載入中狀態 */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: .8;
+        }
+
+        .btn-loading > i {
+            visibility: hidden;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            animation: spin .6s linear infinite;
+        }
+
+        /* 抖動動畫（錯誤時套用 .shake） */
+        @@keyframes shake {
+            10%, 90% {
+                transform: translateX(-1px);
+            }
+
+            20%, 80% {
+                transform: translateX( 2px);
+            }
+
+            30%, 50%, 70% {
+                transform: translateX(-4px);
+            }
+
+            40%, 60% {
+                transform: translateX( 4px);
+            }
+        }
+
+        .shake {
+            animation: shake .45s ease both;
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            .shake {
+                animation: none !important;
+            }
+        }
+
+        /* 匯出鈕一致化（可選） */
+        #btnExportCsv, #btnExportExcel {
+            white-space: nowrap;
+        }
+
+        /* 與 _ParticipantsTable 對齊的小顆細框按鈕 */
+        .btn-export {
+            display: inline-flex;
+            align-items: center; /* 垂直置中 */
+            justify-content: center; /* 內容置中 */
+            gap: .5rem; /* 圖示與文字間距 */
+            font-size: 1rem; /* 比 btn-sm 大一號，接近黃色按鈕 */
+            font-weight: 600;
+            padding: .48rem .9rem; /* 視覺高度與黃色按鈕差不多 */
+            border-radius: var(--bs-border-radius-lg); /* 更圓，但不是膠囊 */
+            white-space: nowrap; /* 不換行 */
+            line-height: 1.2;
+        }
+
+        .btn-export i {
+            pointer-events: none;
+                transform: translateY(0.5px);
+        }
+
+        /* hover/focus 陰影一致 */
+        .btn-outline-success.btn-sm:is(:hover, :focus) {
+            box-shadow: 0 0 0 .2rem rgba(25,135,84,.15);
+        }
+
+        .btn-outline-primary.btn-sm:is(:hover, :focus) {
+            box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+        }
+
     </style>
 }
 
 @section Scripts {
+    @* 驗證 *@
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let currentEventId = 0;
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('Index script loaded');
 
-            // 用 Url.Action 產生正確路徑（避免硬碼根目錄問題）
-            const listUrl = '@Url.Action("ListByEvent", "Participants")';
-            const csvUrl  = '@Url.Action("ExportCsv", "Participants")';
-            const xlsUrl  = '@Url.Action("ExportExcel", "Participants")';
-            const bulkUrl = '@Url.Action("BulkDelete", "Participants")';
+          // ====== 參與者名單 Modal（舊功能） ======
+          let currentEventId = 0;
+          const listUrl = '@Url.Action("ListByEvent", "Participants")';
+          const csvUrl  = '@Url.Action("ExportCsv", "Participants")';
+          const xlsUrl  = '@Url.Action("ExportExcel", "Participants")';
+          const bulkUrl = '@Url.Action("BulkDelete", "Participants")';
+          const resendUrl = '@Url.Action("ResendSignup", "Participants")';
 
-            // 事件委派：點整張卡片或 stretched-link 都算
-            document.addEventListener('click', function (e) {
-                const trigger = e.target.closest('.cardDetail, a.stretched-link');
-                if (!trigger) return;
+          const participantsModalEl = document.getElementById('participantsModal');
+          const participantsModal   = bootstrap.Modal.getOrCreateInstance(participantsModalEl);
 
-                const card = trigger.classList.contains('cardDetail') ? trigger : trigger.closest('.cardDetail');
-                if (!card) return;
+          function cleanupModalArtifacts() {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+          }
+          participantsModalEl?.addEventListener('hidden.bs.modal', cleanupModalArtifacts);
 
-                currentEventId = Number(card.getAttribute('data-event-id')) || 0;
-                const title = card.getAttribute('data-event-title') || '參與者名單';
+          // 卡片點擊 → 開啟名單 + 載入
+          document.addEventListener('click', (e) => {
+            const card = e.target.closest('.cardDetail');
+            if (!card) return;
+            e.preventDefault();
 
-                const $title = document.getElementById('participantsModalLabel');
-                const $id    = document.getElementById('modalEventId');
-                if ($title) $title.textContent = title;
-                if ($id)    $id.textContent    = currentEventId;
+            currentEventId = Number(card.dataset.eventId) || 0;
+            const title = card.dataset.eventTitle || '參與者名單';
+            document.getElementById('participantsModalLabel').textContent = title;
+            document.getElementById('modalEventId').textContent = currentEventId;
 
-                // 設定匯出連結
-                const $csv = document.getElementById('btnExportCsv');
-                const $xls = document.getElementById('btnExportExcel');
-                if ($csv) $csv.href = `${csvUrl}?eventId=${currentEventId}`;
-                if ($xls) $xls.href = `${xlsUrl}?eventId=${currentEventId}`;
+            const btnExportCsv   = document.getElementById('btnExportCsv');
+            const btnExportExcel = document.getElementById('btnExportExcel');
+            if (btnExportCsv)   btnExportCsv.href   = `${csvUrl}?eventId=${currentEventId}`;
+            if (btnExportExcel) btnExportExcel.href = `${xlsUrl}?eventId=${currentEventId}`;
 
-                // 載入表格
-                loadParticipantsTable(currentEventId);
-            });
+            loadParticipantsTable(currentEventId).then(() => participantsModal.show());
+          });
 
-            async function loadParticipantsTable(eventId) {
-                const container = document.getElementById('participantsTableContainer');
-                if (!container) return;
+          async function loadParticipantsTable(eventId) {
+            const container = document.getElementById('participantsTableContainer');
+            if (!container) return;
 
-                container.innerHTML = `
-                    <div class="text-center text-muted py-5" id="tableLoading">
-                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                        載入中…
-                    </div>`;
+            container.innerHTML = `
+              <div class="text-center text-muted py-5" id="tableLoading">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                載入中…
+              </div>`;
 
-                try {
-                    const res = await fetch(`${listUrl}?eventId=${encodeURIComponent(eventId)}`, {
-                        method: 'GET',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        cache: 'no-store'
-                    });
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    const html = await res.text();
-                    container.innerHTML = html;
-                    wireSelectAllOnce();
-                } catch (err) {
-                    container.innerHTML = `<div class="alert alert-danger">載入失敗：${err.message || err}</div>`;
-                }
+            try {
+              const url = `${listUrl}?eventId=${encodeURIComponent(eventId)}`;
+              const resp = await fetch(url, {
+                method: 'GET',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                },
+                cache: 'no-store',
+                redirect: 'manual'
+              });
+
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+              const html = await resp.text();
+              if (!html || html.trim().length === 0) throw new Error('回應內容為空');
+              if (html.toLowerCase().includes('<html') && html.toLowerCase().includes('<body'))
+                throw new Error('伺服器回傳整頁 HTML，請確認 Action 是否只回傳 PartialView。');
+
+              container.innerHTML = html;
+            } catch (err) {
+              console.error('載入參與者列表失敗:', err);
+              container.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  載入失敗：${err.message || err}
+                  <br><small>請檢查權限或重新整理頁面</small>
+                </div>`;
             }
+          }
 
-            function wireSelectAllOnce() {
-                const container = document.getElementById('participantsTableContainer');
-                if (!container || container.dataset.selectAllWired === '1') return;
+          function getAntiForgeryTokenForTable() {
+            const el = document.querySelector('#participantsTableContainer input[name="__RequestVerificationToken"]')
+                || document.querySelector('input[name="__RequestVerificationToken"]');
+            return el?.value || '';
+          }
 
-                container.addEventListener('change', function (e) {
-                    const t = e.target;
+          async function performBulkDelete(eventId, ids) {
+            try {
+              const token = getAntiForgeryTokenForTable();
+              if (!token) throw new Error('找不到防偽 Token，請重新整理頁面');
 
-                    // Header 全選
-                    if (t.matches('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]')) {
-                        const checked = t.checked;
-                        container.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
-                            if (!cb.matches('[data-check-all], #checkAll, .js-check-all')) cb.checked = checked;
-                        });
-                        t.indeterminate = false;
-                        return;
-                    }
+              const formData = new FormData();
+              formData.append('__RequestVerificationToken', token);
+              formData.append('eventId', String(eventId));
+              ids.forEach(id => formData.append('ids', String(id)));
 
-                    // 單列勾選 → 更新 Header 狀態
-                    if (t.matches('tbody input[type="checkbox"]')) {
-                        const rows = Array.from(container.querySelectorAll('tbody input[type="checkbox"]'))
-                            .filter(cb => !cb.matches('[data-check-all], #checkAll, .js-check-all'));
-                        const header = container.querySelector('input[type="checkbox"][data-check-all], #checkAll, .js-check-all, thead input[type="checkbox"]');
-                        if (header) {
-                            const allChecked = rows.length > 0 && rows.every(cb => cb.checked);
-                            const someChecked = rows.some(cb => cb.checked);
-                            header.checked = allChecked;
-                            header.indeterminate = !allChecked && someChecked;
-                        }
-                    }
-                });
+              const resp = await fetch(bulkUrl, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+              });
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
 
-                container.dataset.selectAllWired = '1';
+              const ct = resp.headers.get('content-type') || '';
+              if (!ct.includes('application/json')) throw new Error('伺服器回應格式錯誤（非 JSON）');
+
+              const result = await resp.json();
+              if (!result.success) throw new Error(result.message || '刪除失敗');
+
+              await loadParticipantsTable(eventId);
+              cleanupModalArtifacts();
+              if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: '刪除成功', text: result.message || `已刪除 ${ids.length} 筆資料`, timer: 1600, showConfirmButton: false });
+              }
+            } catch (err) {
+              console.error('批次刪除錯誤:', err);
+              alert('刪除失敗：' + (err.message || err));
+              cleanupModalArtifacts();
             }
+          }
 
-            // 批次刪除（加防呆）
-            const bulkBtn = document.getElementById('btnBulkDelete');
+          document.addEventListener('click', async (e) => {
+            // 批次刪除
+            const bulkBtn = e.target.closest('#btnBulkDelete');
             if (bulkBtn) {
-                bulkBtn.addEventListener('click', async function () {
-                    if (!currentEventId) return;
-
-                    const checks = Array.from(document.querySelectorAll('#participantsTableContainer input[type="checkbox"]'))
-                        .filter(x => x.checked && (x.dataset.id || x.value));
-                    const ids = checks.map(x => Number(x.dataset.id || x.value)).filter(n => !isNaN(n));
-
-                    if (ids.length === 0) { alert('請先勾選要刪除的項目。'); return; }
-                    if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？`)) return;
-
-                    const tokenEl = document.querySelector('#bulkForm input[name="__RequestVerificationToken"]');
-                    const form = new FormData();
-                    if (tokenEl) form.append('__RequestVerificationToken', tokenEl.value);
-                    form.append('eventId', currentEventId);
-                    ids.forEach(id => form.append('ids', String(id)));
-
-                    try {
-                        const res = await fetch(bulkUrl, { method: 'POST', body: form });
-                        const json = await res.json();
-                        if (json.success) {
-                            await loadParticipantsTable(currentEventId);
-                        } else {
-                            alert(json.message || '刪除失敗。');
-                        }
-                    } catch (err) {
-                        alert('刪除失敗：' + (err.message || err));
-                    }
-                });
+              e.preventDefault();
+              if (!currentEventId) return alert('請先選擇一個活動。');
+              const ids = Array.from(document.querySelectorAll('#participantsTableContainer tbody input[name="ids"]:checked'))
+                          .map(cb => Number(cb.value)).filter(n => n > 0);
+              if (!ids.length) return alert('請先勾選要刪除的項目。');
+              if (!confirm(`確定刪除 ${ids.length} 筆報名資料嗎？此操作無法復原。`)) return;
+              await performBulkDelete(currentEventId, ids);
             }
+
+            // 單筆刪除
+            const delBtn = e.target.closest('.js-row-delete');
+            if (delBtn) {
+              e.preventDefault();
+              const id = Number(delBtn.dataset.id);
+              const eventId = currentEventId || Number(document.getElementById('modalEventId')?.textContent || 0);
+              if (!id || !eventId) return alert('刪除失敗：找不到必要的參數');
+              if (!confirm('確定刪除這筆報名資料嗎？此操作無法復原。')) return;
+              await performBulkDelete(eventId, [id]);
+            }
+
+            // 重寄確認信
+            const reBtn = e.target.closest('.js-resend');
+            if (reBtn) {
+              e.preventDefault();
+              const id = Number(reBtn.dataset.id);
+              if (!id) return alert('重寄失敗：找不到參與者編號');
+              const token = getAntiForgeryTokenForTable();
+              if (!token) return alert('重寄失敗：找不到驗證 Token，請重新整理頁面');
+
+              try {
+                reBtn.classList.add('btn-loading');
+                const form = new FormData();
+                form.append('__RequestVerificationToken', token);
+                form.append('id', String(id));
+
+                const resp = await fetch(resendUrl, {
+                  method: 'POST',
+                  headers: { 'X-Requested-With': 'XMLHttpRequest', 'RequestVerificationToken': token },
+                  body: form
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+                const data = await resp.json();
+                if (data.success) {
+                  if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'success', title: '已重寄', text: data.message || '報名確認信已重新發送', timer: 1600, showConfirmButton: false });
+                  } else {
+                    alert(data.message || '已重新發送確認信');
+                  }
+                } else {
+                  reBtn.classList.add('shake'); setTimeout(() => reBtn.classList.remove('shake'), 500);
+                  if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: '重寄失敗', text: data.message || '請稍後再試' });
+                  else alert('重寄失敗：' + (data.message || '請稍後再試'));
+                }
+              } catch (err) {
+                reBtn.classList.add('shake'); setTimeout(() => reBtn.classList.remove('shake'), 500);
+                alert('重寄失敗：' + (err.message || err));
+              } finally {
+                reBtn.classList.remove('btn-loading');
+              }
+            }
+          });
+
+          // 全選/反選（維持 header 的 indeterminate 狀態）
+          function updateCheckAllState() {
+            const container = document.getElementById('participantsTableContainer');
+            if (!container) return;
+            const all = Array.from(container.querySelectorAll('tbody input[name="ids"]:not(:disabled)'));
+            const box = container.querySelector('#checkAll[data-check-all]');
+            if (!box) return;
+            const checked = all.filter(cb => cb.checked).length;
+            if (!all.length) { box.checked = false; box.indeterminate = false; return; }
+            if (checked === 0)      { box.checked = false; box.indeterminate = false; }
+            else if (checked === all.length) { box.checked = true;  box.indeterminate = false; }
+            else                    { box.checked = false; box.indeterminate = true; }
+          }
+          document.addEventListener('change', (e) => {
+            const container = document.getElementById('participantsTableContainer');
+            if (!container) return;
+            if (e.target.matches('#participantsTableContainer #checkAll, #participantsTableContainer #checkAll[data-check-all]')) {
+              const on = e.target.checked;
+              container.querySelectorAll('tbody input[name="ids"]:not(:disabled)').forEach(cb => cb.checked = on);
+              updateCheckAllState();
+            }
+            if (e.target.matches('#participantsTableContainer tbody input[name="ids"]')) updateCheckAllState();
+          });
+
+          // ====== 新增報名 Modal（整合版） ======
+          const createModalEl = document.getElementById('createParticipantModal');
+          const createForm    = document.getElementById('createParticipantForm');
+          const selEvent      = document.getElementById('Create_EventNo');
+          const selUser       = document.getElementById('Create_UsersNo');
+          const selStatus     = document.getElementById('Create_Status');
+          const dupWarn       = document.getElementById('dupWarnCreate');
+          const errEvent      = document.getElementById('errEvent');
+          const errUser       = document.getElementById('errUser');
+          const btnCreate     = document.getElementById('btnCreateSubmit');
+
+          const optionsUrl   = '@Url.Action("GetCreateOptions", "Participants")';
+          const checkDupBase = '/Participants/CheckDuplicate';
+
+          function getToken() {
+            const el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el?.value || '';
+          }
+
+          // 打開時：重置 & 載入下拉
+          createModalEl?.addEventListener('show.bs.modal', () => {
+            try { createForm?.reset(); } catch {}
+            dupWarn?.classList.add('d-none');
+            errEvent?.classList.add('d-none');
+            errUser?.classList.add('d-none');
+            loadCreateOptions();
+          });
+
+          async function loadCreateOptions() {
+            try {
+              if (selEvent) selEvent.innerHTML = '<option value="">載入中…</option>';
+              if (selUser)  selUser.innerHTML  = '<option value="">載入中…</option>';
+
+              const resp = await fetch(optionsUrl, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                cache: 'no-store'
+              });
+              if (!resp.ok) throw new Error('取得選項失敗');
+
+              const data = await resp.json();
+              const evOpts = ['<option value="">請選擇活動（僅顯示「報名中」）</option>']
+                .concat((data.events || []).map(e => `<option value="${e.id}">${e.text}</option>`));
+              if (selEvent) selEvent.innerHTML = evOpts.join('');
+
+              const userOpts = ['<option value="">請選擇會員</option>']
+                .concat((data.users || []).map(u => `<option value="${u.id}">${u.text}</option>`));
+              if (selUser) selUser.innerHTML = userOpts.join('');
+            } catch (err) {
+              console.error(err);
+              if (selEvent) selEvent.innerHTML = '<option value="">載入失敗</option>';
+              if (selUser)  selUser .innerHTML = '<option value="">載入失敗</option>';
+            }
+          }
+
+          // 重複報名檢查
+          async function checkDuplicate() {
+            if (!dupWarn) return;
+            dupWarn.classList.add('d-none');
+            const eventId = selEvent?.value;
+            const usersNo = selUser ?.value;
+            if (!eventId || !usersNo) return;
+
+            try {
+              const url  = `${checkDupBase}?eventId=${encodeURIComponent(eventId)}&usersNo=${encodeURIComponent(usersNo)}`;
+              const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+              const data = await resp.json();
+              if (data && data.exists) dupWarn.classList.remove('d-none');
+            } catch { /* 靜默失敗，不阻擋送出 */ }
+          }
+          selEvent?.addEventListener('change', checkDuplicate);
+          selUser ?.addEventListener('change',  checkDuplicate);
+
+          // 單一路徑的 submit（避免重複送出）
+          let submitting = false;
+          createForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (submitting) return;
+            submitting = true;
+            btnCreate?.setAttribute('disabled','disabled');
+
+            try {
+              // 前端基本檢查
+              errEvent?.classList.toggle('d-none', !!selEvent?.value);
+              errUser ?.classList.toggle('d-none', !!selUser ?.value);
+              if (!selEvent?.value || !selUser?.value) return;
+              if (!dupWarn?.classList.contains('d-none')) return;
+
+              const formData = new FormData(createForm);
+              const resp = await fetch(createForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'RequestVerificationToken': getToken(),
+                  'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text().catch(()=> '');
+                throw new Error(`HTTP ${resp.status} ${resp.statusText}\n${text.substring(0,400)}`);
+              }
+
+              const ct = resp.headers.get('content-type') || '';
+              if (ct.includes('application/json')) {
+                const data = await resp.json();
+                if (!data.success) throw new Error(data.message || '建立失敗（伺服器回傳失敗）');
+              }
+
+              // 成功：關閉新增 Modal
+              bootstrap.Modal.getOrCreateInstance(createModalEl).hide();
+
+              // 若「參與者名單」Modal 正開著 → 只刷新該活動；否則整頁刷新
+              const isTableOpen = participantsModalEl?.classList.contains('show');
+              const justEventId = selEvent?.value;
+              if (isTableOpen && typeof loadParticipantsTable === 'function') {
+                await loadParticipantsTable(justEventId);
+              } else {
+                location.reload();
+              }
+            } catch (err) {
+              alert(err.message || err);
+              console.error('Create failed:', err);
+            } finally {
+              submitting = false;
+              btnCreate?.removeAttribute('disabled');
+            }
+          });
+
+          console.log('Index script setup complete');
         });
     </script>
 }

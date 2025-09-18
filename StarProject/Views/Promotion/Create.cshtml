@@ -19,6 +19,12 @@
     </style>
 </head>
 
+<!--一鍵輸入資料-->
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-search fw-bold" id="demoDataBtn" onclick="fillDemoData()">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> 一鍵輸入
+    </button>
+</div>
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
         <h4 class="mb-0"><i class="fi fi-ss-money-wings me-2"></i>新增優惠券</h4>
@@ -321,6 +327,92 @@
             }
         });
 
+        // ====== Demo Data ======
+
+                function fillDemoData() {
+            // 基本資訊
+            document.getElementById('Name').value = '中秋節限時折500';
+            document.getElementById('CouponCode').value = 'MOON500';
+
+            // 設定類別 - 選擇全館
+            var categorySelect = document.querySelector('[name="Category"]');
+            if (categorySelect && categorySelect.options.length > 1) {
+                // 尋找「全館」選項
+                for (var i = 0; i < categorySelect.options.length; i++) {
+                    if (categorySelect.options[i].text.includes('全館')) {
+                        categorySelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                // 如果找不到全館，選第一個有值的選項
+                if (categorySelect.selectedIndex === 0) {
+                    categorySelect.selectedIndex = 1;
+                }
+            }
+
+            // 設定狀態 - 選擇啟用
+            var statusSelect = document.querySelector('[name="Status"]');
+            if (statusSelect && statusSelect.options.length > 1) {
+                // 尋找「啟用」選項
+                for (var i = 0; i < statusSelect.options.length; i++) {
+                    if (statusSelect.options[i].text.includes('啟用')) {
+                        statusSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                // 如果找不到，選第一個有值的選項
+                if (statusSelect.selectedIndex === 0) {
+                    statusSelect.selectedIndex = 1;
+                }
+            }
+
+            // 有效期間 - 設定固定日期
+            document.querySelector('[name="StartDate"]').value = '2025-09-30T00:00';
+            document.querySelector('[name="EndDate"]').value = '2025-10-06T23:59';
+
+            // 使用限制
+            document.querySelector('[name="Limit"]').value = '1000';
+            updateLimitMode(document.querySelector('[name="Limit"]'));
+
+            // 每人使用次數和重複使用保持預設值（不特別設定）
+            // 根據頁面邏輯，預設已經是1次
+
+            // 優惠規則
+            var ruleTypeSelect = document.querySelector('[name="RuleType"]');
+            if (ruleTypeSelect && ruleTypeSelect.options.length > 1) {
+                // 選擇金額折扣 (FixedAmount)
+                for (var i = 0; i < ruleTypeSelect.options.length; i++) {
+                    if (ruleTypeSelect.options[i].value === 'FixedAmount') {
+                        ruleTypeSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                // 如果找不到 FixedAmount，選第一個有值的
+                if (ruleTypeSelect.selectedIndex === 0 && ruleTypeSelect.options.length > 1) {
+                    ruleTypeSelect.selectedIndex = 1;
+                }
+            }
+            updateDiscountHint(ruleTypeSelect.value);
+
+            // 折扣數值
+            document.getElementById('DiscountValue').value = '500';
+
+            // 門檻類型
+            var conditionTypeSelect = document.getElementById('ConditionType');
+            if (conditionTypeSelect && conditionTypeSelect.options.length > 0) {
+                conditionTypeSelect.value = 'Amount';
+            }
+            toggleConditionFields('Amount');
+
+            // 消費門檻
+            document.getElementById('ConditionAmount').value = '3000';
+
+            // 優惠說明
+            document.querySelector('[name="Description"]').value =
+                '中秋節限時折扣，全館訂單滿3000折500元。';
+
+        }
+
         // ====== 共用互動 ======
         function updateLimitMode(input) {
             document.getElementById('limitMode').value = (input.value && input.value !== '0') ? 'limited' : 'unlimited';
@@ -373,5 +465,7 @@
                     discountInput.disabled = false; break;
             }
         }
+
+
     </script>
 }

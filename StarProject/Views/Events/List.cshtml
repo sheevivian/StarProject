@@ -1,15 +1,21 @@
 ﻿@model IEnumerable<StarProject.Models.Event>
 @Html.AntiForgeryToken()
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "活動列表";
 }
 
-<head>
+@section Styles {
     <style>
         * {
             margin: 0;
             padding: 0;
+        }
+
+        /* ✅ 僅在右側保留捲軸空間，避免左邊空白 */
+        html {
+            scrollbar-gutter: stable;
         }
 
         img {
@@ -40,7 +46,7 @@
 
         .table > thead > tr > th {
             font-size: 18px !important;
-            color: #FFFFFF;
+            color: #fff;
             background-color: #2B4C8C;
             letter-spacing: .2rem;
         }
@@ -149,7 +155,7 @@
         }
 
         .filterCount {
-            display: none;
+            display: inline-flex;
             width: 24px;
             height: 24px;
             font-size: 14px;
@@ -163,6 +169,11 @@
         .input-group {
             position: relative;
         }
+
+            .input-group .dropdown .dropdown-menu {
+                right: 0;
+                left: auto;
+            }
 
             .input-group .dropdown-menu {
                 max-height: 60vh;
@@ -203,7 +214,7 @@
             cursor: zoom-in;
         }
 
-       .offcanvas-body img.offcanvas-img {
+        .offcanvas-body img.offcanvas-img {
             max-width: 50%;
             height: auto;
             border-radius: 12px;
@@ -211,7 +222,7 @@
             margin: 0 auto 1rem;
         }
 
-        /* hover縮圖 */
+        /* hover 縮圖預覽 */
         #global-image-preview {
             position: fixed;
             display: none;
@@ -229,21 +240,48 @@
             pointer-events: none;
         }
 
-        #global-image-preview img {
-            width: 100%;
-            height: auto;
-            display: block;
+            #global-image-preview img {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+
+        .preview-img {
+            display: none !important;
         }
 
-        .preview-img{display: none !important;}
-        .thumbnail-container:hover .preview-img{display:none !important;}
+        .thumbnail-container:hover .preview-img {
+            display: none !important;
+        }
+
+        /* 表格外框線 */
+        .table-bordered-gray {
+            border: 1px solid gray !important;
+        }
+
+        /* ✅ 補上大括號：控制排程表寬度 */
+        .custom-table-width {
+            max-width: 1200px;
+            margin: auto;
+        }
     </style>
-</head>
+}
+
 
 <main class="flex-fill position-relative">
     <div class="d-flex align-items-center mb-3">
         <h1 class="fw-bold flex-grow-1 mb-0">活動列表</h1>
-        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-star" style="color: #000000;"></i></i> 新增</a>
+        <button type="button"
+                id="btnViewScheduled"
+                class="btn btn-outline-search fw-bold me-2 position-relative"
+                data-bs-toggle="modal"
+                data-bs-target="#scheduledModal">
+            <i class="fa-regular fa-calendar"></i> 檢視排程
+            <span id="scheduledBadge"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
+                  style="display:none">0</span>
+        </button>
+        <a asp-action="Create" class="btn btn-search fw-bold text-dark"><i class="fa-solid fa-star" style="color: #000000;"></i></i> 新增</a>
     </div>
 
     <form id="deleteForm">@Html.AntiForgeryToken()</form>
@@ -253,8 +291,8 @@
         <input id="searchInput" type="text" class="form-control" placeholder="請輸入關鍵字（活動名稱、種類、地點）以搜尋">
         <button type="button" class="text-danger input-group-text btn-outline-delect" id="btnClearKeyword" title="清除輸入">×</button>
 
-        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="搜尋" data-bs-trigger="hover">
-            <i class="fa-solid fa-magnifying-glass"></i>
+        <button type="button" class="input-group-text search" id="btnSearch" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="所有活動" data-bs-trigger="hover">
+            所有活動
         </button>
 
         <!-- 進階篩選 -->
@@ -263,10 +301,10 @@
                     type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside"
                     data-bs-display="static" id="advancedFilter">
                 <i class="fa-solid fa-chevron-down" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="進階篩選" data-bs-trigger="hover"></i>
-                <span class="filterCount position-absolute top-0 start-100 translate-middle" id="filterCount">0</span>
+                <span class="filterCount d-none position-absolute top-0 start-100 translate-middle" id="filterCount">0</span>
             </button>
 
-            <ul class="dropdown-menu p-2" style="width:220px">
+            <ul class="dropdown-menu dropdown-menu-end p-2" style="width:220px">
                 <!-- 活動種類 -->
                 <li><button type="button" class="dropdown-item fw-bold ps-2" data-bs-toggle="collapse" data-bs-target="#collapseCategory">- 活動種類</button></li>
                 <li>
@@ -300,8 +338,8 @@
                 <li>
                     <div class="collapse mb-2 ps-1 fs14px" id="collapseDate">
                         <div class="p-2">
-                            <div class="mb-2"><label for="dateFrom" class="form-label">起始日期</label><input type="date" id="dateFrom" class="form-control"></div>
-                            <div><label for="dateTo" class="form-label">結束日期</label><input type="date" id="dateTo" class="form-control"></div>
+                            <div class="mb-2"><label for="dateFrom" class="form-label">起始日期</label><input type="date" id="dateFrom" class="form-control" lang="en-US"></div>
+                            <div><label for="dateTo" class="form-label">結束日期</label><input type="date" id="dateTo" class="form-control" lang="en-US"></div>
                         </div>
                     </div>
                 </li>
@@ -412,150 +450,266 @@
             <p><strong>活動說明：</strong><span id="offcanvasDesc"></span></p>
         </div>
     </div>
+
+    <div class="modal fade" id="scheduledModal" tabindex="-1" aria-labelledby="scheduledModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 clas s="modal-title fw-bold" id="scheduledModalLabel">排程中的活動</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    <div class="custom-table-width">
+                        <table class="table table-hover align-middle mb-0 table-bordered-gray text-center">
+                            <thead class="table-light align-items-center">
+                                <tr>
+                                    <th style="width:120px">圖片</th>
+                                    <th>活動名稱</th>
+                                    <th style="width:140px">活動種類</th>
+                                    <th style="width:160px">發布時間</th>
+                                    <th style="width:120px">目前狀態</th>
+                                    <th style="width:180px">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduledTbody" class="align-content-center">
+                                <!-- 由 JS 動態塞入 -->
+                            </tbody>
+                        </table>
+                        <div id="scheduledEmpty" class="text-secondary" style="display:none;">目前沒有排程中的活動。</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-secondary me-auto">*發佈日期大於現在時間，且尚未發佈。</small>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 @section Scripts {
     <script>
-        (function fixDropdownJump() {
-          var toggle = document.getElementById('advancedFilter');
-          if (!toggle) return;
-          var inst = bootstrap.Dropdown.getInstance(toggle);
-          if (inst) inst.dispose();
-          new bootstrap.Dropdown(toggle, {
-            popperConfig: function (defaultCfg) {
-              return {
-                ...defaultCfg,
+        // ====== 全域參數（從伺服端帶入） ======
+        const pageNumber = @((ViewBag.PageSize ?? 10));
+        const initStatus  = @Html.Raw(JsonSerializer.Serialize(ViewBag.Status as string ?? ""));
+        const initKeyword = @Html.Raw(JsonSerializer.Serialize(ViewBag.Keyword as string ?? ""));
+
+        let currentFilters = {
+          categories: [],
+          statuses:  initStatus ? [initStatus] : [],
+          dateFrom: '',
+          dateTo: '',
+          keyword:  initKeyword
+        };
+
+        // ====== 換頁（統一用 SearchSelect） ======
+        function loadPage(page) {
+          refreshEventsTable(page, currentFilters);
+        }
+
+        // ====== AJAX 刷新（唯一版本，請勿重複定義） ======
+        async function refreshEventsTable(page = 1, filters = currentFilters) {
+          try {
+          function sanitizeFilters(f){
+          const de = s => $('<textarea/>').html(String(s)).text(); // 解 HTML Entity
+          const o = {...f};
+          o.categories = (o.categories||[]).map(s=>de(s).trim()).filter(Boolean);
+          o.statuses   = (o.statuses||[]).map(s=>de(s).trim()).filter(Boolean);
+          o.keyword    = de(o.keyword||'').trim();
+          if (!o.categories.length) delete o.categories;
+          if (!o.statuses.length)   delete o.statuses;
+          if (!o.keyword)           delete o.keyword;
+          if (!o.dateFrom)          delete o.dateFrom;
+          if (!o.dateTo)            delete o.dateTo;
+          return o;
+        }
+
+            const payload = { ...filters, page, pageSize: pageNumber };
+            console.debug('[SearchSelect] request:', payload);
+
+            const response = await $.ajax({
+              url: '/Events/SearchSelect',
+              type: 'POST',
+              data: JSON.stringify(payload),
+              contentType: 'application/json; charset=utf-8'
+            });
+
+            console.debug('[SearchSelect] response:', {
+              page: response.page, total: response.total,
+              totalPages: response.totalPages, status: response.status, keyword: response.keyword
+            });
+
+            const srvPage       = Number(response.page ?? page) || 1;
+            // const srvTotal      = Number(response.total ?? 0);
+            const srvTotalPages = Math.max(1, Number(response.totalPages ?? 1));
+
+            // 更新表格與分頁
+            if (typeof response === 'string') {
+              $('#tableBody').html(response);
+            } else {
+              $('#tableBody').html(response.tableHtml || '');
+              if (response.paginationHtml) $('#pagination').html(response.paginationHtml);
+            }
+
+            // 更新頁碼顯示
+            $('#paginationInfo').text(srvPage);
+
+            // 清理選取狀態
+            $('#checkAll').prop('checked', false);
+            $('#deleteAllBtn, #selectNum').hide();
+          } catch (err) {
+            alert('更新列表失敗：' + (err.responseText || err.statusText || err.message));
+          }
+        }
+
+        // ====== DOM Ready ======
+        $(function () {
+          const getToken = () => $('input[name="__RequestVerificationToken"]').val();
+
+          // 修正下拉選單彈出位置抖動
+          (function fixDropdownJump() {
+            const toggle = document.getElementById('advancedFilter');
+            if (!toggle) return;
+            const inst = bootstrap.Dropdown.getInstance(toggle);
+            if (inst) inst.dispose();
+            new bootstrap.Dropdown(toggle, {
+              popperConfig: {
                 strategy: 'fixed',
                 modifiers: [
                   { name: 'offset', options: { offset: [0, 8] } },
-                  { name: 'preventOverflow', options: { boundary: 'viewport' } },
+                  { name: 'preventOverflow', options: { boundary: document.body } },
                   { name: 'computeStyles', options: { adaptive: false } }
                 ]
-              };
-            }
-          });
-        })();
+              },
+              autoClose: 'outside'
+            });
+          })();
 
-        var pageNumber = 10;
-
-        // 純換頁
-        function loadPage(page) {
-          $.get('/Events/GetEvents', { page: page, pageSize: pageNumber }, function (result) {
-            $('#tableBody').html(result);
-            $('#tableBody .preview-img').remove(); // 清除舊預覽節點（保險）
-            $.post('/Events/SearchSelect', JSON.stringify({ page: page, pageSize: pageNumber }), function (p) {
-              if (p && p.paginationHtml) $('#pagination').html(p.paginationHtml);
-            }, 'json').fail(function(){});
-            $('#paginationInfo').text(`${page}`);
-            $('#pagination li').removeClass('active');
-            $(`.pagination .page-link[data-page='${page}']`).closest("li").addClass('active');
-            $('#checkAll').prop('checked', false);
-            $('#deleteAllBtn, #selectNum').hide();
-          });
-        }
-
-        $(function () {
-          const getToken = () => $('input[name="__RequestVerificationToken"]').val();
+          // —— 初始 UI：從總覽帶來的條件回填 —— //
+          (function syncInitialFiltersToUI(){
+            if (initKeyword) { $('#searchInput').val(initKeyword); $('#btnClearKeyword').show(); }
+            if (initStatus)  { $(`#collapseStatus input.form-check-input[value="${initStatus}"]`).prop('checked', true); }
+            updateFilterCount();
+            updateSelectedFilters();
+          })();
 
           // 小×清除輸入
           (function () {
             const input = document.getElementById('searchInput');
             const btnX  = document.getElementById('btnClearKeyword');
             if (!input || !btnX) return;
-            function toggleX(){ btnX.style.display = input.value.trim() ? '' : 'none'; }
+            const toggleX = () => { btnX.style.display = input.value.trim() ? '' : 'none'; };
             toggleX();
             input.addEventListener('input', toggleX);
-            btnX.addEventListener('click', function(){ input.value=''; input.focus(); toggleX(); });
+            btnX.addEventListener('click', function () { input.value = ''; input.focus(); toggleX(); });
           })();
 
           // checkbox 勾選/全選
           $(document).on('click', '.checkbox', function () {
-            let checked = $(this).prop('checked');
-            let count = $('.checkbox:checked').length;
+            const checked = $(this).prop('checked');
+            const count = $('.checkbox:checked').length;
             $(this).closest('tr').toggleClass('active', checked);
             if (count > 0) { $('#deleteAllBtn, #selectNum').show(); $('#selectNum').text(`已選取${count}項`); }
             else { $('#deleteAllBtn, #selectNum').hide(); }
             $('#checkAll').prop('checked', $('.checkbox').length === $('.checkbox:checked').length);
           });
 
-          $('#checkAll').click(function () {
-            if ($(this).prop('checked')) {
-              $('.checkbox').prop('checked', true);
-              $('tbody tr').addClass('active');
-              $('#deleteAllBtn, #selectNum').show();
-              let count = $('.checkbox:checked').length;
-              if (count > 0) $('#selectNum').text(`已選取${count}項`);
+          $('#checkAll').on('click', function () {
+            const checked = $(this).prop('checked');
+            $('.checkbox').prop('checked', checked);
+            $('tbody tr').toggleClass('active', checked);
+            if (checked) {
+              const count = $('.checkbox:checked').length;
+              if (count > 0) { $('#deleteAllBtn, #selectNum').show(); $('#selectNum').text(`已選取${count}項`); }
             } else {
-              $('.checkbox').prop('checked', false);
-              $('tbody tr').removeClass('active');
               $('#deleteAllBtn, #selectNum').hide();
             }
           });
 
           // 批次刪除
-          $('#deleteAllYes').click(function () {
-            let ids = $('.checkbox:checked').map(function () { return $(this).val(); }).get();
+          $('#deleteAllYes').on('click', function () {
+            const ids = $('.checkbox:checked').map(function () { return $(this).val(); }).get();
             if (ids.length === 0) return;
             $.ajax({
               url: '/Events/DeleteMultiple',
               type: 'POST',
-              data: { __RequestVerificationToken: getToken(), ids: ids },
-              traditional: true,
-              success: function () {
-                let page = parseInt($('#paginationInfo').text()) || 1;
-                refreshEventsTable(page);
-                $('#deleteAllBtn, #selectNum').hide();
-                $('#checkAll').prop('checked', false);
-              },
-              error: function () { alert('刪除失敗！'); }
+              data: { __RequestVerificationToken: getToken(), ids },
+              traditional: true
+            }).done(function () {
+              const page = parseInt($('#paginationInfo').text()) || 1;
+              refreshEventsTable(page, currentFilters);
+              $('#deleteAllBtn, #selectNum').hide();
+              $('#checkAll').prop('checked', false);
+            }).fail(function () {
+              alert('刪除失敗！');
             });
           });
 
-          // 搜尋與即時輸入
-          $('#btnSearch').on('click', doSearch);
-          $('#searchInput').on('keyup', doSearch);
+          // 搜尋與即時輸入（統一用 SearchSelect）
+          $('#btnSearch').on('click', function(){
+            collectFilters();
+            refreshEventsTable(1, currentFilters);
+          });
+          $('#searchInput').on('keyup', function(){
+            collectFilters();
+            refreshEventsTable(1, currentFilters);
+          });
 
           // 進階篩選 完成
-          $('#filterFinsh').click(function () {
-            updateFilterCount(); updateSelectedFilters(); doSearch();
+          $('#filterFinsh').on('click', function () {
+            collectFilters();
+            updateFilterCount();
+            updateSelectedFilters();
+            refreshEventsTable(1, currentFilters);
             const toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
             (bootstrap.Dropdown.getInstance(toggleBtn) || new bootstrap.Dropdown(toggleBtn)).hide();
           });
 
           // 清除進階篩選（不動關鍵字）
-          $('#btnClear').off('click').on('click', function (e) {
+          $('#btnClear').on('click', function (e) {
             e.preventDefault();
             const $menu = $(this).closest('.dropdown-menu');
             $menu.find('input[type=checkbox]:checked').prop('checked', false);
             $menu.find('#dateFrom, #dateTo').val('');
+            collectFilters();
             updateSelectedFilters();
             updateFilterCount();
+            refreshEventsTable(1, currentFilters);
             const toggleBtn = $(this).closest('.dropdown').find('.dropdown-toggle')[0];
             (bootstrap.Dropdown.getInstance(toggleBtn) || new bootstrap.Dropdown(toggleBtn)).hide();
           });
 
           // 日期區間限制
-          const dateFrom = document.getElementById("dateFrom");
-          const dateTo = document.getElementById("dateTo");
-          if (dateFrom && dateTo) {
-            dateFrom.addEventListener("change", () => {
+          (function(){
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo   = document.getElementById('dateTo');
+            if (!dateFrom || !dateTo) return;
+            dateFrom.addEventListener('change', () => {
               if (dateFrom.value) {
                 dateTo.min = dateFrom.value;
-                if (dateTo.value && dateTo.value < dateFrom.value) dateTo.value = "";
-              } else { dateTo.min = ""; }
+                if (dateTo.value && dateTo.value < dateFrom.value) dateTo.value = '';
+              } else {
+                dateTo.min = '';
+              }
             });
-          }
+          })();
 
-          // 分頁代理
-          $(".pagination").on("click", ".page-link", function (e) {
+          // 分頁代理（單一路徑；避免捲動到頂）
+          $(document).on('click', '.pagination .page-link', function (e) {
             e.preventDefault();
-            let page = $(this).data("page");
+            e.stopPropagation();
+            const $item = $(this).closest('.page-item');
+            if ($item.hasClass('disabled') || $item.hasClass('active')) return false;
+            const page = Number($(this).data('page'));
+            if (!Number.isFinite(page) || page < 1) return false;
             loadPage(page);
+            return false;
           });
 
           // Offcanvas 詳細
           $(document).on('click', '.btn-detail', function () {
-            var btn = $(this);
+            const btn = $(this);
             $('#offcanvasTitle').text(btn.data('title') || '');
             $('#offcanvasCategory').text(btn.data('category') || '');
             $('#offcanvasStatus').text(btn.data('status') || '');
@@ -574,7 +728,7 @@
             $('#offcanvasMax').text(max ?? '');
             $('#offcanvasImage').attr('src', btn.data('image') || '/img/logo.png');
 
-            var id = btn.data('id');
+            const id = btn.data('id');
             $('#offcanvasEditBtn').attr('href', '/Events/Edit/' + id);
             $('#deleteModal').off('show.bs.modal').on('show.bs.modal', function () {
               $('#deleteOne').attr('action', '/Events/Delete/' + id);
@@ -583,109 +737,123 @@
             bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasDetail')).show();
           });
 
+          // 檢視排程中的活動（Modal）
+          (function scheduledModalFeature(){
+            const $modal = $('#scheduledModal');
+            const $tbody = $('#scheduledTbody');
+            const $empty = $('#scheduledEmpty');
+            const $badge = $('#scheduledBadge');
+
+            function fmt(dtStr){
+              if(!dtStr) return '';
+              const d = new Date(dtStr);
+              if (isNaN(d)) return dtStr;
+              const pad = (n)=>String(n).padStart(2,'0');
+              return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+
+            function htmlRow(x){
+              const img = x.image || '/img/logo.png';
+              return `
+                <tr>
+                  <td>
+                    <div class="thumbnail-container">
+                      <img src="${img}" class="thumb-img" alt="img" style="width:64px;height:64px;object-fit:cover;border-radius:8px">
+                    </div>
+                  </td>
+                  <td class="fw-semibold">${x.title ?? ''}</td>
+                  <td>${x.category ?? ''}</td>
+                  <td>${fmt(x.releaseDate)}</td>
+                  <td>${x.status ?? ''}</td>
+                  <td>
+                    <a class="btn btn-sm btn-primary br20px me-1" href="/Events/Edit/${x.no}">
+                      <i class="fa-solid fa-pen-to-square"></i> 編輯
+                    </a>
+                  </td>
+                </tr>`;
+            }
+
+            async function refreshBadge(){
+              try{
+                const res = await $.get('/Events/GetScheduledCount');
+                const n = res?.count ?? 0;
+                if(n>0){ $badge.text(n).show(); } else { $badge.hide(); }
+              }catch(_){ $badge.hide(); }
+            }
+
+            async function loadScheduled(){
+              $tbody.empty();
+              $empty.hide();
+              try{
+                const list = await $.get('/Events/GetScheduled');
+                if(!list || list.length===0){
+                  $empty.show();
+                  return;
+                }
+                $tbody.html(list.map(htmlRow).join(''));
+              }catch(err){
+                $empty.text('載入失敗：' + (err.responseText || err.statusText || err.message)).show();
+              }
+            }
+
+            $modal.on('show.bs.modal', loadScheduled);
+            $(refreshBadge);
+            setInterval(refreshBadge, 90000);
+          })();
+
           // 單筆刪除
           $(document).on('click', '#deleteOnebtn', async function (e) {
             e.preventDefault();
-            let action = $(this).closest('form').attr('action');
-            let id = action.split('/').pop();
+            const action = $(this).closest('form').attr('action');
+            const id = action?.split('/').pop();
             if (!id) return;
             try {
-              await $.ajax({ url: '/Events/Delete', type: 'POST', data: { id: id, __RequestVerificationToken: getToken() } });
-              let page = parseInt($('#paginationInfo').text()) || 1;
-              refreshEventsTable(page);
-              let oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDetail'));
+              await $.ajax({ url: '/Events/Delete', type: 'POST', data: { id, __RequestVerificationToken: getToken() } });
+              const page = parseInt($('#paginationInfo').text()) || 1;
+              refreshEventsTable(page, currentFilters);
+              const oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDetail'));
               if (oc) oc.hide();
               $('#deleteModal').modal('hide');
             } catch (err) {
-              alert("刪除失敗：" + (err.responseText || err.statusText));
+              alert('刪除失敗：' + (err.responseText || err.statusText));
             }
           });
 
           // ===== 搜尋/篩選 =====
           function collectFilters() {
-            let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
-            let statuses   = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
-            let keyword    = $("#searchInput").val();
-            let df = $("#dateFrom").val();
-            let dt = $("#dateTo").val();
-            return { categories, statuses, dateFrom: df, dateTo: dt, keyword, page: 1, pageSize: pageNumber };
-          }
-
-          async function doSearch() {
-            let filters = collectFilters();
-            try {
-              let response = await $.ajax({
-                url: '/Events/SearchSelect',
-                type: 'POST',
-                data: JSON.stringify(filters),
-                contentType: "application/json; charset=utf-8"
-              });
-
-              if (typeof response === 'string') {
-                $('#tableBody').html(response);
-                $('#tableBody .preview-img').remove();
-              } else if (response.tableHtml) {
-                $('#tableBody').html(response.tableHtml);
-                $('#tableBody .preview-img').remove();
-                if (response.paginationHtml) $('#pagination').html(response.paginationHtml);
-              }
-
-              $('#checkAll').prop('checked', false);
-              $('#deleteAllBtn, #selectNum').hide();
-              $('#paginationInfo').text('1');
-
-            } catch (err) {
-              alert('搜尋失敗：' + (err.responseText || err.statusText || err.message));
-            }
+            const categories = [...document.querySelectorAll('#collapseCategory input:checked')].map(cb => cb.value);
+            const statuses   = [...document.querySelectorAll('#collapseStatus input:checked')].map(cb => cb.value);
+            const keyword    = $('#searchInput').val();
+            const df         = $('#dateFrom').val();
+            const dt         = $('#dateTo').val();
+            currentFilters = { categories, statuses, dateFrom: df, dateTo: dt, keyword };
+            return currentFilters;
           }
 
           function updateSelectedFilters() {
-            let selected = [];
-            let cats = $("#collapseCategory input:checked").map(function(){ return $(this).next("label").text(); }).get();
-            if (cats.length) selected.push("<strong>種類：</strong>" + cats.join(", "));
-            let sts  = $("#collapseStatus input:checked").map(function(){ return $(this).next("label").text(); }).get();
-            if (sts.length) selected.push("<strong>狀態：</strong>" + sts.join(", "));
-            let from = $("#dateFrom").val(), to = $("#dateTo").val();
-            if (from || to) selected.push("<strong>日期：</strong>" + (from?from:"不限") + " ~ " + (to?to:"不限"));
-            if (selected.length){ $("#selectedFiltersDiv").show(); $("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;")); }
-            else { $("#selectedFiltersDiv").hide(); $("#selectedFiltersText").html(""); }
+            const selected = [];
+            const cats = $('#collapseCategory input:checked').map(function(){ return $(this).next('label').text(); }).get();
+            if (cats.length) selected.push('<strong>種類：</strong>' + cats.join(', '));
+            const sts  = $('#collapseStatus input:checked').map(function(){ return $(this).next('label').text(); }).get();
+            if (sts.length) selected.push('<strong>狀態：</strong>' + sts.join(', '));
+            const from = $('#dateFrom').val(), to = $('#dateTo').val();
+            if (from || to) selected.push('<strong>日期：</strong>' + (from?from:'不限') + ' ~ ' + (to?to:'不限'));
+            if (selected.length){ $('#selectedFiltersDiv').show(); $('#selectedFiltersText').html(selected.join('&nbsp;&nbsp;&nbsp;&nbsp;')); }
+            else { $('#selectedFiltersDiv').hide(); $('#selectedFiltersText').html(''); }
           }
 
           function updateFilterCount() {
             let count = 0;
-            if ($("#collapseCategory input:checked").length > 0) count++;
-            if ($("#collapseStatus input:checked").length > 0) count++;
-            if ($("#dateFrom").val() || $("#dateTo").val()) count++;
-            if (count > 0) { $("#filterCount").show().text(`${count}`); } else { $("#filterCount").hide(); }
+            if ($('#collapseCategory input:checked').length > 0) count++;
+            if ($('#collapseStatus input:checked').length   > 0) count++;
+            if ($('#dateFrom').val() || $('#dateTo').val()) count++;
+            const $badge = $('#filterCount');
+            if (count > 0) { $badge.text(count).removeClass('d-none'); }
+            else { $badge.addClass('d-none'); }
           }
-
-          // 刷新（保留你的 API 介面）
-          async function refreshEventsTable(page = 1, filters = {}) {
-            try {
-              filters.page = page; filters.pageSize = pageNumber;
-              let response = await $.ajax({
-                url: '/Events/SearchSelect',
-                type: 'POST',
-                data: JSON.stringify(filters),
-                contentType: "application/json; charset=utf-8"
-              });
-              if (typeof response === 'string') {
-                $("#tableBody").html(response);
-                $("#tableBody .preview-img").remove();
-              } else {
-                $("#tableBody").html(response.tableHtml || "");
-                $("#tableBody .preview-img").remove();
-                if (response.paginationHtml) $("#pagination").html(response.paginationHtml);
-              }
-              $('#paginationInfo').text(page);
-            } catch (err) {
-              alert("更新列表失敗：" + (err.responseText || err.statusText));
-            }
-          }
-
-          window.refreshEventsTable = refreshEventsTable;
         });
 
+        // 影像預覽（與列表無關，保留你的實作）
         (function attachGlobalPreview(){
           const box = document.createElement('div');
           box.id = 'global-image-preview';
@@ -721,3 +889,5 @@
         })();
     </script>
 }
+
+

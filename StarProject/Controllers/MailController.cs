@@ -7,8 +7,8 @@ namespace StarProject.Controllers
 {
 	public class MailController : Controller
 	{
-		private readonly MailService _mailService;
-		public MailController(MailService mailService) => _mailService = mailService;
+		private readonly EmailService _mailService;
+		public MailController(EmailService mailService) => _mailService = mailService;
 
 		// GET: /Mail/Test
 		public IActionResult Test()

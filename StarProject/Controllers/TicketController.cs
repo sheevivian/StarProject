@@ -10,7 +10,6 @@ using NPOI.XSSF.UserModel;
 using SixLabors.ImageSharp;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;
 using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -36,13 +35,14 @@ namespace StarProject.Controllers
             var query = _context.Tickets
 					.Include(t => t.TicCategoryNoNavigation)
 					.GroupBy(t => t.Name)
-				.Select(g => new TicketNameViewModel
-				{
-					TicName = g.Key,
-					TicImage = g.Max(x => x.Image),
-					TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
-					TicStatus = g.Max(x => x.Status),
-				});
+					.Select(g => new TicketNameViewModel
+					{
+						TicName = g.Key,
+						TicImage = g.Max(x => x.Image),
+						TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
+						TicStatus = g.Max(x => x.Status),
+						TicDesc = g.Max(x => x.Desc)
+					});
 
 			// Step 3: 分頁 (這時 query 仍是 IQueryable<ProductStockSumViewModel>)
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
@@ -52,6 +52,10 @@ namespace StarProject.Controllers
 			ViewBag.TotalPages = totalPages;
 			ViewBag.Page = page;
 			ViewBag.PageSize = pageSize;
+
+
+			ViewData["startDate"] = DateTime.Today.ToString("yyyy/MM/dd");
+			ViewData["endDate"] = DateTime.Today.AddDays(6).ToString("yyyy/MM/dd");
 
 			return View(items);
 		}
@@ -74,7 +78,8 @@ namespace StarProject.Controllers
 								TicImage = g.Max(x => x.Image),
 								TicCategory = g.Max(x => x.TicCategoryNoNavigation.Name),
 								TicStatus = g.Max(x => x.Status),
-							});
+								TicDesc = g.Max(x => x.Desc),
+						});
 
 			// keyword
 			if (!string.IsNullOrEmpty(filters.keyword))
@@ -450,7 +455,99 @@ namespace StarProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TicketExists(int id)
+
+		[HttpGet]
+		public async Task<IActionResult> GetLogs(string id)
+		{
+			// 從 DB 抓該商品的異動紀錄
+			var logs = await _context.Tickets
+				.Where(l => l.Name == id)
+				.OrderByDescending(l => l.No)
+				.Select(l => new {
+					TicNo = l.No,
+					TicImage = l.Image,
+					TicType = l.Type,
+					TicPrice = l.Price,
+					Desc = l.Desc,
+					Date = l.ReleaseDate.HasValue ? l.ReleaseDate.Value.ToString("yyyy-MM-dd") : "",
+					Status = l.Status
+					// 前端好處理
+				}).ToListAsync();
+			return Json(logs); // 回傳 JSON
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> GetStockLogs(string id, DateTime? startDate, DateTime? endDate)
+		{
+			if (!startDate.HasValue) startDate = DateTime.Today;
+			if (!endDate.HasValue) endDate = DateTime.Today.AddDays(7);
+
+			// 1️⃣ 把每日庫存投影成同樣結構
+			var dailyStocks = _context.TicketStocks
+				.Select(s => new
+				{
+					TicketNo = s.TicketNo,
+					TicketName = s.TicketNoNavigation.Name,
+					TicketImage = s.TicketNoNavigation.Image,
+					TicCategory = s.TicketNoNavigation.TicCategoryNoNavigation.Name,
+					TicType = s.TicketNoNavigation.Type,
+					Date = s.Date.Date,
+					Stock = (int?)s.Stock,      // 用 int? 讓 null 可能存在
+					TransQuantity = (int?)null  // 異動先為 null
+				});
+
+			// 2️⃣ 把異動表投影成同樣結構（Stock=null）
+			var transStocks = _context.TicketTransStocks
+				.Select(t => new
+				{
+					TicketNo = t.TicketNo,
+					TicketName = t.TicketNoNavigation.Name,
+					TicketImage = t.TicketNoNavigation.Image,
+					TicCategory = t.TicketNoNavigation.TicCategoryNoNavigation.Name,
+					TicType = t.TicketNoNavigation.Type,
+					Date = t.Date.Date,
+					Stock = (int?)null,
+					// 判斷加減數：如果 TransQuantity 自己已正負，就不用再判斷
+					TransQuantity = (int?)t.TransQuantity
+				});
+
+			// 3️⃣ 合併兩個查詢
+			var combined = dailyStocks.Concat(transStocks);
+
+			// 4️⃣ GroupBy 票券+日期，計算合計
+			var query = from c in combined
+						group c by new
+						{
+							c.TicketNo,
+							c.TicketName,
+							c.TicketImage,
+							c.TicCategory,
+							c.TicType,
+							c.Date
+						} into g
+						select new TicketStockSumViewModel
+						{
+							No = g.Key.TicketNo,
+							Name = g.Key.TicketName,
+							TicCategory = g.Key.TicCategory,
+							Type = g.Key.TicType,
+							ReleaseDate = g.Key.Date,
+							TotalStock = g.Sum(x => x.Stock ?? 0)
+									   + g.Sum(x => x.TransQuantity ?? 0)
+						};
+
+
+			var logs = await query
+					.Where(l => l.Name == id
+								&& l.ReleaseDate >= startDate
+								&& l.ReleaseDate <= endDate)
+					.OrderBy(l => l.ReleaseDate)
+					.ToListAsync();
+
+			return Json(logs); // 回傳 JSON
+		}
+
+		private bool TicketExists(int id)
         {
             return _context.Tickets.Any(e => e.No == id);
         }

@@ -1,4 +1,4 @@
-﻿namespace StarProject.ViewModels
+﻿namespace StarProject.ViewModel
 {
 	public class ParticipantsIndexVm
 	{

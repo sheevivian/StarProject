@@ -1,0 +1,27 @@
+﻿@using StarProject.DTOs.PromotionDTOs
+@model IEnumerable<PromotionAnalysisDto>   // ✅ 修正：型別改 ViewModel，不是 Promotion
+
+@{
+    var list = Model ?? Enumerable.Empty<PromotionAnalysisDto>();  @* ✅ null 安全 *@
+}
+
+@foreach (var item in list)
+{
+    var status = item.Status ?? string.Empty;
+    var statusClass = status == "Active" ? "status-active"
+                    : status == "Inactive" ? "status-inactive"
+                    : "status-expired";
+
+    <tr>
+        <td>@item.PromotionNo</td>
+        <td>@item.Name</td>
+        <td>@item.Category</td>
+        <td><span class="status-badge @statusClass">@status</span></td>
+        <td>@item.StartDate.ToString("yyyy-MM-dd")</td>
+        <td>@item.EndDate.ToString("yyyy-MM-dd")</td>
+        <td>@item.UsesTime</td>
+        <td>@item.UsageCount</td>
+        <td>@item.UniqueUsers</td>
+        <td>@item.UsageRate %</td>
+    </tr>
+}

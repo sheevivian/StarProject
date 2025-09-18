@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;
+using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

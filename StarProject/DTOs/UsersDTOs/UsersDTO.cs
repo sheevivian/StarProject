@@ -1,8 +1,4 @@
-﻿using Microsoft.Build.Framework;
-using StarProject.Models;
-using System.ComponentModel.DataAnnotations;
-using StarProject.Helpers;
-using RequiredAttribute = Microsoft.Build.Framework.RequiredAttribute;
+﻿using StarProject.Models;
 namespace StarProject.DTOs.UsersDTOs
 {
 

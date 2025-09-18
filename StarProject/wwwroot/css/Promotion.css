@@ -1,0 +1,215 @@
+﻿/* ========== 通用樣式 ========== */
+* {
+    padding: 0;
+    margin: 0;
+}
+
+/* ========== 表格樣式 ========== */
+.table > thead > tr > th {
+    font-size: 18px !important;
+    color: #FFFFFF;
+    background-color: #2B4C8C;
+    letter-spacing: 0.2rem;
+}
+
+.table > tbody > tr > td {
+    border-color: #D5D8DB !important;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover td {
+    background-color: #F4F1FF !important;
+}
+
+.table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.table-rounded {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* ========== 按鈕樣式 ========== */
+.btn-search {
+    --bs-btn-bg: rgb(250, 208, 72);
+    --bs-btn-border-color: rgb(250, 208, 72);
+    --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+    --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+    --bs-btn-focus-shadow-rgb: 217, 164, 6;
+    --bs-btn-active-bg: #ffcd39;
+    --bs-btn-active-border-color: #ffc720;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.btn-edit {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #0d6efd;
+    --bs-btn-border-color: #0d6efd;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #527bcc;
+    --bs-btn-hover-border-color: #0d6efd;
+    --bs-btn-focus-shadow-rgb: 217, 164, 6;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #527bcc;
+    --bs-btn-active-border-color: #0d6efd;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.btn-outline-back {
+    --bs-btn-color: #DC3545;
+    --bs-btn-border-color: #DC3545;
+    --bs-btn-hover-color: #DC3545;
+    --bs-btn-hover-bg: #f8e6e9;
+    --bs-btn-hover-border-color: #DC3545;
+    --bs-btn-focus-shadow-rgb: 255, 193, 7;
+    --bs-btn-active-color: #DC3545;
+    --bs-btn-active-border-color: #DC3545;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-gradient: none;
+}
+
+.btn-outline-delect {
+    --bs-btn-color: #DC3545;
+    --bs-btn-border-color: #DC3545;
+    --bs-btn-hover-color: #DC3545;
+    --bs-btn-hover-bg: #f8e6e9;
+    --bs-btn-hover-border-color: #DC3545;
+}
+
+.btn-color {
+    border: 1px solid gray;
+    border-radius: 15px;
+}
+
+    .btn-color:hover {
+        background-color: #bbe3f3;
+    }
+
+/* ========== 搜尋相關 ========== */
+.search:hover {
+    background-color: rgba(253, 246, 222, 0.897);
+}
+
+.form-check-input {
+    border: var(--bs-border-width) solid gray;
+}
+
+/* ========== 文字樣式 ========== */
+.fs18px {
+    font-size: 18px;
+    letter-spacing: 0.1rem;
+}
+
+.fs14px {
+    font-size: 14px;
+}
+
+.text-distance {
+    letter-spacing: 5px;
+    text-align: center;
+}
+
+/* ========== 圓角 ========== */
+.br20px {
+    border-radius: 20px;
+}
+
+/* ========== 表單樣式 ========== */
+.form-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.section-divider {
+    border-left: 2px solid #e9ecef;
+    margin: 0 20px;
+}
+
+.required-mark {
+    color: #DC3545;
+    margin-left: 3px;
+}
+
+/* ========== 分頁筆數選擇 ========== */
+.no-btn-style {
+    padding: 6px 14px;
+    background-color: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0 0.375rem 0.375rem 0;
+    color: inherit;
+    box-shadow: none;
+    height: 100%;
+}
+
+/* ========== 篩選計數器 ========== */
+.filterCount {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    background-color: rgb(250, 208, 72);
+    border-radius: 50%;
+    display: none;
+}
+
+/* ========== 選取提示 ========== */
+.selectColor {
+    color: #EFF7FE;
+}
+
+/* ========== Dropdown ========== */
+.dropdown-toggle::after {
+    display: none;
+}
+
+.dropdown-item:hover {
+    background-color: #eaecf4;
+}
+
+/* ========== Offcanvas (詳細內容側邊欄) ========== */
+.offcanvas {
+    --bs-offcanvas-width: 600px;
+    --bs-offcanvas-padding-x: 1rem;
+    --bs-offcanvas-padding-y: 0rem;
+}
+
+/* ========== 優惠券專用樣式 ========== */
+.promotion-header {
+    background: linear-gradient(135deg, #FFB84C, #FF9500);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(255, 184, 76, 0.3);
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background: #d4f4dd;
+    color: #0f5132;
+}
+
+.status-inactive {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.status-expired {
+    background: #f8d7da;
+    color: #58151c;
+}

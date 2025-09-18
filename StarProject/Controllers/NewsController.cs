@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using StarProject.Helpers;
 using StarProject.Models;
-using StarProject.ViewModel;
+using StarProject.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,13 +33,25 @@ namespace StarProject.Controllers
 			// 呼叫分頁工具
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
 
-			// 把分頁資訊丟給 View
+			// 轉成 ViewModel
+			var newsVMList = items.Select(n => new NewsVM
+			{
+				No = n.No,
+				Title = n.Title,
+				Content = n.Content,
+				PublishDate = n.PublishDate,
+				CreatedDate = n.CreatedDate,
+				Category = n.Category,
+				Images = n.NewsImages.OrderBy(img => img.OrderNo).Select(img => img.Image).ToList()
+			}).ToList();
+
+			// 分頁資訊
 			ViewBag.Total = total;
 			ViewBag.TotalPages = totalPages;
 			ViewBag.Page = page;
 			ViewBag.PageSize = pageSize;
 
-			return View(items);
+			return View(newsVMList);
 		}
 
 		[HttpGet]
@@ -276,24 +290,151 @@ namespace StarProject.Controllers
             return View(news);
         }
 
-        // POST: News/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var news = await _context.News.FindAsync(id);
-            if (news != null)
-            {
-                _context.News.Remove(news);
-            }
+		// POST: News/Delete/5
+		[HttpPost, ActionName("Delete")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteConfirmed(int id)
+		{
+			var news = await _context.News.FindAsync(id);
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+			if (news != null)
+			{
+				// 先找出相關的圖片
+				var images = _context.NewsImages.Where(x => x.NewsNo == id);
 
-        private bool NewsExists(int id)
+				// 移除圖片
+				_context.NewsImages.RemoveRange(images);
+
+				// 再移除新聞
+				_context.News.Remove(news);
+
+				await _context.SaveChangesAsync();
+			}
+
+			return RedirectToAction(nameof(Index));
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteMultiple(int[] ids)
+		{
+			if (ids == null || ids.Length == 0)
+			{
+				return BadRequest();
+			}
+
+			// 找出要刪的新聞
+			var items = await _context.News.Where(x => ids.Contains(x.No)).ToListAsync();
+
+			if (items.Any())
+			{
+				// 先刪掉 NewsImage
+				var images = _context.NewsImages.Where(img => ids.Contains(img.NewsNo));
+				_context.NewsImages.RemoveRange(images);
+
+				// 再刪掉 News
+				_context.News.RemoveRange(items);
+
+				await _context.SaveChangesAsync();
+			}
+
+			return Ok();
+		}
+
+
+		// POST: News/SearchSelect
+		[HttpPost]
+		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
+		{
+			// 從 filters 取得 pageSize，如果沒有就給預設值
+			int page = filters.Page > 0 ? filters.Page : 1;
+			int pageSize = filters.PageSize >= 0 ? filters.PageSize : 10;
+
+			var query = _context.News.AsQueryable();
+			query = query.OrderByDescending(x => x.PublishDate);
+
+			// keyword
+			if (!string.IsNullOrEmpty(filters.keyword))
+			{
+				query = query.Where(x => x.Title.Contains(filters.keyword)
+									 || x.Category.Contains(filters.keyword));
+			}
+
+			// 分類
+			if (filters.Categories != null && filters.Categories.Any())
+				query = query.Where(x => filters.Categories.Contains(x.Category));
+
+			// 日期區間
+			if (!string.IsNullOrEmpty(filters.DateFrom))
+				query = query.Where(x => x.PublishDate >= DateTime.Parse(filters.DateFrom));
+
+			if (!string.IsNullOrEmpty(filters.DateTo))
+				query = query.Where(x => x.PublishDate <= DateTime.Parse(filters.DateTo));
+
+
+			// 呼叫分頁工具
+			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
+
+			// 將資料轉成 ViewModel
+			var newsVMList = items.Select(x => new NewsVM
+			{
+				No = x.No,
+				Title = x.Title,
+				Content = x.Content,
+				PublishDate = x.PublishDate,
+				CreatedDate = x.CreatedDate,
+				Category = x.Category,
+				// 舊圖片
+				Images = _context.NewsImages
+					 .Where(img => img.NewsNo == x.No)
+					 .Select(img => img.Image)
+					 .ToList()
+			}).ToList();
+
+			// 把分頁資訊丟給 View
+			ViewBag.Total = total;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.Page = page;
+			ViewBag.PageSize = pageSize;
+
+			var tableHtml = await RenderPartialViewToString("_NewsRows", newsVMList);
+			var paginationHtml = await RenderPartialViewToString("_Pagination", null);
+
+			return Json(new { tableHtml, paginationHtml });
+		}
+
+		private bool NewsExists(int id)
         {
             return _context.News.Any(e => e.No == id);
         }
-    }
+
+		public async Task<string> RenderPartialViewToString(string viewName, object model)
+		{
+			if (string.IsNullOrEmpty(viewName))
+				viewName = ControllerContext.ActionDescriptor.ActionName;
+
+			ViewData.Model = model;
+
+			using (var sw = new StringWriter())
+			{
+				var viewEngine = HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+				var viewResult = viewEngine.FindView(ControllerContext, viewName, false);
+
+				if (viewResult.Success == false)
+					throw new ArgumentNullException($"View {viewName} not found.");
+
+				var viewContext = new ViewContext(
+					ControllerContext,
+					viewResult.View,
+					ViewData,
+					TempData,
+					sw,
+					new HtmlHelperOptions()
+				);
+
+				await viewResult.View.RenderAsync(viewContext);
+				return sw.GetStringBuilder().ToString();
+			}
+		}
+	}
 }

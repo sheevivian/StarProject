@@ -4,7 +4,7 @@ using Microsoft.Build.Framework;
 using StarProject.MetaData;
 using System.ComponentModel.DataAnnotations;
 
-namespace StarProject.ViewModel
+namespace StarProject.ViewModels
 {
 	[ModelMetadataType(typeof(LostInfoMetadata))]
 	public class LostInfoVM

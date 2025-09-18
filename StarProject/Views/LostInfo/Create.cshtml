@@ -1,4 +1,5 @@
-﻿@model StarProject.ViewModel.LostInfoVM
+﻿@using StarProject.ViewModels
+@model LostInfoVM
 
 @{
     ViewData["Title"] = "遺失物新增";
@@ -8,16 +9,13 @@
     <style>
         .btn-topbar {
             --bs-btn-bg: rgb(250, 208, 72);
-			--bs-btn-border-color: rgb(250, 208, 72);
-
-			--bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
-			--bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
-
-			--bs-btn-focus-shadow-rgb: 217, 164, 6;
-
-			--bs-btn-active-bg: #ffcd39;
-			--bs-btn-active-border-color: #ffc720;
-			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-btn-border-color: rgb(250, 208, 72);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #ffc720;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
         }
 
         .img500px img {
@@ -37,21 +35,18 @@
             border: 1px solid #ddd; /* 可選，看框線 */
         }
 
-		.btn-outline-back {
-			--bs-btn-color: #DC3545;
-			--bs-btn-border-color: #DC3545;
-
-			--bs-btn-hover-color: #DC3545;
-			--bs-btn-hover-bg: #f8e6e9;
-			--bs-btn-hover-border-color: #DC3545;
-
-			--bs-btn-focus-shadow-rgb: 255, 193, 7;
-			--bs-btn-active-color: #DC3545;
-			--bs-btn-active-border-color: #DC3545;
-			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-
-			--bs-gradient: none;
-		}
+        .btn-outline-back {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
 
         .text-distance {
             letter-spacing: 5px; /* 正值：字母間距變大，負值：變小 */
@@ -66,9 +61,9 @@
     <div class="d-flex">
         <form asp-action="Create" method="post" enctype="multipart/form-data" class="col-md-5">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-			<div class="form-group mb-2">
+            <div class="form-group mb-2">
                 <label asp-for="Name" class="control-label fw-bold fs-5"></label><span asp-validation-for="Name" class="text-danger ms-3"></span>
-				<input asp-for="Name" class="form-control" />
+                <input asp-for="Name" class="form-control" />
             </div>
             <div class="form-group mb-2">
                 <label asp-for="Category" class="control-label fw-bold fs-5"></label><span asp-validation-for="Category" class="text-danger  ms-3"></span>
@@ -122,7 +117,7 @@
         <!-- 預覽區域 -->
         <div class="flex-fill d-flex justify-content-center">
             <div class="img500px mb-3">
-                <img id="preview" src="#" alt="圖片預覽"/>
+                <img id="preview" src="#" alt="圖片預覽" />
             </div>
         </div>
     </div>

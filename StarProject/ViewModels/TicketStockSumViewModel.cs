@@ -21,6 +21,8 @@ namespace StarProject.ViewModels
 
 		public DateTime ReleaseDate { get; set; }
 
+		public int? InitialStock { get; set; }
+
 		[DisplayName("庫存")]
 		public int TotalStock { get; set; }
 	}

@@ -5,6 +5,11 @@
     ViewData["Title"] = "商品查詢";
 }
 <head>
+    <style>
+        .bg-offcanvasPoint{
+            background-color: #F4F1FF;
+        }
+    </style>
     <link href="~/css/lostinfoindex.min.css" rel="stylesheet" />
 </head>
 
@@ -245,19 +250,49 @@
         <!-- 詳細內容 -->
         <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDetail">
             <div class="offcanvas-header justify-content-between d-flex align-items-center pt-3 pb-2">
-                <h3 class="offcanvas-title fw-bolder">詳細內容</h3>
+                <h3 class="offcanvas-title fw-bolder" id="offcanvasName"></h3>
                 <div class="d-flex justify-content-end align-items-center gap-2">
-                    <a id="offcanvasEditBtn" class="btn btn-primary br20px"><i class="fa-solid fa-pen-to-square"></i>編輯</a>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria0-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
             </div>
-            <div class="offcanvas-body">
-                <div class="img550px rounded mb-3" id="imgWrapper"><img id="offcanvasImage" src="" alt="商品照片" class="rounded" /></div>
-                <p><strong>商品名稱：</strong><span id="offcanvasName"></span></p>
-                <p><strong>商品狀態：</strong><span id="offcanvasStatus"></span></p>
+            <div class="offcanvas-body flex-column">
+                <div class="d-flex justify-content-end mb-3">
+                    <a id="offcanvasArtBtn" class="btn br20px btn-color"><i class="fa-solid fa-pen-to-square"></i>編輯介紹</a>
+                </div>
+                <div id="carouselExampleIndicators" class="carousel slide">
+                    <div class="carousel-indicators" id="carouselIndicators">
+                        
+                    </div>
+                    <div class="carousel-inner" id="carouselInner">
+                        
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">上一張</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">下一張</span>
+                    </button>
+                </div>
+
+
+                <div id="offcanvasPoint" class="bg-offcanvasPoint p-3 m-1 fs-5 text-center rounded rounded-3"></div>
+                <div id="offcanvasDesc" class="p-3 m-1"></div>
                 <hr>
-                <p><strong>上架日期：</strong><span id="offcanvasReleaseDate"></span></p>
-                <p><strong>更新日期：</strong><span id="offcanvasUpdateDate"></span></p>
+                <div class="row">
+                    <div class="col-8">
+                        <p><strong>商品編號：</strong><span id="offcanvasId"></span></p>
+                        <p><strong>商品狀態：</strong><span id="offcanvasStatus"></span></p>
+                        <p><strong>上架日期：</strong><span id="offcanvasReleaseDate"></span></p>
+                        <p><strong>更新日期：</strong><span id="offcanvasUpdateDate"></span></p>
+                    </div>
+                    <div class="col d-flex justify-content-end">
+                        <div>
+                            <a id="offcanvasEditBtn" class="btn btn-color br20px"><i class="fa-solid fa-pen-to-square"></i>修改資料</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div> 
     </div>
@@ -402,25 +437,107 @@
             // Offcanvas 詳細資料
             $(document).on('click', '.btn-detail', function () {
                 var btn = $(this);
+                // 取得這筆資料的 ID
+                var id = btn.data('id');
+
+                $('#offcanvasId').text(id);
                 $('#offcanvasImage').attr("src", btn.data('image'));
                 $('#offcanvasName').text(btn.data('name'));
                 $('#offcanvasStatus').text(btn.data('status'));
                 $('#offcanvasReleaseDate').text(btn.data('releasedate'));
                 $('#offcanvasUpdateDate').text(btn.data('updatedate'));
 
-                // 取得這筆資料的 ID
-                var id = btn.data('id');
+
 
                 // 設定「編輯」按鈕連結
                 $('#offcanvasEditBtn').attr("href", "/Product/Edit/" + id);
 
+                // 設定「編輯」按鈕連結
+                $('#offcanvasArtBtn').attr("href", "/Product/Article/" + id);
+
                 // 圖片值null，圖片區不顯示
-                if (!btn.data('image')) {
-                    $('#imgWrapper').hide();
-                }
-                else {
-                    $('#imgWrapper').show().find('#offcanvasImage').attr("src", image);
-                }
+                // if (!btn.data('image')) {
+                //     $('#imgWrapper').hide();
+                // }
+                // else {
+                //     $('#imgWrapper').show().find('#offcanvasImage').attr("src", btn.data('image'));
+                // }
+
+                $.ajax({
+                    url: '/Product/GetImageLogs', // Controller 的路徑
+                    type: 'GET',
+                    data: { id : id },
+                        success: function (logs) {
+                        // 清空原本的輪播
+                        $('#carouselIndicators').empty();
+                        $('#carouselInner').empty();
+
+                        if (logs.length > 0) {
+                            logs.forEach((log, index) => {
+                                // 生成 indicator
+                                $('#carouselIndicators').append(`
+                                    <button type="button"
+                                            data-bs-target="#carouselExampleIndicators"
+                                            data-bs-slide-to="${index}"
+                                            class="${index === 0 ? 'active' : ''}"
+                                            aria-current="${index === 0 ? 'true' : 'false'}"
+                                            aria-label="Slide ${index + 1}"
+                                            style="background-color:#d3d3d3">
+                                    </button>
+                                `);
+
+                                // 生成 carousel-item
+                                $('#carouselInner').append(`
+                                    <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                                        <img src="${log.image}" class="d-block w-100" style="height:500px; object-fit:contain; object-position:center;" alt="商品照片">
+                                    </div>
+                                `);
+                            });
+
+                            $('#offcanvasPoint').show();
+                        } else {
+                            $('#offcanvasPoint').hide();
+                        }
+                    },
+                    error: function () {
+                        alert('讀取紀錄失敗');
+                    }
+                });
+
+                $.ajax({
+                    url: '/Product/GetLogs', // Controller 的路徑
+                    type: 'GET',
+                    data: { id : id },
+                    success: function (logs) {
+                                $('#offcanvasPoint').empty();
+                                $('#offcanvasDesc').empty();
+
+                                    // 過濾有 point 的 logs
+                                var logsWithPoint = logs.filter(log => log.point != null);
+                                var logsWithDesc = logs.filter(log => log.description != null);
+
+                                if (logsWithPoint.length > 0) {
+                                    logsWithPoint.forEach(log => {
+                                        $('#offcanvasPoint').append(log.point.replace(/\n/g, '<br>'));
+                                    });
+                                    $('#offcanvasPoint').show();
+                                } else {
+                                    $('#offcanvasPoint').hide();
+                                }
+
+                                if (logsWithDesc.length > 0) {
+                                    logsWithDesc.forEach(log => {
+                                        $('#offcanvasDesc').html(`${log.description}`);
+                                    });
+                                    $('#offcanvasDesc').show();
+                                } else {
+                                    $('#offcanvasDesc').hide();
+                                }
+                     },
+                    error: function () {
+                        alert('讀取紀錄失敗');
+                    }
+                });
 
                 // 打開 Offcanvas
                 var offcanvasEl = document.getElementById('offcanvasDetail');

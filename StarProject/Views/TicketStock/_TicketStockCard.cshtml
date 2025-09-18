@@ -1,0 +1,120 @@
+﻿@model IEnumerable<StarProject.ViewModels.TicketStockSumViewModel>
+
+@{
+    var groupedByDate = Model
+    .GroupBy(m => m.ReleaseDate)
+    .OrderByDescending(g => g.Key);
+}
+
+@foreach (var dayGroup in groupedByDate)
+{
+    var dateId = $"date-{dayGroup.Key:yyyyMMdd}";
+    <div class="col rounded-lg">
+        <div class="card mb-3 h-100 shadow">
+            <div class="card-header fw-bold text-white fs-5" style="background-color:#2B4C8C;">
+                日期： @dayGroup.Key.ToString("yyyy-MM-dd")
+            </div>
+            <div class="card-body p-0 px-2 pt-2">
+                @{
+                    var catIndex = 0; // 每個日期的類別索引
+                }
+                @foreach (var ticketGroupByCat in dayGroup.GroupBy(x => x.TicCategory))
+                {
+                    // 判斷這個分類底下是否有任何票券庫存 < 初始庫存1/4
+                    var isAnyLowStock = ticketGroupByCat.Any(x => x.TotalStock < (x.InitialStock/4));
+
+                    // 外層 Accordion id
+                    var ticketCat = $"{dateId}-cat{catIndex}";
+                    <div class="accordion m-2" id="accordionTicket-@ticketCat">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header p-0" id="heading-@ticketCat">
+                                <button class="accordion-button collapsed btn-accor" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#collapse-@ticketCat"
+                                        aria-expanded="false"
+                                        aria-controls="collapse-@ticketCat">
+                                    @if (isAnyLowStock)
+                                    {
+                                        <div class="bg-danger rounded-circle me-2" style="width:10px; height:10px;"></div>
+                                    }
+                                    @ticketGroupByCat.Key
+                                </button>
+                            </h2>
+                            <div id="collapse-@ticketCat" class="accordion-collapse collapse"
+                                 aria-labelledby="heading-@ticketCat">
+                                <div class="accordion-body p-0">
+                                    @{
+                                        var nameIndex = 0; // 每個類別下的票券名稱索引
+                                    }
+                                    @foreach (var ticketGroupByName in ticketGroupByCat.GroupBy(x => x.Name))
+                                    {
+                                        // 計算這個展覽所有庫存的總和
+                                        var totalStock = ticketGroupByName.Sum(x => x.TotalStock);
+                                        var intialStock = ticketGroupByName.Sum(x => x.InitialStock);
+                                        var isLowStock = totalStock < (intialStock / 4);
+
+                                        // 內層 Accordion id
+                                        var ticketId = $"{ticketCat}-name{nameIndex}";
+                                        <div class="accordion m-3" id="accordionTicket-@ticketId">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="heading-@ticketId">
+                                                    <button class="accordion-button collapsed btn-accor" type="button"
+                                                            data-bs-toggle="collapse"
+                                                            data-bs-target="#collapse-@ticketId"
+                                                            aria-expanded="false"
+                                                            aria-controls="collapse-@ticketId">
+                                                        @ticketGroupByName.Key
+                                                        @if (isLowStock)
+                                                        {
+                                                            <span class="badge bg-danger ms-2 rounded-pill" style="font-size:15px;">
+                                                                庫存注意
+                                                            </span>
+                                                        }
+                                                    </button>
+                                                </h2>
+                                                <div id="collapse-@ticketId" class="accordion-collapse collapse"
+                                                     aria-labelledby="heading-@ticketId">
+                                                    <div class="accordion-body p-3">
+                                                        <!-- 票券類型 + 庫存 -->
+                                                        <table class="table table-sm border border-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>票券類型</th>
+                                                                    <th>庫存</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach (var item in ticketGroupByName)
+                                                                {
+                                                                    var total = item.TotalStock;
+                                                                    var init = item.InitialStock ?? 0;
+
+                                                                    // 小於 1/4 時變紅
+                                                                    var lowerClass = (init > 0 && total < (init / 4.0))
+                                                                    ? "text-danger fw-bold border-0 border border-bottom border-black"
+                                                                    : "";
+
+                                                                    <tr>
+                                                                        <td>@item.InitialStock</td>
+                                                                        <td class="@lowerClass">@item.TotalStock</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        nameIndex++;
+                                    }
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    catIndex++;
+                }
+            </div>
+        </div>
+    </div>
+}

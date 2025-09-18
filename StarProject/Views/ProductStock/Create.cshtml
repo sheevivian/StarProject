@@ -1,0 +1,110 @@
+﻿@model StarProject.Models.ProductStock
+
+@{
+    ViewData["Title"] = "商品庫存設定";
+}
+
+<head>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .btn-topbar {
+            --bs-btn-bg: rgb(250, 208, 72);
+            --bs-btn-border-color: rgb(250, 208, 72);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+            --bs-btn-focus-shadow-rgb: 217, 164, 6;
+            --bs-btn-active-bg: #ffcd39;
+            --bs-btn-active-border-color: #ffc720;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        }
+
+        .btn-outline-back {
+            --bs-btn-color: #DC3545;
+            --bs-btn-border-color: #DC3545;
+            --bs-btn-hover-color: #DC3545;
+            --bs-btn-hover-bg: #f8e6e9;
+            --bs-btn-hover-border-color: #DC3545;
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: #DC3545;
+            --bs-btn-active-border-color: #DC3545;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+
+        .btn-outline-excel {
+            --bs-btn-color: rgb(0, 0, 0);
+            --bs-btn-border-color: rgb(0, 0, 0);
+            --bs-btn-hover-color: rgb(0, 0, 0);
+            --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+            --bs-btn-hover-border-color: rgb(0, 0, 0);
+            --bs-btn-focus-shadow-rgb: 255, 193, 7;
+            --bs-btn-active-color: rgb(0, 0, 0);
+            --bs-btn-active-border-color: rgb(0, 0, 0);
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-gradient: none;
+        }
+    </style>
+</head>
+<h1 class="fw-bold">商品庫存設定</h1>
+<div class="p-4 mt-3 rounded-4 bg-white">
+            <div class="row">
+                <div class="col-6 my-5 ms-5">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="ProductNo" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <input asp-for="ProductNo" class="form-control" />
+                                <span asp-validation-for="ProductNo" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="ProductNoNavigation.Name" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <input asp-for="ProductNoNavigation" class="form-control" readonly form-control-plaintext />
+                                <span asp-validation-for="ProductNoNavigation.Name" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="Type" class=" control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <select asp-for="Type" class="form-select" asp-items="ViewBag.TransType"></select>
+                            </div>
+                        </div>
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="TransQuantity" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <input asp-for="TransQuantity" class="form-control" />
+                                <span asp-validation-for="TransQuantity" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group d-flex align-items-center mb-3 row">
+                            <div class="col-4 col-lg-2 fw-bold fs-5">
+                                <label asp-for="Note" class="control-label"></label>
+                            </div>
+                            <div class="col-8 col-lg-10">
+                                <input asp-for="Note" class="form-control" />
+                                <span asp-validation-for="Note" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-topbar flex-fill fw-bold fs-5">
+                                <i class="fa-solid fa-plus me-2"></i>新增
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-back flex-fill fw-bold fs-5">返回列表</a>
+                        </div>
+                    </form>
+            </div>
+        </div>
+</div>

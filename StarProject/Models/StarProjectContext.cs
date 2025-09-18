@@ -823,6 +823,7 @@ public partial class StarProjectContext : DbContext
         {
             entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8DFF6CDC9");
 
+
             entity.ToTable("ProductStock");
 
             entity.Property(e => e.Date).HasColumnType("datetime");
@@ -941,6 +942,7 @@ public partial class StarProjectContext : DbContext
         modelBuilder.Entity<TicCategory>(entity =>
         {
             entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8E1C7D298");
+
 
             entity.ToTable("TicCategory");
 

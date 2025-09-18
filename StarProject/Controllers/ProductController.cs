@@ -524,12 +524,118 @@ namespace StarProject.Controllers
 		[HttpGet]
 		public async Task<IActionResult> Article(int id)
 		{
-			var proIntro = _context.ProductIntroduces
-								   .Include(pi => pi.ProductNoNavigation)
-								   .FirstOrDefault(p => p.ProductNo == id);
-			return View(proIntro);
+			var product = await _context.Products
+				.Include(p => p.ProductImages.OrderBy(img => img.ImgOrder))
+				.Include(p => p.ProductIntroduce)  // 如果是一對一介紹
+				.FirstOrDefaultAsync(p => p.No == id);
+
+
+			if (product == null)
+			{
+				return View("Error");
+			}
+
+			var vm = new ProductIntroViewModel
+			{
+				ProductNo = product.No,
+				ProductName = product.Name,
+				Description = product.ProductIntroduce?.Description,
+				Point = product.ProductIntroduce?.Point,
+				Images = product.ProductImages.Select(img => img.Image).ToList()
+			};
+
+			return View(vm);
 		}
 
+		// 新增商品介紹(POST)
+		// POST: Product/Article/5
+		[HttpPost]
+		public async Task<IActionResult> Article(int id,ProductIntroViewModel piVM)
+		{
+			if (!ModelState.IsValid)
+			{
+				// 回傳同一頁讓使用者修正
+				return View(piVM);
+			}
+
+			// 更新 ProductIntroduce
+			var introduce = await _context.ProductIntroduces
+				.FirstOrDefaultAsync(pi => pi.ProductNo == piVM.ProductNo);
+			if (introduce == null)
+			{
+				// 如果介紹不存在，就新增一筆
+				introduce = new ProductIntroduce
+				{
+					ProductNo = piVM.ProductNo,
+					Description = piVM.Description,
+					Point = piVM.Point
+				};
+				_context.ProductIntroduces.Add(introduce);
+			}
+			else
+			{
+				introduce.Description = piVM.Description;
+				introduce.Point = piVM.Point;
+				_context.ProductIntroduces.Update(introduce);
+			}
+
+			await _context.SaveChangesAsync();
+
+			return RedirectToAction("Index"); // 或回到列表頁
+		}
+		
+		// 商品介紹內文圖片(POST)
+		// POST: Product/ArticleImage
+		[HttpPost]
+		public async Task<IActionResult> ArticleImage(IFormFile upload)
+		{
+			if (upload == null || upload.Length == 0)
+				return Json(new { uploaded = 0, error = new { message = "No file uploaded." } });
+
+			try
+			{
+				// 上傳到 ImgBB
+				string url = await ImgUploadHelper.UploadToImgBB(upload);
+
+				// 回傳 CKEditor 可用 JSON
+				return Json(new { uploaded = 1, url = url });
+			}
+			catch (Exception ex)
+			{
+				return Json(new { uploaded = 0, error = new { message = ex.Message } });
+			}
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> GetLogs(int id)
+		{
+			var product = await _context.Products
+			.Include(p => p.ProductImages.OrderBy(img => img.ImgOrder))
+			.Include(p => p.ProductIntroduce)  // 如果是一對一介紹
+			.FirstOrDefaultAsync(p => p.No == id);
+
+			var logs = await _context.Products
+					.Include(p => p.ProductImages.OrderBy(img => img.ImgOrder))
+					.Include(p => p.ProductIntroduce)
+					.OrderByDescending(l => l.No)
+					.Where(l => l.No == id)
+					.Select(l => new ProductIntroViewModel {
+						ProductNo = l.No,
+						ProductName = l.Name,
+						Description = l.ProductIntroduce.Description,
+						Point = l.ProductIntroduce.Point,
+					}).ToListAsync();
+			return Json(logs); // 回傳 JSON
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> GetImageLogs(int id)
+		{
+			var logs = await _context.ProductImages
+				.Where(p => p.ProductNo == id)
+				.OrderBy(img => img.ImgOrder).ToListAsync();
+			return Json(logs); // 回傳 JSON
+		}
 
 		private bool ProductExists(int id)
         {

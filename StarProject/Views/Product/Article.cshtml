@@ -1,11 +1,10 @@
-﻿@model StarProject.Models.ProductIntroduce;
+﻿@model StarProject.ViewModels.ProductIntroViewModel;
    
 @{
     ViewData["Title"] = "商品介紹編輯";
 }
 
 <head>
-    <link href="~/css/textediting.css" rel="stylesheet" />
     <style>
         .btn-topbar {
             --bs-btn-bg: rgb(250, 208, 72);
@@ -57,15 +56,23 @@
             height: 100px; /* 依你 li 的高度調整 */
             border-radius: 8px;
         }
+
+        .carousel-control-prev-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23d3d3d3' viewBox='0 0 8 8'%3E%3Cpath d='M5.5 0L4.5 1 1 4.5 4.5 8 5.5 7 2.5 4.5z'/%3E%3C/svg%3E");
+        }
+
+        .carousel-control-next-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23d3d3d3' viewBox='0 0 8 8'%3E%3Cpath d='M2.5 0L3.5 1 7 4.5 3.5 8 2.5 7 5.5 4.5z'/%3E%3C/svg%3E");
+        }
     </style>
-    
+	<link href="~/css/textediting.css" rel="stylesheet" />
 </head>
 
 <h1 class="fw-bold">商品介紹編輯</h1>
 <hr />
 
 <div class="row">
-    <form asp-action="Create" method="post" enctype="multipart/form-data" style="width:100%">
+    <form asp-action="Article" method="post" enctype="multipart/form-data" style="width:100%">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="row g-3 align-items-stretch">
             <!-- 左側：基本資訊 + 圖片 -->
@@ -75,7 +82,7 @@
                     <div class="card-body">
                         <div class="form-group d-flex align-items-center row">
                             <div class="col-4 col-lg-2 fw-bold fs-5">
-                                <label asp-for="ProductNo" class="control-label fw-bold fs-4"></label>
+                                <label asp-for="ProductNo" class="control-label fw-bold fs-5"></label>
                             </div>
                             <div class="col-8 col-lg-10 fs-5">
                                 <input asp-for="ProductNo" readonly class="form-control-plaintext" />
@@ -83,18 +90,13 @@
                         </div>
                         <div class="form-group d-flex align-items-center row">
                             <div class="col-4 col-lg-2 fw-bold fs-5">
-                                <label asp-for="ProductNoNavigation.Name" class="control-label fw-bold fs-4"></label>
+                                <label asp-for="ProductName" class="control-label fw-bold fs-5"></label>
                             </div>
                             <div class="col-8 col-lg-10 fs-5">
-                                <input asp-for="ProductNoNavigation.Name" readonly class="form-control-plaintext" />
+                                <input asp-for="ProductName" readonly class="form-control-plaintext" />
                             </div>
                         </div>
-                        <div class="form-group mb-3">
-                            <div class="fw-bold fs-5">
-                                <label asp-for="Point" class="control-label fw-bold fs-5"></label><span asp-validation-for="Point" class="text-danger ms-3"></span>
-                                <textarea asp-for="Point" class="form-control" rows="5" cols="50" style="resize: none;" placeholder="選填，最多50個字"></textarea>
-                            </div>
-                        </div>
+
                         
                         <!-- Carousel 預覽 + 拖曳排序 -->
                         <div class="mb-3">
@@ -103,10 +105,11 @@
                                     <!-- 動態生成 indicator -->
                                     @{
                                         var i = 0;
-                                        foreach (var img in Model.ProductNoNavigation.ProductImages)
+                                        foreach (var img in Model.Images)
                                         {
                                             <button type="button" data-bs-target="#carouselExampleIndicators"
-                                                data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Slide ${@i+1}">
+                                                data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Slide ${@i+1}"
+                                                style="background-color:#d3d3d3">
                                             </button>
                                             i++;
                                         }
@@ -115,14 +118,13 @@
                                 <div class="carousel-inner" id="carouselInner">
                                     @{
                                         var j = 0;
-                                    
-                                    foreach (var item in Model.ProductNoNavigation.ProductImages)
-                                    {
-                                        <div class="carousel-item @(j == 0 ? "active" : "")">
-                                            <img src="@item.Image" class="d-block w-100" style="height:500px; object-fit:cover; object-position: center;">
-                                        </div>
-                                        j++;
-                                    }
+                                        foreach (var item in Model.Images)
+                                        {
+                                            <div class="carousel-item @(j == 0 ? "active" : "")">
+                                                <img src="@item" class="d-block w-100" style="height:500px; width:100px; object-fit:contain; object-position: center;">
+                                            </div>
+                                            j++;
+                                        }
                                     }
                                 </div>
                                 <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
@@ -136,24 +138,7 @@
                             </div>
                         </div>
 
-                        <!-- 縮圖拖曳區 -->
-                        <div class="mb-2">
-                            <ul id="imagePreviewList" class="list-unstyled d-flex gap-2">
-                                <!-- 動態生成縮圖 -->
-                                    @{
-                                        var k = 0;
-                                    }
-                                    @foreach (var item in Model.ProductNoNavigation.ProductImages)
-                                    {
-                                    <li class="position-relative d-inline-block me-2" style="width:100px;height:80px;" data-index="@(k == 0 ? "active" : "")">
-                                    <img src="@item.Image" class="img-thumbnail w-100 h-100" style="object-fit:cover;">
-                                    <button type="button" class="btn-close btn-close-white position-absolute remove-btn" style="top:2px;right:2px;"></button>
-                                </li>
-                                    k++;
-                                }
-                            </ul>
-                            <small id="dragTip" class="text-muted" style="display:none;">可拖曳排序圖片</small>
-                        </div>
+
 
                     </div>
                 </div>
@@ -164,8 +149,17 @@
                 <div class="card h-100">
                     <div class="card-header fw-bold fs-4"><strong>商品介紹</strong></div>
                     <div class="card-body d-flex flex-column">
+                        <div class="form-group mb-3">
+                            <div class="fw-bold fs-5">
+                                <label asp-for="Point" class="control-label fw-bold fs-5"></label><span asp-validation-for="Point" class="text-danger ms-3"></span>
+                                <textarea asp-for="Point" class="form-control" rows="5" cols="50" style="resize: none;" placeholder="選填，最多50個字"></textarea>
+                            </div>
+                        </div>
                         <div class="form-group mb-2">
-                            <textarea asp-for="Description" id="editor" class="form-control"></textarea>
+                            <div>
+                                <label asp-for="Description" class="control-label fw-bold fs-5"></label><span asp-validation-for="Point" class="text-danger ms-3"></span>
+                                <textarea asp-for="Description" id="editor" class="form-control"></textarea>
+                            </div>
                         </div>    
                     </div>
                 </div>
@@ -174,7 +168,7 @@
 
         <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
             <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
-                <i class="fa-solid fa-plus"></i>新增
+                <i class="fa-solid fa-plus"></i>保存變更
             </button>
             <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
         </div>
@@ -208,7 +202,7 @@
                         'undo', 'redo'
                     ],
                     ckfinder: {
-                        // uploadUrl: '/CompanyNotifies/UploadImage'
+                        uploadUrl: '/Product/ArticleImage'
                     }
                 })
                 .then(editor => {

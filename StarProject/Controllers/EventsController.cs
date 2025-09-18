@@ -192,6 +192,7 @@ namespace StarProject.Controllers
 				"報名中" or "Open" or "開放報名" => new[] { "報名中", "Open", "開放報名" },
 				"已結束" or "Ended" or "Closed" => new[] { "已結束", "Ended", "Closed" },
 				"已取消" or "Cancelled" or "Canceled" => new[] { "已取消", "Cancelled", "Canceled" },
+				"已額滿" or "Full" => new[] { "已額滿", "Full" },
 				_ => new[] { s }
 			};
 		}
@@ -534,6 +535,7 @@ namespace StarProject.Controllers
 
 		// =================== 進階搜尋（清單頁） ==================
 		// 使用你的 SearchFilterVM（含 keyword/Categories/Statuses/(Locations)/DateFrom/DateTo/Page/PageSize）
+		
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
 		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
@@ -549,7 +551,6 @@ namespace StarProject.Controllers
 					!_context.Schedules.Any(s => s.EventNo == e.No && s.ExpirationDate != SqlMin && s.ExpirationDate <= DateTime.Now)
 				);
 
-			// 關鍵字
 			if (!string.IsNullOrWhiteSpace(filters.keyword))
 			{
 				var kw = filters.keyword.Trim();
@@ -560,46 +561,88 @@ namespace StarProject.Controllers
 					(e.Desc != null && e.Desc.Contains(kw)));
 			}
 
-			// 種類/狀態
 			if (filters.Categories?.Any() == true)
 				q = q.Where(e => filters.Categories.Contains(e.Category));
 
-			if (filters.Statuses?.Any() == true)
-				q = q.Where(e => filters.Statuses.Contains(e.Status));
+			// C. 狀態過濾（建議寫法）
+			var statuses = filters.Statuses?
+				.Where(s => !string.IsNullOrWhiteSpace(s))
+				.Select(s => s.Trim())
+				.ToList() ?? new List<string>();
 
-			// 日期區間（用固定格式解析，避免文化差異；DateFrom 含當日 00:00）
+			if (statuses.Any())
+			{
+				// 先把使用者輸入的每個狀態展開成你系統支援的同義值（NormalizeStatus）
+				// e.g. "報名中" → {"報名中","Open","開放報名"}
+				var keys = statuses
+					.SelectMany(NormalizeStatus)
+					.Where(s => !string.IsNullOrWhiteSpace(s))
+					.Distinct()
+					.ToArray();
+
+				if (keys.Length > 0)
+				{
+					// ✅ 只在常數集合上做 Contains，讓 EF 轉成 SQL 的 IN (...)，索引友善
+					q = q.Where(e => keys.Contains(e.Status));
+				}
+			}
+
+
+
 			var ci = System.Globalization.CultureInfo.InvariantCulture;
 			if (!string.IsNullOrWhiteSpace(filters.DateFrom) &&
-				DateTime.TryParseExact(filters.DateFrom, "yyyy-MM-dd", ci,
-					System.Globalization.DateTimeStyles.None, out var from))
+				DateTime.TryParseExact(filters.DateFrom, "yyyy-MM-dd", ci, System.Globalization.DateTimeStyles.None, out var from))
 			{
 				q = q.Where(e => e.StartDate >= from);
 			}
-
 			if (!string.IsNullOrWhiteSpace(filters.DateTo) &&
-				DateTime.TryParseExact(filters.DateTo, "yyyy-MM-dd", ci,
-					System.Globalization.DateTimeStyles.None, out var to))
+				DateTime.TryParseExact(filters.DateTo, "yyyy-MM-dd", ci, System.Globalization.DateTimeStyles.None, out var to))
 			{
-				var end = to.Date.AddDays(1).AddTicks(-1); // 當天 23:59:59.9999999
+				var end = to.Date.AddDays(1).AddTicks(-1);
 				q = q.Where(e => e.StartDate <= end);
 			}
 
-			// ✅ 最後再排序，確保分頁是在正確集合上做
 			q = q.OrderByDescending(e => e.StartDate)
 				 .ThenByDescending(e => e.CreatedTime);
 
-			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(q, page, pageSize);
+			// 先算總數與頁數，再「夾住」page
+			var total = await q.CountAsync();
+			var totalPages = total == 0 ? 1 : (int)Math.Ceiling(total / (double)pageSize);
+			if (page > totalPages) page = totalPages;
+			if (page < 1) page = 1;
 
+			var items = await q.Skip((page - 1) * pageSize)
+							   .Take(pageSize)
+							   .ToListAsync();
+
+			// 這些給分頁 partial / 前端使用
 			ViewBag.Total = total;
-			ViewBag.TotalPages = totalPages;
+			ViewBag.TotalPages = totalPages; // 已保證至少 1
 			ViewBag.Page = page;
 			ViewBag.PageSize = pageSize;
+
+			// 回填目前條件（讓前端重繪後仍保留）
+			var firstStatus = filters.Statuses?.FirstOrDefault() ?? "";
+			ViewBag.Status = firstStatus;
+			ViewBag.Keyword = filters.keyword ?? "";
 
 			var tableHtml = await RenderPartialViewToString("_EventRows", items);
 			var paginationHtml = await RenderPartialViewToString("_EventPagination", null);
 
-			return Json(new { tableHtml, paginationHtml });
+			return Json(new
+			{
+				tableHtml,
+				paginationHtml,
+				total,
+				totalPages,
+				page,
+				pageSize,
+				status = firstStatus,
+				keyword = filters.keyword ?? ""
+			});
 		}
+
+
 
 
 
@@ -680,7 +723,7 @@ namespace StarProject.Controllers
 		private static DateTime TrimToMinute(DateTime dt)
 			=> new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
 
-		// 供 AJAX 回傳 Partial HTML 用（和隊友相同做法）
+		// 供 AJAX 回傳 Partial HTML 用 
 		public async Task<string> RenderPartialViewToString(string viewName, object model)
 		{
 			if (string.IsNullOrEmpty(viewName))

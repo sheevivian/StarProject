@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<StarProject.Models.Event>
 @Html.AntiForgeryToken()
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "活動列表";
@@ -486,97 +487,165 @@
 
 @section Scripts {
     <script>
-        (function fixDropdownJump() {
-          var toggle = document.getElementById('advancedFilter');
-          if (!toggle) return;
+        // ====== 全域參數（從伺服端帶入） ======
+        const pageNumber = @((ViewBag.PageSize ?? 10));
+        const initStatus  = @Html.Raw(JsonSerializer.Serialize(ViewBag.Status as string ?? ""));
+        const initKeyword = @Html.Raw(JsonSerializer.Serialize(ViewBag.Keyword as string ?? ""));
 
-          var inst = bootstrap.Dropdown.getInstance(toggle);
-          if (inst) inst.dispose();
-
-          new bootstrap.Dropdown(toggle, {
-            popperConfig: {
-              strategy: 'fixed',
-              modifiers: [
-                { name: 'offset', options: { offset: [0, 8] } },
-                { name: 'preventOverflow', options: { boundary: document.body } },
-                { name: 'computeStyles', options: { adaptive: false } }
-              ]
-            },
-            autoClose: 'outside'
-          });
-        })();
-
-        // ====== 全域參數 ======
-        var pageNumber = 10;
-
-        // 目前套用中的篩選條件（與後端 VM 欄位名一致）
-        let currentFilters = { categories: [], statuses: [], dateFrom: '', dateTo: '', keyword: '' };
+        let currentFilters = {
+          categories: [],
+          statuses:  initStatus ? [initStatus] : [],
+          dateFrom: '',
+          dateTo: '',
+          keyword:  initKeyword
+        };
 
         // ====== 換頁（統一用 SearchSelect） ======
         function loadPage(page) {
           refreshEventsTable(page, currentFilters);
         }
 
+        // ====== AJAX 刷新（唯一版本，請勿重複定義） ======
+        async function refreshEventsTable(page = 1, filters = currentFilters) {
+          try {
+          function sanitizeFilters(f){
+          const de = s => $('<textarea/>').html(String(s)).text(); // 解 HTML Entity
+          const o = {...f};
+          o.categories = (o.categories||[]).map(s=>de(s).trim()).filter(Boolean);
+          o.statuses   = (o.statuses||[]).map(s=>de(s).trim()).filter(Boolean);
+          o.keyword    = de(o.keyword||'').trim();
+          if (!o.categories.length) delete o.categories;
+          if (!o.statuses.length)   delete o.statuses;
+          if (!o.keyword)           delete o.keyword;
+          if (!o.dateFrom)          delete o.dateFrom;
+          if (!o.dateTo)            delete o.dateTo;
+          return o;
+        }
+
+            const payload = { ...filters, page, pageSize: pageNumber };
+            console.debug('[SearchSelect] request:', payload);
+
+            const response = await $.ajax({
+              url: '/Events/SearchSelect',
+              type: 'POST',
+              data: JSON.stringify(payload),
+              contentType: 'application/json; charset=utf-8'
+            });
+
+            console.debug('[SearchSelect] response:', {
+              page: response.page, total: response.total,
+              totalPages: response.totalPages, status: response.status, keyword: response.keyword
+            });
+
+            const srvPage       = Number(response.page ?? page) || 1;
+            // const srvTotal      = Number(response.total ?? 0);
+            const srvTotalPages = Math.max(1, Number(response.totalPages ?? 1));
+
+            // 更新表格與分頁
+            if (typeof response === 'string') {
+              $('#tableBody').html(response);
+            } else {
+              $('#tableBody').html(response.tableHtml || '');
+              if (response.paginationHtml) $('#pagination').html(response.paginationHtml);
+            }
+
+            // 更新頁碼顯示
+            $('#paginationInfo').text(srvPage);
+
+            // 清理選取狀態
+            $('#checkAll').prop('checked', false);
+            $('#deleteAllBtn, #selectNum').hide();
+          } catch (err) {
+            alert('更新列表失敗：' + (err.responseText || err.statusText || err.message));
+          }
+        }
+
+        // ====== DOM Ready ======
         $(function () {
           const getToken = () => $('input[name="__RequestVerificationToken"]').val();
+
+          // 修正下拉選單彈出位置抖動
+          (function fixDropdownJump() {
+            const toggle = document.getElementById('advancedFilter');
+            if (!toggle) return;
+            const inst = bootstrap.Dropdown.getInstance(toggle);
+            if (inst) inst.dispose();
+            new bootstrap.Dropdown(toggle, {
+              popperConfig: {
+                strategy: 'fixed',
+                modifiers: [
+                  { name: 'offset', options: { offset: [0, 8] } },
+                  { name: 'preventOverflow', options: { boundary: document.body } },
+                  { name: 'computeStyles', options: { adaptive: false } }
+                ]
+              },
+              autoClose: 'outside'
+            });
+          })();
+
+          // —— 初始 UI：從總覽帶來的條件回填 —— //
+          (function syncInitialFiltersToUI(){
+            if (initKeyword) { $('#searchInput').val(initKeyword); $('#btnClearKeyword').show(); }
+            if (initStatus)  { $(`#collapseStatus input.form-check-input[value="${initStatus}"]`).prop('checked', true); }
+            updateFilterCount();
+            updateSelectedFilters();
+          })();
 
           // 小×清除輸入
           (function () {
             const input = document.getElementById('searchInput');
             const btnX  = document.getElementById('btnClearKeyword');
             if (!input || !btnX) return;
-            function toggleX(){ btnX.style.display = input.value.trim() ? '' : 'none'; }
+            const toggleX = () => { btnX.style.display = input.value.trim() ? '' : 'none'; };
             toggleX();
             input.addEventListener('input', toggleX);
-            btnX.addEventListener('click', function(){ input.value=''; input.focus(); toggleX(); });
+            btnX.addEventListener('click', function () { input.value = ''; input.focus(); toggleX(); });
           })();
 
           // checkbox 勾選/全選
           $(document).on('click', '.checkbox', function () {
-            let checked = $(this).prop('checked');
-            let count = $('.checkbox:checked').length;
+            const checked = $(this).prop('checked');
+            const count = $('.checkbox:checked').length;
             $(this).closest('tr').toggleClass('active', checked);
             if (count > 0) { $('#deleteAllBtn, #selectNum').show(); $('#selectNum').text(`已選取${count}項`); }
             else { $('#deleteAllBtn, #selectNum').hide(); }
             $('#checkAll').prop('checked', $('.checkbox').length === $('.checkbox:checked').length);
           });
 
-          $('#checkAll').click(function () {
-            if ($(this).prop('checked')) {
-              $('.checkbox').prop('checked', true);
-              $('tbody tr').addClass('active');
-              $('#deleteAllBtn, #selectNum').show();
-              let count = $('.checkbox:checked').length;
-              if (count > 0) $('#selectNum').text(`已選取${count}項`);
+          $('#checkAll').on('click', function () {
+            const checked = $(this).prop('checked');
+            $('.checkbox').prop('checked', checked);
+            $('tbody tr').toggleClass('active', checked);
+            if (checked) {
+              const count = $('.checkbox:checked').length;
+              if (count > 0) { $('#deleteAllBtn, #selectNum').show(); $('#selectNum').text(`已選取${count}項`); }
             } else {
-              $('.checkbox').prop('checked', false);
-              $('tbody tr').removeClass('active');
               $('#deleteAllBtn, #selectNum').hide();
             }
           });
 
           // 批次刪除
-          $('#deleteAllYes').click(function () {
-            let ids = $('.checkbox:checked').map(function () { return $(this).val(); }).get();
+          $('#deleteAllYes').on('click', function () {
+            const ids = $('.checkbox:checked').map(function () { return $(this).val(); }).get();
             if (ids.length === 0) return;
             $.ajax({
               url: '/Events/DeleteMultiple',
               type: 'POST',
-              data: { __RequestVerificationToken: getToken(), ids: ids },
-              traditional: true,
-              success: function () {
-                let page = parseInt($('#paginationInfo').text()) || 1;
-                refreshEventsTable(page, currentFilters);
-                $('#deleteAllBtn, #selectNum').hide();
-                $('#checkAll').prop('checked', false);
-              },
-              error: function () { alert('刪除失敗！'); }
+              data: { __RequestVerificationToken: getToken(), ids },
+              traditional: true
+            }).done(function () {
+              const page = parseInt($('#paginationInfo').text()) || 1;
+              refreshEventsTable(page, currentFilters);
+              $('#deleteAllBtn, #selectNum').hide();
+              $('#checkAll').prop('checked', false);
+            }).fail(function () {
+              alert('刪除失敗！');
             });
           });
 
           // 搜尋與即時輸入（統一用 SearchSelect）
           $('#btnSearch').on('click', function(){
-            collectFilters();                 // 會同步寫回 currentFilters
+            collectFilters();
             refreshEventsTable(1, currentFilters);
           });
           $('#searchInput').on('keyup', function(){
@@ -585,8 +654,8 @@
           });
 
           // 進階篩選 完成
-          $('#filterFinsh').click(function () {
-            collectFilters();                 // 更新 currentFilters
+          $('#filterFinsh').on('click', function () {
+            collectFilters();
             updateFilterCount();
             updateSelectedFilters();
             refreshEventsTable(1, currentFilters);
@@ -595,12 +664,12 @@
           });
 
           // 清除進階篩選（不動關鍵字）
-          $('#btnClear').off('click').on('click', function (e) {
+          $('#btnClear').on('click', function (e) {
             e.preventDefault();
             const $menu = $(this).closest('.dropdown-menu');
             $menu.find('input[type=checkbox]:checked').prop('checked', false);
             $menu.find('#dateFrom, #dateTo').val('');
-            collectFilters();                 // 變回空條件（保留 keyword）
+            collectFilters();
             updateSelectedFilters();
             updateFilterCount();
             refreshEventsTable(1, currentFilters);
@@ -609,27 +678,35 @@
           });
 
           // 日期區間限制
-          const dateFrom = document.getElementById("dateFrom");
-          const dateTo = document.getElementById("dateTo");
-          if (dateFrom && dateTo) {
-            dateFrom.addEventListener("change", () => {
+          (function(){
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo   = document.getElementById('dateTo');
+            if (!dateFrom || !dateTo) return;
+            dateFrom.addEventListener('change', () => {
               if (dateFrom.value) {
                 dateTo.min = dateFrom.value;
-                if (dateTo.value && dateTo.value < dateFrom.value) dateTo.value = "";
-              } else { dateTo.min = ""; }
+                if (dateTo.value && dateTo.value < dateFrom.value) dateTo.value = '';
+              } else {
+                dateTo.min = '';
+              }
             });
-          }
+          })();
 
-          // 分頁代理（統一呼叫 loadPage -> refreshEventsTable）
-          $(".pagination").on("click", ".page-link", function (e) {
+          // 分頁代理（單一路徑；避免捲動到頂）
+          $(document).on('click', '.pagination .page-link', function (e) {
             e.preventDefault();
-            let page = Number($(this).data("page")) || 1;
+            e.stopPropagation();
+            const $item = $(this).closest('.page-item');
+            if ($item.hasClass('disabled') || $item.hasClass('active')) return false;
+            const page = Number($(this).data('page'));
+            if (!Number.isFinite(page) || page < 1) return false;
             loadPage(page);
+            return false;
           });
 
           // Offcanvas 詳細
           $(document).on('click', '.btn-detail', function () {
-            var btn = $(this);
+            const btn = $(this);
             $('#offcanvasTitle').text(btn.data('title') || '');
             $('#offcanvasCategory').text(btn.data('category') || '');
             $('#offcanvasStatus').text(btn.data('status') || '');
@@ -648,7 +725,7 @@
             $('#offcanvasMax').text(max ?? '');
             $('#offcanvasImage').attr('src', btn.data('image') || '/img/logo.png');
 
-            var id = btn.data('id');
+            const id = btn.data('id');
             $('#offcanvasEditBtn').attr('href', '/Events/Edit/' + id);
             $('#deleteModal').off('show.bs.modal').on('show.bs.modal', function () {
               $('#deleteOne').attr('action', '/Events/Delete/' + id);
@@ -657,7 +734,7 @@
             bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasDetail')).show();
           });
 
-          // ===== 檢視排程中的活動（Modal） =====
+          // 檢視排程中的活動（Modal）
           (function scheduledModalFeature(){
             const $modal = $('#scheduledModal');
             const $tbody = $('#scheduledTbody');
@@ -674,11 +751,6 @@
 
             function htmlRow(x){
               const img = x.image || '/img/logo.png';
-              const exp = (!x.expirationDate || x.expirationDate === '0001-01-01T00:00:00') ? '—' : fmt(x.expirationDate);
-              const feeOps = `
-                <a class="btn btn-sm btn-primary br20px me-1" href="/Events/Edit/${x.no}">
-                  <i class="fa-solid fa-pen-to-square"></i> 編輯
-                </a>`;
               return `
                 <tr>
                   <td>
@@ -690,7 +762,11 @@
                   <td>${x.category ?? ''}</td>
                   <td>${fmt(x.releaseDate)}</td>
                   <td>${x.status ?? ''}</td>
-                  <td>${feeOps}</td>
+                  <td>
+                    <a class="btn btn-sm btn-primary br20px me-1" href="/Events/Edit/${x.no}">
+                      <i class="fa-solid fa-pen-to-square"></i> 編輯
+                    </a>
+                  </td>
                 </tr>`;
             }
 
@@ -725,88 +801,56 @@
           // 單筆刪除
           $(document).on('click', '#deleteOnebtn', async function (e) {
             e.preventDefault();
-            let action = $(this).closest('form').attr('action');
-            let id = action.split('/').pop();
+            const action = $(this).closest('form').attr('action');
+            const id = action?.split('/').pop();
             if (!id) return;
             try {
-              await $.ajax({ url: '/Events/Delete', type: 'POST', data: { id: id, __RequestVerificationToken: getToken() } });
-              let page = parseInt($('#paginationInfo').text()) || 1;
+              await $.ajax({ url: '/Events/Delete', type: 'POST', data: { id, __RequestVerificationToken: getToken() } });
+              const page = parseInt($('#paginationInfo').text()) || 1;
               refreshEventsTable(page, currentFilters);
-              let oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDetail'));
+              const oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDetail'));
               if (oc) oc.hide();
               $('#deleteModal').modal('hide');
             } catch (err) {
-              alert("刪除失敗：" + (err.responseText || err.statusText));
+              alert('刪除失敗：' + (err.responseText || err.statusText));
             }
           });
 
           // ===== 搜尋/篩選 =====
           function collectFilters() {
-            let categories = [...document.querySelectorAll("#collapseCategory input:checked")].map(cb => cb.value);
-            let statuses   = [...document.querySelectorAll("#collapseStatus input:checked")].map(cb => cb.value);
-            let keyword    = $("#searchInput").val();
-            let df = $("#dateFrom").val();
-            let dt = $("#dateTo").val();
+            const categories = [...document.querySelectorAll('#collapseCategory input:checked')].map(cb => cb.value);
+            const statuses   = [...document.querySelectorAll('#collapseStatus input:checked')].map(cb => cb.value);
+            const keyword    = $('#searchInput').val();
+            const df         = $('#dateFrom').val();
+            const dt         = $('#dateTo').val();
             currentFilters = { categories, statuses, dateFrom: df, dateTo: dt, keyword };
             return currentFilters;
           }
 
           function updateSelectedFilters() {
-            let selected = [];
-            let cats = $("#collapseCategory input:checked").map(function(){ return $(this).next("label").text(); }).get();
-            if (cats.length) selected.push("<strong>種類：</strong>" + cats.join(", "));
-            let sts  = $("#collapseStatus input:checked").map(function(){ return $(this).next("label").text(); }).get();
-            if (sts.length) selected.push("<strong>狀態：</strong>" + sts.join(", "));
-            let from = $("#dateFrom").val(), to = $("#dateTo").val();
-            if (from || to) selected.push("<strong>日期：</strong>" + (from?from:"不限") + " ~ " + (to?to:"不限"));
-            if (selected.length){ $("#selectedFiltersDiv").show(); $("#selectedFiltersText").html(selected.join("&nbsp;&nbsp;&nbsp;&nbsp;")); }
-            else { $("#selectedFiltersDiv").hide(); $("#selectedFiltersText").html(""); }
+            const selected = [];
+            const cats = $('#collapseCategory input:checked').map(function(){ return $(this).next('label').text(); }).get();
+            if (cats.length) selected.push('<strong>種類：</strong>' + cats.join(', '));
+            const sts  = $('#collapseStatus input:checked').map(function(){ return $(this).next('label').text(); }).get();
+            if (sts.length) selected.push('<strong>狀態：</strong>' + sts.join(', '));
+            const from = $('#dateFrom').val(), to = $('#dateTo').val();
+            if (from || to) selected.push('<strong>日期：</strong>' + (from?from:'不限') + ' ~ ' + (to?to:'不限'));
+            if (selected.length){ $('#selectedFiltersDiv').show(); $('#selectedFiltersText').html(selected.join('&nbsp;&nbsp;&nbsp;&nbsp;')); }
+            else { $('#selectedFiltersDiv').hide(); $('#selectedFiltersText').html(''); }
           }
 
           function updateFilterCount() {
             let count = 0;
-            if ($("#collapseCategory input:checked").length > 0) count++;
-            if ($("#collapseStatus input:checked").length   > 0) count++;
-            if ($("#dateFrom").val() || $("#dateTo").val()) count++;
-
-            const $badge = $("#filterCount");
-            if (count > 0) {
-              $badge.text(count).removeClass('d-none');
-            } else {
-              $badge.addClass('d-none');
-            }
+            if ($('#collapseCategory input:checked').length > 0) count++;
+            if ($('#collapseStatus input:checked').length   > 0) count++;
+            if ($('#dateFrom').val() || $('#dateTo').val()) count++;
+            const $badge = $('#filterCount');
+            if (count > 0) { $badge.text(count).removeClass('d-none'); }
+            else { $badge.addClass('d-none'); }
           }
-
-          // 刷新（統一走 SearchSelect）
-          async function refreshEventsTable(page = 1, filters = currentFilters) {
-            try {
-              const payload = { ...filters, page: page, pageSize: pageNumber };
-              let response = await $.ajax({
-                url: '/Events/SearchSelect',
-                type: 'POST',
-                data: JSON.stringify(payload),
-                contentType: "application/json; charset=utf-8"
-              });
-              if (typeof response === 'string') {
-                $("#tableBody").html(response);
-                $("#tableBody .preview-img").remove();
-              } else {
-                $("#tableBody").html(response.tableHtml || "");
-                $("#tableBody .preview-img").remove();
-                if (response.paginationHtml) $("#pagination").html(response.paginationHtml);
-              }
-              $('#paginationInfo').text(page);
-              $('#checkAll').prop('checked', false);
-              $('#deleteAllBtn, #selectNum').hide();
-            } catch (err) {
-              alert("更新列表失敗：" + (err.responseText || err.statusText || err.message));
-            }
-          }
-
-          // 對外可呼叫
-          window.refreshEventsTable = refreshEventsTable;
         });
 
+        // 影像預覽（與列表無關，保留你的實作）
         (function attachGlobalPreview(){
           const box = document.createElement('div');
           box.id = 'global-image-preview';
@@ -842,3 +886,5 @@
         })();
     </script>
 }
+
+

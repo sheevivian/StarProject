@@ -68,13 +68,13 @@ namespace StarProject.Controllers
 					LostInfo lost = new LostInfo
 					{
 						Name = lostInfo.Name,
-                        Category = lostInfo.Category,
+						Category = lostInfo.Category,
 						Desc = lostInfo.Desc,
 						Status = lostInfo.Status,
 						FoundDate = lostInfo.FoundDate,
 						CreatedDate = DateTime.Now,
-						OwnerName = null,
-						OwnerPhone = null,
+						OwnerName = lostInfo.OwnerName,
+						OwnerPhone = lostInfo.OwnerPhone,
 						Image = lostInfo.Image
 					};
 

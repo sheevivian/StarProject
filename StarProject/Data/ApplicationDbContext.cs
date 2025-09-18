@@ -10,5 +10,7 @@ namespace StarProject.Data
             : base(options)
         {
         }
+        public DbSet<OrderMaster> OrderMasters { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
     }
 }

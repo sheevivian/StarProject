@@ -626,7 +626,8 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<OrderStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063EE4A962F");
+
+            entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063F2BA48E0");
 
             entity.ToTable("OrderStatus");
 

@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="~/StarProject.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home.css">
     <link href="~/css/companynotifyvc.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
 
     <!-- fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
@@ -25,8 +26,12 @@
     <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
     <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-straight/css/uicons-regular-straight.css'>
 
+    <!-- chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- 動畫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
     
   @RenderSection("Styles", required: false)
     <link rel="icon" type="image/png" href="~/img/logo.png">
@@ -50,6 +55,16 @@
 
             <hr class="sidebar-divider justify-content">
 
+            <!-- 會員管理 -->
+            <li class="px-3 nav-item">
+                <a class="d-flex align-items-center nav-link txtWhite" asp-area="" asp-controller="Users" asp-action="Index">
+                    <span class="icon-wrapper">
+                        <i class="fi fi-sr-alien"></i>
+                    </span>
+                    <span class="link-text">會員管理</span>
+                </a>
+            </li>
+
             <!-- 員工管理 -->
             <li class="px-3 nav-item">
                 <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
@@ -69,31 +84,6 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" asp-area="" asp-controller="Emps" asp-action="Index">帳號管理</a>
                         <a class="collapse-item" asp-area="" asp-controller="Role" asp-action="Index">權限管理</a>
-                        <a class="collapse-item" href="#">人事流程申請</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- 會員管理 -->
-            <li class="px-3 nav-item">
-                <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
-                   data-bs-toggle="collapse" data-bs-target="#collapseUser" aria-expanded="false"
-                   aria-controls="collapseUser">
-
-                    <!-- 左側：icon + 文字 -->
-                    <span class="icon-wrapper">
-                        <i class="fi fi-sr-alien"></i>
-                    </span>
-                    <span class="link-text">會員管理</span>
-
-                    <!-- 箭頭 -->
-                    <i class="fa-solid fa-chevron-right arrow collapsed-text collapsed-logo"></i>
-                </a>
-
-                <div id="collapseUser" class="collapse" data-bs-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" asp-area="" asp-controller="Users" asp-action="Index">會員名單</a>
-                        <a class="collapse-item" href="#">黑名單</a>
                     </div>
                 </div>
             </li>
@@ -118,9 +108,9 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" asp-area="" asp-controller="CompanyNotifies" asp-action="Index">公司內部公告</a>
                         <a class="collapse-item" asp-area="" asp-controller="News" asp-action="Index">官網公告</a>
-                        <a class="collapse-item" href="#">知識庫管理</a>
                         <a class="collapse-item" asp-area="" asp-controller="LostInfo" asp-action="Index">遺失物管理</a>
                         <a class="collapse-item" asp-area="" asp-controller="StarMaps" asp-action="Index">觀星景點清單</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Faqs" asp-action="Index">FAQ/常見問題</a>
                     </div>
                 </div>
             </li>
@@ -218,7 +208,7 @@
 
                 <div id="collapseDis" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/Promotion">優惠券管理</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Promotion" asp-action="Index">優惠券管理</a>
                         <a class="collapse-item" href="#">成效分析</a>
                     </div>
                 </div>
@@ -242,16 +232,15 @@
 
                 <div id="collapseOrd" class="collapse" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="#">訂單明細</a>
-                        <a class="collapse-item" href="#">訂單狀態</a>
-                        <a class="collapse-item" href="#">訂單紀錄</a>
-                        <a class="collapse-item" href="#">請款/退款作業</a>
+                        <a class="collapse-item" asp-area="" asp-controller="Orders" asp-action="Index">訂單紀錄</a>
+                        <a class="collapse-item" asp-area="" asp-controller="OrderStatus" asp-action="Index">出貨管理</a>
+                        @* <a class="collapse-item" href="#">請款/退款作業</a> *@
                     </div>
                 </div>
             </li>
 
             <!-- 客戶服務 -->
-            <li class="px-3 nav-item">
+            @* <li class="px-3 nav-item">
                 <a class="d-flex align-items-center txtWhite nav-link justify-content-between" role="button"
                    data-bs-toggle="collapse" data-bs-target="#collapseCS" aria-expanded="false"
                    aria-controls="collapseCS">
@@ -270,19 +259,20 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="#">訂單問題</a>
                         <a class="collapse-item" href="#">訊息管理</a>
-                        <a class="collapse-item" asp-area="" asp-controller="Faqs" asp-action="Index">FAQ/常見問題</a>
+                        
                     </div>
                 </div>
-            </li>
+            </li> *@
 
             <!-- 營運分析 -->
             <li class="px-3 nav-item">
-                <a class="d-flex align-items-center nav-link txtWhite" href="#">
+                <a class="d-flex align-items-center nav-link txtWhite" asp-area="" asp-controller="Analysis" asp-action="Index">
                     <span class="icon-wrapper">
                         <i class="fas fa-fw fa-chart-area"></i>
                     </span>
                     <span class="link-text">營運分析</span>
                 </a>
+               
             </li>
 
 
@@ -313,7 +303,7 @@
                         </li>
                        
                         <!-- 小鈴鐺 -->
-                        <li class="nav-item position-relative">
+                        @* <li class="nav-item position-relative">
                             <a class="nav-link " href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                data-bs-title="通訊中心" data-bs-trigger="hover" id="topbarNotify">
                                 <i class="fa-solid fa-bell fs-4"></i>
@@ -321,12 +311,12 @@
                             <!-- Counter - Alerts -->
                             <span class="badge badge-danger position-absolute top-0 end-0 rounded-pill">9+</span>
 
-                        </li>
+                        </li> *@
 
                         <!-- 新手指南 -->
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                               data-bs-title="登艙指南" data-bs-trigger="hover">
+                            <a class="nav-link" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                               data-bs-title="如有疑問，請洽資訊技術部" data-bs-trigger="hover">
                                 <i class="fa-solid fa-circle-question fs-4"></i>
                             </a>
                         </li>
@@ -365,6 +355,7 @@
             <div class="content">
                 <!-- 請把網頁內容放在這！！！! -->
                 @RenderBody()
+               
             </div>
 
         </main>

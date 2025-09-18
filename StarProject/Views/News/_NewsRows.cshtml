@@ -1,0 +1,77 @@
+﻿@model IEnumerable<StarProject.ViewModels.NewsVM>
+
+
+
+<!-- 外層置中容器 -->
+<div class="d-flex justify-content-center w-100">
+    <div class="d-flex flex-wrap gap-4 justify-content-center">
+        <!-- flex-wrap 讓超過寬度自動換行，gap-3 控制間距 -->
+        @foreach (var item in Model)
+        {
+            <div style="width:378px">
+                <div style="width:378px; height:250px;">
+                    <div class="card shadow-sm card-hover position-relative card-clickable rounded-4"
+                         data-news-id="@item.No"
+                         data-title="@item.Title"
+                         data-content="@item.Content"
+                         data-category="@item.Category"
+                         data-createdDate="@item.CreatedDate.ToString("yyyy-MM-dd HH:mm")"
+                         data-publishDate="@item.PublishDate.ToString("yyyy-MM-dd HH:mm")"
+                         style="width:378px; height:250px; overflow:hidden;">
+
+                        <!-- Checkbox -->
+                        <input type="checkbox"
+                               class="form-check-input position-absolute big-checkbox checkbox"
+                               style="top: 10px; right: 15px;"
+                               value="@item.No"
+                               onclick="event.stopPropagation();" />
+
+                        <!-- Carousel -->
+                        <div id="carousel-@item.No" class="carousel slide h-100">
+                            <div class="carousel-inner h-100">
+                                @if (item.Images != null && item.Images.Any())
+                                {
+                                    @for (int i = 0; i < item.Images.Count; i++)
+                                    {
+                                        <div class="carousel-item @(i == 0 ? "active" : "") h-100">
+                                            <img src="@item.Images[i]"
+                                                 class="d-block w-100 h-100"
+                                                 style="object-fit:cover;">
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="carousel-item active h-100">
+                                        <img src="~/img/nophoto.jpg"
+                                             class="d-block w-100 h-100"
+                                             style="object-fit:cover;">
+                                    </div>
+                                }
+                            </div>
+
+                            @if (item.Images != null && item.Images.Count > 1)
+                            {
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-@item.No" data-bs-slide="prev" onclick="event.stopPropagation();">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-@item.No" data-bs-slide="next" onclick="event.stopPropagation();">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
+                            }
+
+                        </div>
+
+                        <!-- 左上角類型 -->
+                        <div class="card-category-overlay fw-bold">@item.Category</div>
+
+                        <!-- 半透明標題 -->
+                        <div class="card-title-overlay"><span class="m-4 fs-6 fw-light text-end">發佈日期：@item.PublishDate.ToString("yyyy-MM-dd HH:mm")</span></div>
+
+                    </div>
+                </div>
+                <div class="card-title-overlay"><span class="mx-4 fs-5 my-1 spanHeight">@item.Title</span></div>
+            </div>
+        }
+    </div>
+</div>

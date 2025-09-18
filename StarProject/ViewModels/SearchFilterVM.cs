@@ -1,4 +1,4 @@
-﻿namespace StarProject.ViewModel
+﻿namespace StarProject.ViewModels
 {
 	public class SearchFilterVM
 	{

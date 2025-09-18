@@ -48,6 +48,8 @@ namespace StarProject.Controllers
 							UpdateDate = s.UpdateDate,
 						};
 
+			query = query.OrderByDescending(x => x.UpdateDate);
+
 			// Step 3: 分頁 (這時 query 仍是 IQueryable<ProductStockSumViewModel>)
 			var (items, total, totalPages) = await PaginationHelper.PaginateAsync(query, page, pageSize);
 
@@ -91,6 +93,8 @@ namespace StarProject.Controllers
 							SumQuantity = s.SumQuantity,
 							UpdateDate = s.UpdateDate,
 						};
+
+			query = query.OrderByDescending(x => x.UpdateDate);
 
 			// keyword
 			if (!string.IsNullOrEmpty(filters.keyword))

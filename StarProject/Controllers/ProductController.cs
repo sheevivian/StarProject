@@ -74,7 +74,8 @@ namespace StarProject.Controllers
 			{
 				query = query.Where(x => x.Name.Contains(filters.keyword)
 									 || x.ProCategoryNoNavigation.Name.Contains(filters.keyword)
-									 || x.Status.Contains(filters.keyword));
+									 || x.Status.Contains(filters.keyword)
+									 || x.No.ToString().Contains(filters.keyword));
 			}
 
 			// 進階篩選>分類
@@ -262,23 +263,26 @@ namespace StarProject.Controllers
 			var downloadSheet = downloadWorkbook.CreateSheet("匯入商品圖片");
 			var headerRow = downloadSheet.CreateRow(0);
 			headerRow.CreateCell(0).SetCellValue("商品編號");
-			headerRow.CreateCell(1).SetCellValue("圖片路徑");
-			headerRow.CreateCell(2).SetCellValue("圖片順序(1~5)");
+			headerRow.CreateCell(1).SetCellValue("商品名稱");
+			headerRow.CreateCell(2).SetCellValue("圖片路徑");
+			headerRow.CreateCell(3).SetCellValue("圖片順序(1~5)");
 
 			var exampleRow = downloadSheet.CreateRow(1);
 			exampleRow.CreateCell(0).SetCellValue("102001");
-			exampleRow.CreateCell(1).SetCellValue("D:\\\\html_example\\product.jpg");
-			exampleRow.CreateCell(2).SetCellValue("1");
-			exampleRow.CreateCell(3).SetCellValue("範例欄位請勿刪除，避免資料讀取失敗！");
+			exampleRow.CreateCell(1).SetCellValue("十二星座書籤");
+			exampleRow.CreateCell(2).SetCellValue("D:\\\\html_example\\product.jpg");
+			exampleRow.CreateCell(3).SetCellValue("1");
+			exampleRow.CreateCell(4).SetCellValue("範例欄位請勿刪除，避免資料讀取失敗！");
 
 
 			for (int i = 0; i < products.Count; i++)
 			{
 				var row = downloadSheet.CreateRow(i + 2);
 				row.CreateCell(0).SetCellValue(products[i].No);
-				row.CreateCell(1).SetCellValue("");
+				row.CreateCell(1).SetCellValue(products[i].Name);
 				row.CreateCell(2).SetCellValue("");
 				row.CreateCell(3).SetCellValue("");
+				row.CreateCell(4).SetCellValue("");
 			}
 
 			using (var fs = new FileStream(savePath, FileMode.Create, FileAccess.Write))
@@ -325,13 +329,13 @@ namespace StarProject.Controllers
 					var currentRow = sheet.GetRow(row);
 					if (currentRow == null) continue;
 
-					imgPath = currentRow.GetCell(1)?.ToString();
+					imgPath = currentRow.GetCell(2)?.ToString();
 
 					var productImage = new ProductImage
 					{
 						ProductNo = int.TryParse(currentRow.GetCell(0)?.ToString(), out var productNo) ? productNo : 0,
 						Image = await ImgPathHelper.UploadToImgBB(imgPath),
-						ImgOrder = int.TryParse(currentRow.GetCell(2)?.ToString(), out var imgOd) ? imgOd : 0
+						ImgOrder = int.TryParse(currentRow.GetCell(3)?.ToString(), out var imgOd) ? imgOd : 0
 					};
 					productImages.Add(productImage);
 

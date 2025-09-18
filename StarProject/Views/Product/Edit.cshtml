@@ -48,6 +48,24 @@
             --bs-gradient: none;
         }
 
+        .del-Pre-Btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            color: rgba(255, 255, 255);
+            margin-right: 4px;
+            background: transparent;
+            text-shadow: rgba(220, 220, 220, 0.8) 1px 1px 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 30px; /* 控制 icon 大小 */
+            transition: color 0.2s ease; /* 滑鼠移過去會有漸變 */
+        }
+
+        .del-Pre-Btn:hover {
+            color: rgb(240, 240, 240);
+        }
+
         .del-btn {
             position: absolute;
             top: 2px;
@@ -65,6 +83,7 @@
         .del-btn:hover {
                 color: rgb(240, 240, 240);
         }
+
     </style>
 </head>
 <div class="d-flex">
@@ -324,9 +343,9 @@
                         });
 
                     // 刪除按鈕 (刪新選檔案)
-                    const delBtn = $("<button>")
+                    const delPreBtn = $("<button>")
                         .html(`<i class="fa-solid fa-square-xmark"></i>`)
-                        .addClass("del-btn")
+                        .addClass("del-Pre-Btn")
                         .css({
                             position: "absolute",
                             top: "5px",
@@ -358,7 +377,7 @@
                         .css({ width: "60px" })
                         .val(index + 1);
 
-                    wrapper.append(img).append(delBtn);
+                    wrapper.append(img).append(delPreBtn);
                     order.append(label).append(input);
                     card.append(wrapper).append(order);
                     previewContainer.append(card);

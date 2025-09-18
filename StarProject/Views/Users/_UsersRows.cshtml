@@ -1,6 +1,6 @@
 ﻿@foreach (var item in Model)
 {
-    <tr class="d-flex align-items-center">
+    <tr>
         <!-- 核取方塊 -->
         <td style="width:60px;" class="text-center">
             <input type="checkbox" class="checkbox form-check-input" value="@item.Id">
@@ -24,13 +24,13 @@
             </div>
         </td>
         <!-- Email -->
-        <td class="flex-grow-1 px-3" style="min-width:200px;">
+        <td class="px-3" style="width:200px;">
             <div class="text-dark small text-center" title="@item.Email">
                 @item.Email
             </div>
         </td>
         <!-- Address -->
-        <td class="flex-grow-1 px-3" style="min-width:200px;">
+        <td class="px-3" style="width:200px;">
             <div class="text-muted small text-center" title="@item.Address">
                 @item.Address
             </div>
@@ -38,16 +38,16 @@
         <!-- Status -->
         <td style="width:110px;" class="text-center">
             <span class="badge rounded-pill
-                                      @(item.StatusText == "正常" ? "bg-success" :
-                                                                    item.StatusText == "停用" ? "bg-warning text-dark" :
-                                                                    "bg-danger") px-2 py-1 small">
+                                              @(item.StatusText == "正常" ? "bg-success" :
+                                                                                          item.StatusText == "停用" ? "bg-warning text-dark" :
+                                                                                          "bg-danger") px-2 py-1 small">
             @item.StatusText
         </span>
     </td>
     <!-- 操作按鈕 -->
     <td style="width:120px;" class="text-center">
         <button type="button"
-                class="btn btn-outline-secondary btn-sm rounded-pill px-3 btn-detail"
+                class="btn btn-color btn-sm btn-detail"
                 data-id="@item.Id"
                 data-account="@item.Account"
                 data-name="@item.Name"

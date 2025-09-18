@@ -18,6 +18,8 @@
 </head>
 
 <main class="flex-fill position-relative">
+    @Html.AntiForgeryToken() <!-- ★ 修改：提供 CSRF Token 給 AJAX 刪除使用（安全） -->
+
     <div class="d-flex align-items-center mb-3">
         <h1 class="fw-bold flex-grow-1 mb-0">優惠券列表</h1>
         <a asp-controller="Promotion" asp-action="Create" class="btn btn-search fw-bold">
@@ -33,7 +35,7 @@
 
         <div class="d-flex gap-3">
             <div style="width:150px">
-                <!-- ✅ 修改：變更每頁筆數時重載第 1 頁 -->
+                <!-- ✅ 每頁筆數變更時重載第 1 頁 -->
                 <select class="form-select form-select-lg" id="pageSizeSelect" onchange="loadData(1)">
                     <option selected value="10">每頁10筆</option>
                     <option value="15">每頁15筆</option>
@@ -55,32 +57,61 @@
                     <th>開始日期</th>
                     <th>結束日期</th>
                     <th>狀態</th>
-                    <th style="width:116px"></th>
+                    <th style="width:170px"></th> <!-- ★ 修改：放得下編輯+刪除 -->
                 </tr>
             </thead>
-            <tbody id="tableBody"><!-- ✅ 首屏不渲染資料，由 JS 載入 --></tbody>
+            <tbody id="tableBody"><!-- 首屏不渲染，由 JS 載入 --></tbody>
         </table>
 
-        <!-- ✅ 修改：改用你的 _PromotionPagination partial 的輸出容器 -->
         <div id="paginationContainer" class="mt-3"></div>
-        <!-- 🔎 原本是 nav > ul#pagination，為避免重複包 nav，改成單一容器由 partial 直接填入 -->
     </div>
 </main>
 
+<!-- ★ 新增：刪除確認 Modal（不要系統 confirm） -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+     aria-hidden="true" data-bs-backdrop="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px;">
+            <!-- 保持圓角風格 -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="fw-bold mb-2">確定要刪除這筆資料嗎？</div>
+                <div id="deleteItemInfo" class="text-muted"></div> <!-- 顯示名稱/代碼 -->
+            </div>
+            <div class="modal-footer">
+                <!-- 真正刪除的表單（用 JS 攔截改 AJAX 呼叫） -->
+                <form id="deleteOne" method="post" class="d-inline">
+                    <input type="hidden" id="deleteId" name="id" />
+                    <button type="submit" class="btn btn-outline-delect br20px" id="deleteOnebtn">確定刪除</button>
+                </form>
+                <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        // ★ 新增：目前頁碼記錄，用於刪除後維持在同一頁
+        let currentPage = 1;
+
         // 成功訊息 5 秒後自動消失
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             var alertElement = document.querySelector('.alert-success');
             if (alertElement) {
-                setTimeout(function() {
+                setTimeout(function () {
                     var bsAlert = new bootstrap.Alert(alertElement);
                     bsAlert.close();
                 }, 5000);
             }
         });
-        
+
         async function loadData(page) {
+            currentPage = page; // ★ 修改：記錄目前頁碼
+
             const pageSize = document.getElementById("pageSizeSelect").value;
             const search = document.getElementById("searchInput").value;
 
@@ -92,18 +123,80 @@
             }
             const result = await res.json();
 
-            // ✅ 套用資料列
             document.getElementById("tableBody").innerHTML = result.rows;
-            // ✅ 改為把 server render 的 _PromotionPagination 填入這個容器
             document.getElementById("paginationContainer").innerHTML = result.pagination;
         }
 
-        // ✅ _PromotionPagination 會呼叫這個函式名稱
         function refreshTable(page) {
             loadData(page);
         }
 
         document.getElementById("btnSearch").addEventListener("click", () => loadData(1));
         document.addEventListener("DOMContentLoaded", () => loadData(1));
+
+        // ★ 新增：事件代理 - 點「刪除」按鈕，打開 Modal，帶入 id / name
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-delete');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+            const name = btn.dataset.name || '';
+            const code = btn.dataset.code || '';
+
+            document.getElementById('deleteId').value = id;
+            document.getElementById('deleteItemInfo').textContent = `#${id} ${name}${code ? '（' + code + '）' : ''}`;
+
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        });
+
+        // ★ 新增：攔截刪除表單，改用 AJAX 呼叫 Promotion/Delete（回傳 JSON）
+        document.getElementById('deleteOne').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const id = document.getElementById('deleteId').value;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            const res = await fetch('/Promotion/Delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    ...(token ? { 'RequestVerificationToken': token } : {}) // 有就帶（不影響現行後端）
+                },
+                body: new URLSearchParams({ id })
+            });
+
+            if (!res.ok) {
+                console.error('Delete failed', res.status);
+                return;
+            }
+
+            const data = await res.json();
+            if (data?.success) {
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal'))?.hide();
+                // 刷新目前頁面資料
+                loadData(currentPage);
+                // 可選：顯示 5 秒成功提示（AJAX 的情境 TempData 進不來）
+                showFlash('刪除成功', 'success');
+            } else {
+                showFlash(data?.message || '刪除失敗', 'danger');
+            }
+        });
+
+        // ★ 新增：頁面頂部動態提示（AJAX 用）
+        function showFlash(message, type = 'success') {
+            const wrap = document.createElement('div');
+            wrap.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show position-fixed"
+                     style="top: 20px; right: 20px; z-index: 1080; min-width: 220px;" role="alert">
+                    <i class="fa-solid fa-circle-check me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+            const el = wrap.firstElementChild;
+            document.body.appendChild(el);
+            setTimeout(() => {
+                try { new bootstrap.Alert(el).close(); } catch {}
+            }, 5000);
+        }
     </script>
 }

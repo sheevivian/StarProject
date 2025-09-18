@@ -1,443 +1,461 @@
 ﻿@{
-    ViewData["Title"] = "請假申請";
+	ViewData["Title"] = "請假申請";
 }
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f5;
-    }
+	body {
+		font-family: Arial, sans-serif;
+		background-color: #f5f5f5;
+	}
 
-    .leave-container {
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        max-width: 1000px;
-        margin: 0 auto 20px auto;
-    }
+	/* ===== 版面：左右兩欄 + 底部置中按鈕 ===== */
+	.leave-layout {
+		max-width: 1200px;
+		margin: 0 auto 30px auto;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 24px;
+		align-items: stretch; /* 等高 */
+	}
 
-    h1, h2 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 30px;
-    }
+	.page-actions {
+		max-width: 1200px;
+		margin: 0 auto 40px auto;
+		display: flex;
+		justify-content: center;
+		gap: 16px;
+		flex-wrap: wrap;
+		text-align: center;
+	}
 
-    .employee-info {
-        font-size: 18px;
-        color: #666;
-        margin-bottom: 30px;
-        text-align: center;
-    }
+	@@media (max-width: 992px) {
+		.leave-layout {
+			grid-template-columns: 1fr;
+		}
+	}
 
-    .form-section {
-        background: #f8f9fa;
-        padding: 25px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-    }
+	.leave-container {
+		background: white;
+		padding: 30px;
+		border-radius: 10px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		margin-bottom: 0;
+		max-width: unset;
+		display: flex; /* 讓內層可撐高 */
+		flex-direction: column;
+		min-height: 100%; /* 與另一欄等高 */
+	}
 
-        .form-section h3 {
-            color: #495057;
-            margin-bottom: 20px;
-            text-align: left;
-            font-size: 20px;
-        }
+	/* 只讓 h1 置中；區塊標題走 h3 左對齊小字級 */
+	h1 {
+		text-align: center;
+		color: #333;
+		margin-bottom: 30px;
+	}
 
-    .form-group {
-        margin-bottom: 20px;
-    }
+	.employee-info {
+		font-size: 18px;
+		color: #666;
+		margin-bottom: 30px;
+		text-align: center;
+	}
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #495057;
-        }
+	.form-section {
+		background: #f8f9fa;
+		padding: 25px;
+		border-radius: 8px;
+		margin-bottom: 0;
+		display: flex; /* 內部可撐滿 */
+		flex-direction: column;
+	}
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 16px;
-            box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
+	/* 讓灰底區塊在左右欄都等高鋪滿 */
+	.leave-container > .form-section {
+		flex: 1;
+	}
 
-            .form-group input:focus,
-            .form-group select:focus,
-            .form-group textarea:focus {
-                border-color: #007bff;
-                box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-                outline: none;
-            }
+	.form-section h3 {
+		color: #495057;
+		margin-bottom: 20px;
+		text-align: left;
+		font-size: 20px;
+	}
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+	.form-group {
+		margin-bottom: 20px;
+	}
 
-    .required-mark {
-        color: red;
-        margin-left: 3px;
-    }
+		.form-group label {
+			display: block;
+			margin-bottom: 8px;
+			font-weight: bold;
+			color: #495057;
+		}
 
-    .form-buttons {
-        text-align: center;
-        margin-top: 30px;
-        gap: 20px;
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
+		.form-group input,
+		.form-group select,
+		.form-group textarea {
+			width: 100%;
+			padding: 12px;
+			border: 1px solid #ced4da;
+			border-radius: 6px;
+			font-size: 16px;
+			box-sizing: border-box;
+			transition: border-color 0.3s, box-shadow 0.3s;
+		}
 
-    .btn {
-        font-size: 18px;
-        padding: 15px 30px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        min-width: 150px;
-        font-weight: bold;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-    }
+			.form-group input:focus,
+			.form-group select:focus,
+			.form-group textarea:focus {
+				border-color: #007bff;
+				box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+				outline: none;
+			}
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            text-decoration: none;
-        }
+		.form-group textarea {
+			resize: vertical;
+			min-height: 100px;
+		}
 
-    .btn-submit {
-        background-color: #28a745;
-        color: white;
-    }
+	.required-mark {
+		color: red;
+		margin-left: 3px;
+	}
 
-        .btn-submit:hover {
-            background-color: #218838;
-        }
+	/* 統一按鈕樣式（底部置中） */
+	.btn {
+		font-size: 18px;
+		padding: 15px 30px;
+		border: none;
+		border-radius: 8px;
+		cursor: pointer;
+		min-width: 150px;
+		font-weight: bold;
+		transition: all 0.3s;
+		text-decoration: none;
+		display: inline-block;
+	}
 
-    .btn-back {
-        background-color: #6c757d;
-        color: white;
-    }
+		.btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+			text-decoration: none;
+		}
 
-        .btn-back:hover {
-            background-color: #5a6268;
-            color: white;
-        }
+	.btn-submit {
+		background-color: #28a745;
+		color: white;
+	}
 
-    .records-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        background: white;
-    }
+		.btn-submit:hover {
+			background-color: #218838;
+		}
 
-        .records-table th,
-        .records-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
+	.btn-back {
+		background-color: #6c757d;
+		color: white;
+	}
 
-        .records-table th {
-            background-color: #007bff;
-            color: white;
-            font-weight: bold;
-        }
+		.btn-back:hover {
+			background-color: #5a6268;
+			color: white;
+		}
 
-        .records-table tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
+	/* 新的表格樣式 - 圓角邊框設計 */
+	.table-rounded {
+		background: white;
+		border-radius: 10px;
+		overflow: hidden;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		margin-top: 20px;
+	}
 
-        .records-table tr:hover {
-            background-color: #e9ecef;
-        }
+	.records-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin: 0;
+		background: white;
+	}
 
-    .leave-status {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: bold;
-        min-width: 60px;
-    }
+		.records-table th, .records-table td {
+			border: none;
+			border-bottom: 1px solid #dee2e6;
+			padding: 12px;
+			text-align: center;
+		}
 
-    .status-pending {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
-    }
+		.records-table th {
+			background-color: #2B4C8C;
+			color: white;
+			font-weight: bold;
+			border-bottom: 2px solid #dee2e6;
+		}
 
-    .status-approved {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
+		.records-table tr:hover {
+			background-color: rgba(0,123,255,0.05);
+		}
 
-    .status-rejected {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
+		.records-table tr:last-child td {
+			border-bottom: none;
+		}
 
-    /* 訊息提示樣式 */
-    .message-alert {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        min-width: 300px;
-        padding: 15px 20px;
-        border-radius: 6px;
-        font-weight: bold;
-        display: none;
-        animation: slideIn 0.3s ease-out;
-    }
+	.leave-status {
+		display: inline-block;
+		padding: 4px 12px;
+		border-radius: 12px;
+		font-size: 12px;
+		font-weight: bold;
+		min-width: 60px;
+	}
 
-    .message-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
+	.status-pending {
+		background-color: #fff3cd;
+		color: #856404;
+		border: 1px solid #ffeaa7;
+	}
 
-    .message-error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
+	.status-approved {
+		background-color: #d4edda;
+		color: #155724;
+		border: 1px solid #c3e6cb;
+	}
 
-    @@keyframes slideIn {
-        from
+	.status-rejected {
+		background-color: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+	}
 
-    {
-        transform: translateX(100%);
-        opacity: 0;
-    }
+	/* 訊息提示樣式 */
+	.message-alert {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+		z-index: 1000;
+		min-width: 300px;
+		padding: 15px 20px;
+		border-radius: 6px;
+		font-weight: bold;
+		display: none;
+		animation: slideIn 0.3s ease-out;
+	}
 
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+	.message-success {
+		background-color: #d4edda;
+		color: #155724;
+		border: 1px solid #c3e6cb;
+	}
 
-    }
+	.message-error {
+		background-color: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+	}
 
-    @@media (max-width: 768px) {
-        .leave-container
+	@@keyframes slideIn {
+		from {
+			transform: translateX(100%);
+			opacity: 0;
+		}
 
-    {
-        margin: 10px;
-        padding: 20px;
-    }
+		to {
+			transform: translateX(0);
+			opacity: 1;
+		}
+	}
 
-    .form-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    }
+	@@media (max-width: 768px) {
+		.leave-container {
+			margin: 10px;
+			padding: 20px;
+		}
+	}
 </style>
 
-<div class="leave-container">
-    <h1>📝 請假申請系統</h1>
+<form id="leaveForm">
+	@Html.AntiForgeryToken()
 
-    <div class="employee-info">
-        @ViewBag.EmployeeName
-    </div>
+	<h1>📝 請假申請系統</h1>
+	<div class="employee-info">@ViewBag.EmployeeName</div>
 
-    <div class="form-section">
-        <h3>💼 新增請假申請</h3>
-        <form id="leaveForm">
-            <div class="form-group">
-                <label for="LeaveTypeId">假別<span class="required-mark">*</span></label>
-                <select id="LeaveTypeId" name="LeaveTypeId" required>
-                    <option value="">請選擇假別</option>
-                    @if (ViewBag.LeaveTypes != null)
-                    {
-                        @foreach (var type in (List<StarProject.Models.LeaveType>)ViewBag.LeaveTypes)
-                        {
-                            <option value="@type.No">@type.TypeName</option>
-                        }
-                    }
-                </select>
-            </div>
+	<div class="leave-layout">
+		<!-- 左欄：我的請假記錄（灰底等高） -->
+		<div class="leave-container">
+			<div class="form-section">
+				<h3>📊 我的請假記錄</h3>
+				<div class="table-rounded">
+					<table class="records-table">
+						<thead style="background-color:#2B4C8C !important">
+							<tr>
+								<th>假別</th>
+								<th>申請日期</th>
+								<th>請假期間</th>
+								<th>天數</th>
+								<th>狀態</th>
+								<th>請假原因</th>
+							</tr>
+						</thead>
+						<tbody>
+							@if (ViewBag.MyApplications != null && ((List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications).Any())
+							{
+								foreach (var app in (List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications)
+								{
+									<tr>
+										<td>@app.LeaveType.TypeName</td>
+										<td>@app.AppliedAt.ToString("MM/dd HH:mm")</td>
+										<td>
+											@app.StartDate.ToString("MM/dd")
+											@if (app.StartDate != app.EndDate)
+											{
+												<span> ~ @app.EndDate.ToString("MM/dd")</span>
+											}
+										</td>
+										<td>@app.TotalDays 天</td>
+										<td>
+											@switch (app.Status)
+											{
+												case "pending":
+													<span class="leave-status status-pending">待審核</span>
+													; break;
+												case "approved":
+													<span class="leave-status status-approved">已核准</span>
+													; break;
+												case "rejected":
+													<span class="leave-status status-rejected">已拒絕</span>
+													; break;
+												default:
+													<span class="leave-status">@app.Status</span>
+													; break;
+											}
+										</td>
+										<td style="max-width: 200px; word-wrap: break-word;">@app.Reason</td>
+									</tr>
+								}
+							}
+							else
+							{
+								<tr>
+									<td colspan="6" style="color: #666; font-style: italic;">還沒有請假記錄</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
 
-            <div class="form-group">
-                <label for="StartDate">開始日期<span class="required-mark">*</span></label>
-                <input type="date" id="StartDate" name="StartDate" required />
-            </div>
+		<!-- 右欄：新增請假申請（灰底等高） -->
+		<div class="leave-container">
+			<div class="form-section">
+				<h3>💼 新增請假申請</h3>
 
-            <div class="form-group">
-                <label for="EndDate">結束日期<span class="required-mark">*</span></label>
-                <input type="date" id="EndDate" name="EndDate" required />
-            </div>
+				<div class="form-group">
+					<label for="LeaveTypeId">假別<span class="required-mark">*</span></label>
+					<select id="LeaveTypeId" name="LeaveTypeId" required>
+						<option value="">請選擇假別</option>
+						@if (ViewBag.LeaveTypes != null)
+						{
+							foreach (var type in (List<StarProject.Models.LeaveType>)ViewBag.LeaveTypes)
+							{
+								<option value="@type.No">@type.TypeName</option>
+							}
+						}
+					</select>
+				</div>
 
-            <div class="form-group">
-                <label for="Reason">請假原因<span class="required-mark">*</span></label>
-                <textarea id="Reason" name="Reason" placeholder="請輸入請假原因..." required></textarea>
-            </div>
+				<div class="form-group">
+					<label for="StartDate">開始日期<span class="required-mark">*</span></label>
+					<input type="date" id="StartDate" name="StartDate" required />
+				</div>
 
-            <div class="form-buttons">
-                <button type="submit" class="btn btn-submit" id="submitBtn">📤 送出申請</button>
-                <a href="@Url.Action("Index", "Home")" class="btn btn-back">🔙 回到首頁</a>
-            </div>
-        </form>
-    </div>
-</div>
+				<div class="form-group">
+					<label for="EndDate">結束日期<span class="required-mark">*</span></label>
+					<input type="date" id="EndDate" name="EndDate" required />
+				</div>
 
-<div class="leave-container">
-    <h2>📊 我的請假記錄</h2>
-    <table class="records-table">
-        <thead>
-            <tr>
-                <th>假別</th>
-                <th>申請日期</th>
-                <th>請假期間</th>
-                <th>天數</th>
-                <th>狀態</th>
-                <th>請假原因</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (ViewBag.MyApplications != null && ((List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications).Any())
-            {
-                @foreach (var app in (List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications)
-                {
-                    <tr>
-                        <td>@app.LeaveType.TypeName</td>
-                        <td>@app.AppliedAt.ToString("MM/dd HH:mm")</td>
-                        <td>
-                            @app.StartDate.ToString("MM/dd")
-                            @if (app.StartDate != app.EndDate)
-                            {
-                                <span> ~ @app.EndDate.ToString("MM/dd")</span>
-                            }
-                        </td>
-                        <td>@app.TotalDays 天</td>
-                        <td>
-                            @switch (app.Status)
-                            {
-                                case "pending":
-                                    <span class="leave-status status-pending">待審核</span>
-                                    break;
-                                case "approved":
-                                    <span class="leave-status status-approved">已核准</span>
-                                    break;
-                                case "rejected":
-                                    <span class="leave-status status-rejected">已拒絕</span>
-                                    break;
-                                default:
-                                    <span class="leave-status">@app.Status</span>
-                                    break;
-                            }
-                        </td>
-                        <td style="max-width: 200px; word-wrap: break-word;">@app.Reason</td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="6" style="color: #666; font-style: italic;">還沒有請假記錄</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+				<div class="form-group">
+					<label for="Reason">請假原因<span class="required-mark">*</span></label>
+					<textarea id="Reason" name="Reason" placeholder="請輸入請假原因..." required></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
 
-<!-- 訊息提示區域 -->
+	<div class="page-actions">
+		<a href="@Url.Action("Index", "Home")" class="btn btn-back">🔙 回到首頁</a>
+		<button type="submit" class="btn btn-submit" id="submitBtn">📤 送出申請</button>
+	</div>
+</form>
+
 <div id="messageAlert" class="message-alert">
-    <span id="messageText"></span>
+	<span id="messageText"></span>
 </div>
-
-@* 加入防偽令牌 *@
-@Html.AntiForgeryToken()
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // 顯示訊息
-    function showMessage(message, isError = false) {
-        const alertDiv = document.getElementById('messageAlert');
-        const messageText = document.getElementById('messageText');
+	function showMessage(message, isError = false) {
+		const alertDiv = document.getElementById('messageAlert');
+		const messageText = document.getElementById('messageText');
+		messageText.textContent = message;
+		alertDiv.className = `message-alert ${isError ? 'message-error' : 'message-success'}`;
+		alertDiv.style.display = 'block';
+		setTimeout(() => { alertDiv.style.display = 'none'; }, 4000);
+	}
 
-        messageText.textContent = message;
-        alertDiv.className = `message-alert ${isError ? 'message-error' : 'message-success'}`;
-        alertDiv.style.display = 'block';
+	function setDateConstraints() {
+		const today = new Date().toISOString().split('T')[0];
+		document.getElementById('StartDate').min = today;
+		document.getElementById('EndDate').min = today;
+		document.getElementById('StartDate').addEventListener('change', function () {
+			document.getElementById('EndDate').min = this.value;
+			if (document.getElementById('EndDate').value < this.value) {
+				document.getElementById('EndDate').value = this.value;
+			}
+		});
+	}
 
-        setTimeout(() => {
-            alertDiv.style.display = 'none';
-        }, 4000);
-    }
+	async function submitLeaveApplication() {
+		const form = document.getElementById('leaveForm');
+		const formData = new FormData(form);
+		const submitBtn = document.getElementById('submitBtn');
 
-    // 設定日期限制
-    function setDateConstraints() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('StartDate').min = today;
-        document.getElementById('EndDate').min = today;
+		if (!form.checkValidity()) {
+			showMessage('請填寫所有必填欄位', true);
+			return;
+		}
 
-        // 當開始日期改變時，更新結束日期的最小值
-        document.getElementById('StartDate').addEventListener('change', function() {
-            document.getElementById('EndDate').min = this.value;
-            if (document.getElementById('EndDate').value < this.value) {
-                document.getElementById('EndDate').value = this.value;
-            }
-        });
-    }
+		submitBtn.disabled = true;
+		submitBtn.textContent = '送出中...';
 
-    // 提交請假申請
-    async function submitLeaveApplication() {
-        const form = document.getElementById('leaveForm');
-        const formData = new FormData(form);
-        const submitBtn = document.getElementById('submitBtn');
+		try {
+			const response = await fetch('@Url.Action("Apply", "Leave")', {
+				method: 'POST',
+				body: formData,
+				headers: {
+					'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+				}
+			});
 
-        // 驗證表單
-        if (!form.checkValidity()) {
-            showMessage('請填寫所有必填欄位', true);
-            return;
-        }
+			const result = await response.json();
+			showMessage(result.message, !result.success);
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = '送出中...';
+			if (result.success) {
+				form.reset();
+				setTimeout(() => location.reload(), 2000);
+			}
+		} catch (error) {
+			showMessage('申請失敗，請重試', true);
+		} finally {
+			submitBtn.disabled = false;
+			submitBtn.innerHTML = '📤 送出申請';
+		}
+	}
 
-        try {
-            const response = await fetch('@Url.Action("Apply", "Leave")', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                }
-            });
-
-            const result = await response.json();
-            showMessage(result.message, !result.success);
-
-            if (result.success) {
-                form.reset();
-                setTimeout(() => location.reload(), 2000);
-            }
-        } catch (error) {
-            showMessage('申請失敗，請重試', true);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '📤 送出申請';
-        }
-    }
-
-    // 頁面載入完成後初始化
-    $(document).ready(function() {
-        setDateConstraints();
-
-        // 綁定表單提交事件
-        $('#leaveForm').on('submit', function(e) {
-            e.preventDefault();
-            submitLeaveApplication();
-        });
-    });
+	$(document).ready(function () {
+		setDateConstraints();
+		$('#leaveForm').on('submit', function (e) {
+			e.preventDefault();
+			submitLeaveApplication();
+		});
+	});
 </script>

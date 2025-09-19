@@ -4,7 +4,7 @@ namespace StarProject.Helpers
 {
 	public class ImgUploadHelper
 	{
-		private static readonly string ApiKey = "eac4dc6d38c859c2335522de654b03c9";
+		private static readonly string ApiKey = "e5bf55aa30d13e653f4b29974ac4a17d";
 
 		private static readonly string ApiUrl = "https://api.imgbb.com/1/upload";
 

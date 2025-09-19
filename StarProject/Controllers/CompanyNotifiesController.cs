@@ -62,7 +62,7 @@ namespace StarProject.Controllers
             return View(companyNotify);
         }
 
-		[Permission("conlist,cone")]
+		[Permission("cone")]
 		// GET: CompanyNotifies/Create
 		public IActionResult Create()
         {
@@ -87,7 +87,7 @@ namespace StarProject.Controllers
 			}
 			return View(companyNotify);
 		}
-		[Permission("conlist,cone")]
+		[Permission("cone")]
 		// GET: CompanyNotifies/Edit/5
 		public async Task<IActionResult> Edit(int? id)
         {
@@ -103,7 +103,7 @@ namespace StarProject.Controllers
             }
             return View(companyNotify);
         }
-		[Permission("conlist,cone")]
+		[Permission("cone")]
 		// POST: CompanyNotifies/Edit/5
 		// To protect from overposting attacks, enable the specific properties you want to bind to.
 		// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -145,7 +145,7 @@ namespace StarProject.Controllers
             }
             return View(companyNotify);
         }
-		[Permission("conlist,cone")]
+		
 		// GET: CompanyNotifies/Delete/5
 		public async Task<IActionResult> Delete(int? id)
         {
@@ -165,7 +165,7 @@ namespace StarProject.Controllers
 
 			return View(companyNotify);
 		}
-		[Permission("conlist,cone")]
+		
 		// POST: CompanyNotifies/Delete/5
 		[HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -180,7 +180,7 @@ namespace StarProject.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-		[Permission("conlist,cone")]
+		
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteMultiple(int[] ids)

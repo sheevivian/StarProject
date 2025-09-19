@@ -626,7 +626,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<OrderStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063A62086B4");
+            entity.HasKey(e => e.StatusId).HasName("PK__OrderSta__C8EE2063B38FA809");
 
             entity.ToTable("OrderStatus");
 
@@ -709,7 +709,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A88AEDB099");
+            entity.HasKey(e => e.No).HasName("PK__ProCateg__3214D4A8887D739A");
 
             entity.ToTable("ProCategory");
 
@@ -821,7 +821,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<ProductStock>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A8DFF6CDC9");
+            entity.HasKey(e => e.No).HasName("PK__ProductS__3214D4A864D8AF1D");
 
             entity.ToTable("ProductStock");
 
@@ -876,7 +876,7 @@ public partial class StarProjectContext : DbContext
                 .HasNoKey()
                 .ToTable("PromotionUsage");
 
-            entity.Property(e => e.PromotionNo).HasColumnName("PromotionNo");
+            entity.Property(e => e.PromotionNo).HasColumnName("Promotion_No");
             entity.Property(e => e.UsedDate).HasColumnType("datetime");
             entity.Property(e => e.UserNo)
                 .HasMaxLength(50)
@@ -935,7 +935,7 @@ public partial class StarProjectContext : DbContext
 
         modelBuilder.Entity<TicCategory>(entity =>
         {
-            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A8E1C7D298");
+            entity.HasKey(e => e.No).HasName("PK__TicCateg__3214D4A88768F026");
 
             entity.ToTable("TicCategory");
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using StarProject.Attributes;
 using StarProject.Helpers;
 using StarProject.Models;
 using StarProject.ViewModels;
@@ -42,7 +43,7 @@ namespace StarProject.Controllers
 
 			return View(items);
 		}
-
+		[Permission("conlist")]
 		// GET: CompanyNotifies/Details/5
 		public async Task<IActionResult> Details(int? id)
         {
@@ -61,8 +62,9 @@ namespace StarProject.Controllers
             return View(companyNotify);
         }
 
-        // GET: CompanyNotifies/Create
-        public IActionResult Create()
+		[Permission("conlist,cone")]
+		// GET: CompanyNotifies/Create
+		public IActionResult Create()
         {
             return View();
         }

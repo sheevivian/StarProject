@@ -6,6 +6,14 @@
 }
 <head>
     <style>
+        .carousel-control-prev-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23d3d3d3' viewBox='0 0 8 8'%3E%3Cpath d='M5.5 0L4.5 1 1 4.5 4.5 8 5.5 7 2.5 4.5z'/%3E%3C/svg%3E");
+        }
+
+        .carousel-control-next-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23d3d3d3' viewBox='0 0 8 8'%3E%3Cpath d='M2.5 0L3.5 1 7 4.5 3.5 8 2.5 7 5.5 4.5z'/%3E%3C/svg%3E");
+        }
+
         .bg-offcanvasPoint{
             background-color: #F4F1FF;
         }
@@ -17,7 +25,6 @@
     <!-- 標題+新增 -->
     <div class="d-flex align-items-center mb-3">
         <h1 class="fw-bold flex-grow-1 mb-0">商品查詢</h1>
-        <a asp-action="Create" class="btn btn-search fw-bold"><i class="fa-solid fa-plus"></i> 新增</a>
     </div>
 
     <!-- CSRF Token -->
@@ -138,7 +145,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="預購" id="status2">
                                     <label class="form-check-label" for="status2">
-                                            預購
+                                        預購
                                     </label>
                                 </div>
                                 <div class="form-check">
@@ -256,14 +263,14 @@
                 </div>
             </div>
             <div class="offcanvas-body flex-column">
-                <div class="d-flex justify-content-end mb-3">
+                <div class="d-flex justify-content-end mt-2 mb-3">
                     <a id="offcanvasArtBtn" class="btn br20px btn-color"><i class="fa-solid fa-pen-to-square"></i>編輯介紹</a>
                 </div>
                 <div id="carouselExampleIndicators" class="carousel slide">
                     <div class="carousel-indicators" id="carouselIndicators">
                         
                     </div>
-                    <div class="carousel-inner" id="carouselInner">
+                    <div class="carousel-inner mb-3" id="carouselInner">
                         
                     </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">

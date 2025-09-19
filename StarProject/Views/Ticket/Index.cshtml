@@ -347,7 +347,7 @@
                 var btn = $(this);
                 // 🔑 取得這筆資料的 ID
                 var id = btn.data('id');
-                var desc =btn.data('desc')
+                var desc = btn.data('desc')
 
                 $('#hdSpan').empty();
                 if (btn.data('category') === "優惠套票")
@@ -442,10 +442,10 @@
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a></td>
                                 `);
-                                var btnEdit = $('#modelEditBtn');
+                                var btnEdit = $('.btn-price-edit');
                                 var editId = btnEdit.data('id');
                                 // 編輯按鈕連結
-                                $('#modelEditBtn').attr("href", "/Ticket/Edit/" + editId );
+                                $('.btn-price-edit').attr("href", "/Ticket/Edit/" + editId );
                             });
                             // 🔹這裡重新初始化 tooltip
                             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

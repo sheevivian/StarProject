@@ -480,7 +480,7 @@ namespace StarProject.Controllers
 		public async Task<IActionResult> GetStockLogs(string id, DateTime? startDate, DateTime? endDate)
 		{
 			if (!startDate.HasValue) startDate = DateTime.Today;
-			if (!endDate.HasValue) endDate = DateTime.Today.AddDays(7);
+			if (!endDate.HasValue) endDate = DateTime.Today.AddDays(6);
 
 			// 1️⃣ 把每日庫存投影成同樣結構
 			var dailyStocks = _context.TicketStocks

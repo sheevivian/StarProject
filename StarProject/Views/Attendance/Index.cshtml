@@ -1,484 +1,260 @@
 ﻿@using StarProject.Models
 @{
-    ViewData["Title"] = "出勤打卡";
+	ViewData["Title"] = "出勤紀錄";
 }
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f5;
-    }
+	body {
+		font-family: Arial, sans-serif;
+		background-color: #f5f5f5;
+	}
 
-    .attendance-container {
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        max-width: 1000px;
-        margin: 0 auto 20px auto;
-    }
+	.attendance-container {
+		background: white;
+		padding: 30px;
+		border-radius: 10px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		margin-bottom: 20px;
+		max-width: 1000px;
+		margin: 0 auto 20px auto;
+	}
 
-    h1, h2 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 30px;
-    }
+	h1, h2 {
+		color: #333;
+		margin: 0;
+	}
 
-    .clock-section {
-        text-align: center;
-        margin: 30px 0;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
+	.records-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 20px;
+	}
 
-    .current-time {
-        font-size: 28px;
-        font-weight: bold;
-        color: #007bff;
-        margin-bottom: 10px;
-    }
+	.nav-btn {
+		display: inline-block;
+		padding: 10px 18px;
+		text-decoration: none;
+		color: white;
+		border-radius: 6px;
+		font-weight: bold;
+		transition: all 0.2s ease;
+		white-space: nowrap;
+	}
 
-    .current-date {
-        font-size: 16px;
-        color: #666;
-        margin-bottom: 20px;
-    }
+		.nav-btn:hover {
+			transform: translateY(-1px);
+			text-decoration: none;
+			color: white;
+			opacity: .95;
+		}
 
-    .employee-info {
-        font-size: 18px;
-        color: #666;
-        margin-bottom: 30px;
-    }
+	.btn-leave {
+		background-color: #17a2b8;
+	}
 
-    .clock-buttons {
-        display: flex;
-        gap: 30px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-    }
+		.btn-leave:hover {
+			background-color: #138496;
+		}
 
-    .clock-button-container {
-        text-align: center;
-    }
+	.btn-logout {
+		background-color: #6c757d;
+	}
 
-    .clock-btn {
-        font-size: 18px;
-        padding: 15px 30px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        min-width: 150px;
-        font-weight: bold;
-        transition: all 0.3s;
-    }
+		.btn-logout:hover {
+			background-color: #5a6268;
+		}
 
-        .clock-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
+	.table-rounded {
+		background: white;
+		border-radius: 10px;
+		overflow: hidden;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		margin-top: 20px;
+	}
 
-    .btn-clock-in {
-        background-color: #28a745;
-        color: white;
-    }
+	.records-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin: 0;
+		background: white;
+	}
 
-        .btn-clock-in:hover {
-            background-color: #218838;
-        }
+		.records-table th, .records-table td {
+			border: none;
+			border-bottom: 1px solid #dee2e6;
+			padding: 12px;
+			text-align: center;
+		}
 
-    .btn-clock-out {
-        background-color: #dc3545;
-        color: white;
-    }
+		.records-table th {
+			background-color: #2B4C8C;
+			color: white;
+			font-weight: bold;
+			border-bottom: 2px solid #dee2e6;
+		}
 
-        .btn-clock-out:hover {
-            background-color: #c82333;
-        }
+		.records-table tr:hover {
+			background-color: rgba(0,123,255,0.05);
+		}
 
-    .clock-time {
-        display: block;
-        font-size: 14px;
-        color: #28a745;
-        margin-top: 8px;
-        font-weight: bold;
-    }
+		.records-table tr:last-child td {
+			border-bottom: none;
+		}
 
-    .nav-buttons {
-        text-align: center;
-        margin: 30px 0;
-    }
+	.today-record {
+		background-color: #fff3cd !important;
+		font-weight: bold;
+	}
 
-    .nav-btn {
-        display: inline-block;
-        margin: 0 15px;
-        padding: 12px 25px;
-        text-decoration: none;
-        color: white;
-        border-radius: 6px;
-        font-weight: bold;
-        transition: all 0.3s;
-    }
+		.today-record:hover {
+			background-color: #ffeaa7 !important;
+		}
 
-        .nav-btn:hover {
-            transform: translateY(-1px);
-            text-decoration: none;
-            color: white;
-        }
+	.page-actions {
+		max-width: 1000px;
+		margin: 0 auto 24px auto;
+		text-align: center;
+	}
 
-    .btn-leave {
-        background-color: #17a2b8;
-    }
+	.message-alert {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+		z-index: 1000;
+		min-width: 300px;
+		padding: 15px 20px;
+		border-radius: 6px;
+		font-weight: bold;
+		display: none;
+		animation: slideIn 0.3s ease-out;
+	}
 
-        .btn-leave:hover {
-            background-color: #138496;
-        }
+	.message-success {
+		background-color: #d4edda;
+		color: #155724;
+		border: 1px solid #c3e6cb;
+	}
 
-    .btn-logout {
-        background-color: #6c757d;
-    }
+	.message-error {
+		background-color: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+	}
 
-        .btn-logout:hover {
-            background-color: #5a6268;
-        }
+	@@keyframes slideIn {
+		from {
+			transform: translateX(100%);
+			opacity: 0;
+		}
 
-    .records-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        background: white;
-    }
+		to {
+			transform: translateX(0);
+			opacity: 1;
+		}
+	}
 
-        .records-table th,
-        .records-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
+	@@media (max-width: 768px) {
+		.attendance-container {
+			margin: 10px;
+			padding: 20px;
+		}
 
-        .records-table th {
-            background-color: #007bff;
-            color: white;
-            font-weight: bold;
-        }
+		.records-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 12px;
+		}
 
-        .records-table tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        .records-table tr:hover {
-            background-color: #e9ecef;
-        }
-
-    .today-record {
-        background-color: #fff3cd !important;
-        font-weight: bold;
-    }
-
-        .today-record:hover {
-            background-color: #ffeaa7 !important;
-        }
-    /* 訊息提示樣式 */
-    .message-alert {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        min-width: 300px;
-        padding: 15px 20px;
-        border-radius: 6px;
-        font-weight: bold;
-        display: none;
-        animation: slideIn 0.3s ease-out;
-    }
-
-    .message-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-
-    .message-error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-    @@keyframes slideIn {
-        from
-
-    {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-
-    }
-    @@media (max-width: 768px) {
-        .clock-buttons
-
-    {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .attendance-container {
-        margin: 10px;
-        padding: 20px;
-    }
-
-    .current-time {
-        font-size: 24px;
-    }
-
-    }
+			.records-header .nav-btn {
+				align-self: stretch;
+				text-align: center;
+			}
+	}
 </style>
 
 <div class="attendance-container">
-    <h1>🕐 員工出勤打卡系統</h1>
+	<div class="records-header">
+		<h2>📊 最近出勤紀錄</h2>
+		<a href="@Url.Action("Index", "Leave")" class="nav-btn btn-leave">📝 請假申請</a>
+	</div>
 
-    <div class="clock-section">
-        <div class="current-time" id="currentTime"></div>
-        <div class="current-date" id="currentDate"></div>
-        <div class="employee-info">
-            @ViewBag.EmployeeName (@ViewBag.DepartmentName)
-        </div>
+	<div class="table-rounded">
+		<table class="records-table">
+			<thead>
+				<tr>
+					<th>日期</th>
+					<th>星期</th>
+					<th>上班時間</th>
+					<th>下班時間</th>
+					<th>工作時數</th>
+				</tr>
+			</thead>
+			<tbody>
+				@if (ViewBag.RecentRecords != null && ((List<AttendanceRecord>)ViewBag.RecentRecords).Any())
+				{
+					@foreach (var record in (List<AttendanceRecord>)ViewBag.RecentRecords)
+					{
+						var isToday = record.ClockDate == DateOnly.FromDateTime(DateTime.Today);
+						var workHours = record.ClockOutTime.HasValue && record.ClockInTime.HasValue
+						? record.ClockOutTime.Value - record.ClockInTime.Value
+						: (TimeSpan?)null;
 
-        <div class="clock-buttons">
-            <div class="clock-button-container">
-                <button id="clockInBtn" class="clock-btn btn-clock-in" onclick="clockIn()">
-                    🕐 上班打卡
-                </button>
-                @if (ViewBag.TodayRecord?.ClockInTime != null)
-                {
-                    <span class="clock-time">
-                        上班時間: @(((DateTime)ViewBag.TodayRecord.ClockInTime).ToString("HH:mm:ss"))
-                    </span>
-                }
-            </div>
-
-            <div class="clock-button-container">
-                <button id="clockOutBtn" class="clock-btn btn-clock-out" onclick="clockOut()">
-                    🕕 下班打卡
-                </button>
-                @if (ViewBag.TodayRecord?.ClockOutTime != null)
-                {
-                    var workHours = (DateTime)ViewBag.TodayRecord.ClockOutTime - (DateTime)ViewBag.TodayRecord.ClockInTime;
-                    <span class="clock-time">
-                        下班時間: @(((DateTime)ViewBag.TodayRecord.ClockOutTime).ToString("HH:mm:ss"))<br>
-                        工作時數: @(workHours.ToString(@"hh\:mm"))
-                    </span>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="nav-buttons">
-        <a href="@Url.Action("Index", "Leave")" class="nav-btn btn-leave">📝 請假申請</a>
-        <a href="@Url.Action("Index", "Login")" class="nav-btn btn-logout">🚪 登出系統</a>
-    </div>
+						<tr class="@(isToday ? "today-record" : "")">
+							<td>@record.ClockDate.ToString("MM/dd")</td>
+							<td>
+								@{
+									string dayOfWeekChinese = record.ClockDate.DayOfWeek.ToString() switch
+									{
+										"Monday" => "週一",
+										"Tuesday" => "週二",
+										"Wednesday" => "週三",
+										"Thursday" => "週四",
+										"Friday" => "週五",
+										"Saturday" => "週六",
+										"Sunday" => "週日",
+										_ => record.ClockDate.DayOfWeek.ToString()
+									};
+								}
+								@dayOfWeekChinese
+							</td>
+							<td>@(record.ClockInTime?.ToString("HH:mm") ?? "-")</td>
+							<td>@(record.ClockOutTime?.ToString("HH:mm") ?? "-")</td>
+							<td>@(workHours?.ToString(@"hh\:mm") ?? "-")</td>
+						</tr>
+					}
+				}
+				else
+				{
+					<tr>
+						<td colspan="5" style="color: #666; font-style: italic;">還沒有打卡記錄</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
 </div>
 
-<div class="attendance-container">
-    <h2>📊 最近打卡記錄</h2>
-    <table class="records-table">
-        <thead>
-            <tr>
-                <th>日期</th>
-                <th>星期</th>
-                <th>上班時間</th>
-                <th>下班時間</th>
-                <th>工作時數</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (ViewBag.RecentRecords != null && ((List<AttendanceRecord>)ViewBag.RecentRecords).Any())
-            {
-                @foreach (var record in (List<AttendanceRecord>)ViewBag.RecentRecords)
-                {
-                    var isToday = record.ClockDate == DateOnly.FromDateTime(DateTime.Today);
-                    var workHours = record.ClockOutTime.HasValue && record.ClockInTime.HasValue
-                    ? record.ClockOutTime.Value - record.ClockInTime.Value
-                    : (TimeSpan?)null;
-
-                    <tr class="@(isToday ? "today-record" : "")">
-                        <td>@record.ClockDate.ToString("MM/dd")</td>
-                        <td>
-                            @{
-                                string dayOfWeekChinese = record.ClockDate.DayOfWeek.ToString() switch
-                                {
-                                    "Monday" => "週一",
-                                    "Tuesday" => "週二",
-                                    "Wednesday" => "週三",
-                                    "Thursday" => "週四",
-                                    "Friday" => "週五",
-                                    "Saturday" => "週六",
-                                    "Sunday" => "週日",
-                                    _ => record.ClockDate.DayOfWeek.ToString()
-                                };
-                            }
-                            @dayOfWeekChinese
-                        </td>
-                        <td>@(record.ClockInTime?.ToString("HH:mm") ?? "-")</td>
-                        <td>@(record.ClockOutTime?.ToString("HH:mm") ?? "-")</td>
-                        <td>@(workHours?.ToString(@"hh\:mm") ?? "-")</td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="5" style="color: #666; font-style: italic;">還沒有打卡記錄</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="page-actions">
+	<a href="@Url.Action("Index", "Login")" class="nav-btn btn-logout">🚪 登出系統</a>
 </div>
 
-<!-- 訊息提示區域 -->
 <div id="messageAlert" class="message-alert">
-    <span id="messageText"></span>
+	<span id="messageText"></span>
 </div>
 
-@* 加入防偽令牌 *@
 @Html.AntiForgeryToken()
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // 更新當前時間和日期
-    function updateDateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('zh-TW', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        const dateString = now.toLocaleDateString('zh-TW', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            weekday: 'long'
-        });
+	function showMessage(message, isError = false) {
+		const alertDiv = document.getElementById('messageAlert');
+		const messageText = document.getElementById('messageText');
 
-        document.getElementById('currentTime').textContent = timeString;
-        document.getElementById('currentDate').textContent = dateString;
-    }
+		messageText.textContent = message;
+		alertDiv.className = `message-alert ${isError ? 'message-error' : 'message-success'}`;
+		alertDiv.style.display = 'block';
 
-    // 顯示訊息
-    function showMessage(message, isError = false) {
-        const alertDiv = document.getElementById('messageAlert');
-        const messageText = document.getElementById('messageText');
-
-        messageText.textContent = message;
-        alertDiv.className = `message-alert ${isError ? 'message-error' : 'message-success'}`;
-        alertDiv.style.display = 'block';
-
-        setTimeout(() => {
-            alertDiv.style.display = 'none';
-        }, 4000);
-    }
-
-    // 上班打卡
-           // 修正版本的 clockIn 函數
-    async function clockIn() {
-        const button = document.getElementById('clockInBtn');
-        button.disabled = true;
-        button.textContent = '打卡中...';
-
-        try {
-            const response = await fetch('@Url.Action("ClockIn", "Attendance")', {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                }
-            });
-
-            // 🔥 關鍵修正：先檢查響應狀態
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server error:', response.status, errorText);
-                showMessage(`伺服器錯誤 (${response.status})`, true);
-                return;
-            }
-
-            // 🔥 關鍵修正：檢查響應內容類型
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('Non-JSON response:', text);
-                showMessage('伺服器響應格式錯誤', true);
-                return;
-            }
-
-            const result = await response.json();
-            showMessage(result.message, !result.success);
-
-            if (result.success) {
-                setTimeout(() => location.reload(), 2000);
-            }
-        } catch (error) {
-            console.error('Request failed:', error);
-            showMessage(`請求失敗：${error.message}`, true);
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '🕐 上班打卡';
-        }
-    }
-
-    // 修正版本的 clockOut 函數
-    async function clockOut() {
-        const button = document.getElementById('clockOutBtn');
-        button.disabled = true;
-        button.textContent = '打卡中...';
-
-        try {
-            const response = await fetch('@Url.Action("ClockOut", "Attendance")', {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                }
-            });
-
-            // 🔥 關鍵修正：先檢查響應狀態
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server error:', response.status, errorText);
-                showMessage(`伺服器錯誤 (${response.status})`, true);
-                return;
-            }
-
-            // 🔥 關鍵修正：檢查響應內容類型
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('Non-JSON response:', text);
-                showMessage('伺服器響應格式錯誤', true);
-                return;
-            }
-
-            const result = await response.json();
-            showMessage(result.message, !result.success);
-
-            if (result.success) {
-                setTimeout(() => location.reload(), 2000);
-            }
-        } catch (error) {
-            console.error('Request failed:', error);
-            showMessage(`請求失敗：${error.message}`, true);
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '🕕 下班打卡';
-        }
-    }
-
-    // 頁面載入完成後初始化
-    $(document).ready(function() {
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
-    });
+		setTimeout(() => { alertDiv.style.display = 'none'; }, 3000);
+	}
 </script>

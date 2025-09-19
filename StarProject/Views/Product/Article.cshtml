@@ -68,111 +68,119 @@
 	<link href="~/css/textediting.css" rel="stylesheet" />
 </head>
 
-<h1 class="fw-bold">商品介紹編輯</h1>
-<hr />
+<div class="position-relative">
+    <h1 class="fw-bold">商品介紹編輯</h1>
+    <hr />
 
-<div class="row">
-    <form asp-action="Article" method="post" enctype="multipart/form-data" style="width:100%">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="row g-3 align-items-stretch">
-            <!-- 左側：基本資訊 + 圖片 -->
-            <div class="col-lg-6 d-flex flex-column gap-3">
-                <div class="card  h-100">
-                    <div class="card-header fw-bold fs-4"><strong>基本資訊</strong></div>
-                    <div class="card-body">
-                        <div class="form-group d-flex align-items-center row">
-                            <div class="col-4 col-lg-2 fw-bold fs-5">
-                                <label asp-for="ProductNo" class="control-label fw-bold fs-5"></label>
+    <div class="row">
+        <form asp-action="Article" method="post" enctype="multipart/form-data" style="width:100%">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row g-3 align-items-stretch">
+                <!-- 左側：基本資訊 + 圖片 -->
+                <div class="col-lg-6 d-flex flex-column gap-3">
+                    <div class="card  h-100">
+                        <div class="card-header fw-bold fs-4"><strong>基本資訊</strong></div>
+                        <div class="card-body">
+                            <div class="form-group d-flex align-items-center row">
+                                <div class="col-4 col-lg-2 fw-bold fs-5">
+                                    <label asp-for="ProductNo" class="control-label fw-bold fs-5"></label>
+                                </div>
+                                <div class="col-8 col-lg-10 fs-5">
+                                    <input asp-for="ProductNo" readonly class="form-control-plaintext" />
+                                </div>
                             </div>
-                            <div class="col-8 col-lg-10 fs-5">
-                                <input asp-for="ProductNo" readonly class="form-control-plaintext" />
+                            <div class="form-group d-flex align-items-center row">
+                                <div class="col-4 col-lg-2 fw-bold fs-5">
+                                    <label asp-for="ProductName" class="control-label fw-bold fs-5"></label>
+                                </div>
+                                <div class="col-8 col-lg-10 fs-5">
+                                    <input asp-for="ProductName" readonly class="form-control-plaintext" />
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group d-flex align-items-center row">
-                            <div class="col-4 col-lg-2 fw-bold fs-5">
-                                <label asp-for="ProductName" class="control-label fw-bold fs-5"></label>
-                            </div>
-                            <div class="col-8 col-lg-10 fs-5">
-                                <input asp-for="ProductName" readonly class="form-control-plaintext" />
-                            </div>
-                        </div>
 
                         
-                        <!-- Carousel 預覽 + 拖曳排序 -->
-                        <div class="mb-3">
-                            <div id="carouselExampleIndicators" class="carousel slide">
-                                <div class="carousel-indicators" id="carouselIndicators">
-                                    <!-- 動態生成 indicator -->
-                                    @{
-                                        var i = 0;
-                                        foreach (var img in Model.Images)
-                                        {
-                                            <button type="button" data-bs-target="#carouselExampleIndicators"
-                                                data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Slide ${@i+1}"
-                                                style="background-color:#d3d3d3">
-                                            </button>
-                                            i++;
+                            <!-- Carousel 預覽 + 拖曳排序 -->
+                            <div class="mb-3">
+                                <div id="carouselExampleIndicators" class="carousel slide">
+                                    <div class="carousel-indicators" id="carouselIndicators">
+                                        <!-- 動態生成 indicator -->
+                                        @{
+                                            var i = 0;
+                                            foreach (var img in Model.Images)
+                                            {
+                                                <button type="button" data-bs-target="#carouselExampleIndicators"
+                                                    data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Slide ${@i+1}"
+                                                    style="background-color:#d3d3d3">
+                                                </button>
+                                                i++;
+                                            }
+                                          }
+                                    </div>
+                                    <div class="carousel-inner" id="carouselInner">
+                                        @{
+                                            var j = 0;
+                                            foreach (var item in Model.Images)
+                                            {
+                                                <div class="carousel-item @(j == 0 ? "active" : "")">
+                                                    <img src="@item" class="d-block w-100" style="height:500px; width:100px; object-fit:contain; object-position: center;">
+                                                </div>
+                                                j++;
+                                            }
                                         }
-                                      }
+                                    </div>
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">上一張</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">下一張</span>
+                                    </button>
                                 </div>
-                                <div class="carousel-inner" id="carouselInner">
-                                    @{
-                                        var j = 0;
-                                        foreach (var item in Model.Images)
-                                        {
-                                            <div class="carousel-item @(j == 0 ? "active" : "")">
-                                                <img src="@item" class="d-block w-100" style="height:500px; width:100px; object-fit:contain; object-position: center;">
-                                            </div>
-                                            j++;
-                                        }
-                                    }
-                                </div>
-                                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">上一張</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">下一張</span>
-                                </button>
                             </div>
+
+
+
                         </div>
+                    </div>
+                </div>
 
-
-
+                <!-- 右側：文章編輯 -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header fw-bold fs-4"><strong>商品介紹</strong></div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="form-group mb-3">
+                                <div class="fw-bold fs-5">
+                                    <label asp-for="Point" class="control-label fw-bold fs-5"></label><span asp-validation-for="Point" class="text-danger ms-3"></span>
+                                    <textarea asp-for="Point" id="inputPoint" class="form-control" rows="5" cols="50" style="resize: none;" placeholder="選填，最多50個字"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group mb-2">
+                                <div>
+                                    <label asp-for="Description" class="control-label fw-bold fs-5"></label><span asp-validation-for="Point" class="text-danger ms-3"></span>
+                                    <textarea asp-for="Description" id="editor" class="form-control"></textarea>
+                                </div>
+                            </div>    
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 右側：文章編輯 -->
-            <div class="col-lg-6">
-                <div class="card h-100">
-                    <div class="card-header fw-bold fs-4"><strong>商品介紹</strong></div>
-                    <div class="card-body d-flex flex-column">
-                        <div class="form-group mb-3">
-                            <div class="fw-bold fs-5">
-                                <label asp-for="Point" class="control-label fw-bold fs-5"></label><span asp-validation-for="Point" class="text-danger ms-3"></span>
-                                <textarea asp-for="Point" class="form-control" rows="5" cols="50" style="resize: none;" placeholder="選填，最多50個字"></textarea>
-                            </div>
-                        </div>
-                        <div class="form-group mb-2">
-                            <div>
-                                <label asp-for="Description" class="control-label fw-bold fs-5"></label><span asp-validation-for="Point" class="text-danger ms-3"></span>
-                                <textarea asp-for="Description" id="editor" class="form-control"></textarea>
-                            </div>
-                        </div>    
-                    </div>
-                </div>
+            <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
+                <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
+                    <i class="fa-solid fa-file"></i> 保存變更
+                </button>
+                <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
             </div>
-        </div>
-
-        <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
-            <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
-                <i class="fa-solid fa-plus"></i>保存變更
-            </button>
-            <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
-        </div>
-    </form>
+        </form>
+    </div>
+    <div class="position-absolute top-0 end-0 m-2 me-4">
+        <button type="button" id="fillTestData" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center"
+                style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+            <i class="fa-solid fa-wand-sparkles"></i>
+        </button>
+    </div>
 </div>
 
 
@@ -181,40 +189,72 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    <script>
-  
-
-    </script>
-
     <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const textarea = document.querySelector('#editor');
+        let myEditor; // 全域變數
 
-            ClassicEditor
-                .create(textarea, {
-                    language: 'zh',
-                    toolbar: [
-                        'heading', '|',
-                        'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
-                        'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
-                        'undo', 'redo'
-                    ],
-                    ckfinder: {
-                        uploadUrl: '/Product/ArticleImage'
-                    }
-                })
-                .then(editor => {
-                    // 只綁一次事件
-                    editor.model.document.on('change:data', () => {
-                        textarea.value = editor.getData();
-                        // console.log(textarea.value); // 可以保留或刪掉
-                    });
-                })
-                .catch(error => {
-                    console.error(error);
+        $(document).ready(function(){
+
+            // 初始化 CKEditor
+            ClassicEditor.create(document.querySelector('#editor'), {
+                language: 'zh',
+                toolbar: [
+                    'heading', '|',
+                    'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
+                    'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
+                    'undo', 'redo'
+                ],
+                ckfinder: {
+                    uploadUrl: '/Product/ArticleImage'
+                }
+            }).then(editor => {
+                myEditor = editor;
+                editor.model.document.on('change:data', () => {
+                    $("#editor").val(editor.getData());
                 });
+            }).catch(error => console.error(error));
+
+
+            // 填入測試資料按鈕
+            $("#fillTestData").on("click", function() {
+                // 填入問題
+                $("#inputPoint").val("喚醒知識探索欲的STUDY HOLIC知識狂熱系列，以「學習」為主題，激發對未知世界的好奇心！");
+
+
+                // 填入內容到 CKEditor
+                const faqContent =
+                `
+                    <h5><strong>把「○○學」畫成暑假自由研究風，大人也會覺得超有趣！</strong></h5>
+                    <p>你還記得小時候暑假做自由研究的回憶嗎？
+                        對未知事物懷抱純真的好奇心，查資料、畫圖、做筆記，這一切都讓人興奮又充實。
+                        本系列圖樣正是以那樣的「自由研究氛圍」為靈感，由設計師逐一手繪完成。
+                        即使是看起來有點艱深的「○○學」，透過這些富有趣味的設計，也能輕鬆融入日常生活中。
+                    </p>
+                    <br/>
+                    <br/>
+                    <h5><strong>充滿玩心的設計，學習本來就很好玩！</strong></h5>
+                    <p>
+                        學習其實是件有趣的事！為了讓這種感覺延續下去，部分商品中還藏有設計巧思，讓你在使用時也能感受到設計上的小驚喜，發現學習的樂趣無所不在。
+                    </p>
+                    <br/>
+                    <br/>
+                    <h5><strong>｜書型便利貼組｜</strong></h5>
+                    <p>推出宛如字典書型般錯視設計包裝的便利貼組，充滿書卷氣息又趣味十足！<br/>
+                        內含6種方便書寫的便利貼樣式，每款各20張，不僅實用，還能為學習與工作增添一點小巧思。
+                    </p>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                `;
+
+                if (myEditor) {
+                    myEditor.setData(faqContent);
+                } else {
+                    $("#editor").val(faqContent);
+                }
+                    });
         });
     </script>
 }

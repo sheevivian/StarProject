@@ -4,7 +4,6 @@
 }
 
 <h1>編輯員工</h1>
-<h4>Emp</h4>
 <hr />
 
 <div class="row">
@@ -67,7 +66,7 @@
                     }
                 </select>
                 <span asp-validation-for="DeptNo" class="text-danger"></span>
-                <small class="form-text text-muted">目前選中: <span id="deptInfo">@Model.DeptNo</span></small>
+                @* <small class="form-text text-muted">目前選中: <span id="deptInfo">@Model.DeptNo</span></small> *@
             </div>
 
             <!-- 改進的職位選單 -->
@@ -87,7 +86,7 @@
                     }
                 </select>
                 <span asp-validation-for="RoleNo" class="text-danger"></span>
-                <small class="form-text text-muted">目前選中: <span id="roleInfo">@Model.RoleNo</span></small>
+                @* <small class="form-text text-muted">目前選中: <span id="roleInfo">@Model.RoleNo</span></small> *@
             </div>
 
             <div class="form-group mb-3">
@@ -123,34 +122,18 @@
             <div class="form-group form-check mb-3">
                 <input class="form-check-input" asp-for="Status" type="checkbox" />
                 <label class="form-check-label" asp-for="Status">
-                    啟用狀態
+                    在職?
                 </label>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <input type="submit" value="儲存" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">取消</a>
+                <input type="submit" value="儲存" class="btn btn-lg" style="background-color:#2B4C8C;color:white" />
+                <a asp-action="Index" class="btn btn-secondary btn-lg">取消</a>
             </div>
         </form>
     </div>
 
-    <!-- 除錯資訊面板 -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>除錯資訊</h5>
-            </div>
-            <div class="card-body">
-                <p><strong>員工編號:</strong> @Model.No</p>
-                <p><strong>目前部門編號:</strong> @Model.DeptNo</p>
-                <p><strong>目前職位編號:</strong> @Model.RoleNo</p>
-                <p><strong>部門選項數量:</strong> @(Model.Depts?.Count() ?? 0)</p>
-                <p><strong>職位選項數量:</strong> @(Model.Roles?.Count() ?? 0)</p>
-                <div id="debugInfo"></div>
-            </div>
-        </div>
-    </div>
 </div>
 
 @section Scripts {
@@ -181,42 +164,6 @@
                 console.log('職位選擇變更為:', this.value);
                 updateInfo();
             });
-
-            // 表單提交時的除錯
-            // form.addEventListener('submit', function(e) {
-            //     console.log('=== 表單提交除錯資訊 ===');
-            //     console.log('員工編號:', document.querySelector('[name="No"]').value);
-            //     console.log('姓名:', document.querySelector('[name="Name"]').value);
-            //     console.log('部門編號:', document.querySelector('[name="DeptNo"]').value);
-            //     console.log('職位編號:', document.querySelector('[name="RoleNo"]').value);
-            //     console.log('Email:', document.querySelector('[name="Email"]').value);
-            //     console.log('電話:', document.querySelector('[name="Phone"]').value);
-            //     console.log('身分證:', document.querySelector('[name="IdNumber"]').value);
-            //     console.log('啟用狀態:', document.querySelector('[name="Status"]').checked);
-
-            //     顯示所有表單資料
-            //     const formData = new FormData(form);
-            //     let debugText = '<h6>表單資料:</h6><ul>';
-            //     for (let [key, value] of formData.entries()) {
-            //         console.log(key + ':', value);
-            //         debugText += `<li><strong>${key}:</strong> ${value}</li>`;
-            //     }
-            //     debugText += '</ul>';
-            //     debugInfo.innerHTML = debugText;
-
-            //     檢查必要欄位
-            //     if (!deptSelect.value || deptSelect.value === '') {
-            //         alert('請選擇部門');
-            //         e.preventDefault();
-            //         return false;
-            //     }
-
-            //     if (!roleSelect.value || roleSelect.value === '') {
-            //         alert('請選擇職位');
-            //         e.preventDefault();
-            //         return false;
-            //     }
-            // });
 
             // 初始化資訊顯示
             updateInfo();

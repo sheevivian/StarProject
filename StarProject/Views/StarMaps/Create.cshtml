@@ -40,87 +40,97 @@
     </style>
 </head>
 
-<h1 class="fw-bold">觀星景點新增</h1>
-<hr />
+<div class="position-relative">
+    <h1 class="fw-bold">觀星景點新增</h1>
+    <hr />
 
-<div class="row">
-    <form asp-action="Create" style="width:100%" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <form asp-action="Create" style="width:100%" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="row g-3">
-            <!-- 左側：基本資訊 + 圖片 -->
-            <div class="col-lg-6 d-flex flex-column gap-3">
-                <div class="card">
-                    <div class="card-header fw-bold fs-4"><strong>觀星景點資訊</strong></div>
-                    <div class="card-body">
-                        <div class="form-group mb-2">
-                            <label asp-for="Name" class="control-label fw-bold fs-5"></label>
-                            <span asp-validation-for="Name" class="text-danger ms-3"></span>
-                            <input asp-for="Name" class="form-control" />
-                        </div>
-                        <div class="form-group mb-2">
-                            <label asp-for="Desc" class="control-label fw-bold fs-5"></label>
-                            <span asp-validation-for="Desc" class="text-danger ms-3"></span>
-                            <textarea asp-for="Desc" class="form-control" rows="10" placeholder="輸入景點描述..." style="resize: none;"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header fw-bold fs-4"><strong>圖片上傳</strong></div>
-                    <div class="card-body">
-                        <div class="form-group mb-2">
-                            <div class="input-group">
-                                <input asp-for="ImageFile" class="form-control" type="file" id="ImageFile" />
-                                <button type="button" class="btn btn-outline-secondary" style="width:100px" id="btnPreviewImage">預覽</button>
+            <div class="row g-3">
+                <!-- 左側：基本資訊 + 圖片 -->
+                <div class="col-lg-6 d-flex flex-column gap-3">
+                    <div class="card">
+                        <div class="card-header fw-bold fs-4"><strong>觀星景點資訊</strong></div>
+                        <div class="card-body">
+                            <div class="form-group mb-2">
+                                <label asp-for="Name" class="control-label fw-bold fs-5"></label>
+                                <span asp-validation-for="Name" class="text-danger ms-3"></span>
+                                <input asp-for="Name" class="form-control" id="inputName" />
                             </div>
-                            <span asp-validation-for="ImageFile" class="text-danger ms-3"></span>
-                        </div>                       
+                            <div class="form-group mb-2">
+                                <label asp-for="Desc" class="control-label fw-bold fs-5"></label>
+                                <span asp-validation-for="Desc" class="text-danger ms-3"></span>
+                                <textarea asp-for="Desc" class="form-control" rows="10" placeholder="輸入景點描述..." style="resize: none;" id="inputDesc"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header fw-bold fs-4"><strong>圖片上傳</strong></div>
+                        <div class="card-body">
+                            <div class="form-group mb-2">
+                                <div class="input-group">
+                                    <input asp-for="ImageFile" class="form-control" type="file" id="ImageFile" />
+                                    <button type="button" class="btn btn-outline-secondary" style="width:100px" id="btnPreviewImage">預覽</button>
+                                </div>
+                                <span asp-validation-for="ImageFile" class="text-danger ms-3"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 圖片預覽小視窗（Bootstrap 5 Modal） -->
+                <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title fw-bold">圖片預覽</h4>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img id="previewImg" alt="圖片預覽" class="img-fluid rounded border">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側：地圖 -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header fw-bold fs-4"><strong>景點位置</strong></div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="form-group mb-2">
+                                <label asp-for="Address" class="control-label fw-bold fs-5"></label>
+                                <span asp-validation-for="Address" class="text-danger ms-3"></span>
+                                <input asp-for="Address" class="form-control" id="addressInput" placeholder="輸入地址..." />
+                                <input type="hidden" asp-for="MapLatitude" id="latitude" />
+                                <input type="hidden" asp-for="MapLongitude" id="longitude" />
+                            </div>
+                            <!-- 地圖固定高度 -->
+                            <div id="map" style="flex:1; min-height:400px;" class="rounded border"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 圖片預覽小視窗（Bootstrap 5 Modal） -->
-            <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title fw-bold">圖片預覽</h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
-                        </div>
-                        <div class="modal-body text-center">
-                            <img id="previewImg" alt="圖片預覽" class="img-fluid rounded border">
-                        </div>
-                    </div>
-                </div>
+            <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
+                <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
+                    <i class="fa-solid fa-plus"></i>新增
+                </button>
+                <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
             </div>
+        </form>
+    </div>
 
-            <!-- 右側：地圖 -->
-            <div class="col-lg-6">
-                <div class="card h-100">
-                    <div class="card-header fw-bold fs-4"><strong>景點位置</strong></div>
-                    <div class="card-body d-flex flex-column">
-                        <div class="form-group mb-2">
-                            <label asp-for="Address" class="control-label fw-bold fs-5"></label>
-                            <span asp-validation-for="Address" class="text-danger ms-3"></span>
-                            <input asp-for="Address" class="form-control" id="addressInput" placeholder="輸入地址..." />
-                            <input type="hidden" asp-for="MapLatitude" id="latitude" />
-                            <input type="hidden" asp-for="MapLongitude" id="longitude" />
-                        </div>
-                        <!-- 地圖固定高度 -->
-                        <div id="map" style="flex:1; min-height:400px;" class="rounded border"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-            
-        <div class="form-group d-flex gap-3 mt-3 text-distance justify-content-center">
-            <button type="submit" class="btn btn-topbar fw-bold fs-5 text-distance" style="width:303px">
-                <i class="fa-solid fa-plus"></i>新增
-            </button>
-            <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
-        </div>
-    </form>
+    <div class="position-absolute top-0 end-0 m-2 me-4">
+        <button type="button" id="fillTestData" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center"
+                style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+            <i class="fa-solid fa-wand-sparkles"></i>
+        </button>
+    </div>
 </div>
+
 
 
 
@@ -129,6 +139,11 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>
+        $("#fillTestData").on("click", function() {
+                $("#inputName").val("臺灣_阿里山對高岳車站");
+                $('#inputDesc').val("位於阿里山鐵道祝山線上的「對高岳車站」，其附近的「對高岳觀日坪」相信是大家不陌生的觀日絕佳景點，每年的元旦「阿里山日出印象音樂會」也都是在這邊舉行。到了晚上不妨回到車站站在鐵軌往上看，天氣好的時候一整片無光害的阿里山銀河就在眼前，配上弧形的車站木造建築，實在是美得像一幅畫。");
+                $('#addressInput').val("南投縣信義鄉神木村神木巷47號");
+        })
         let map, marker, autocomplete, selectedLatLng;
 
         function initMap() {

@@ -12,11 +12,31 @@
     .card-header * {
             color: inherit;
         }
+    /* ====== Create頁專用 - 一鍵輸入按鈕樣式（與 Promotion.css 的 .btn-search 一致） ====== */
+    .btn-search {
+        --bs-btn-bg: rgb(250, 208, 72);
+        --bs-btn-border-color: rgb(250, 208, 72);
+        --bs-btn-hover-bg: rgba(250, 208, 72, 0.692);
+        --bs-btn-hover-border-color: rgba(250, 208, 72, 0.692);
+        --bs-btn-focus-shadow-rgb: 217, 164, 6;
+        --bs-btn-active-bg: #ffcd39;
+        --bs-btn-active-border-color: #ffc720;
+        --bs-btn-active-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+    }
+
 </style>
 
 
-<h1 class="fw-bold">快速新增活動</h1>
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h1 class="fw-bold mb-0">快速新增活動</h1>
+
+    <!-- 一鍵輸入按鈕（右上角） -->
+    <button type="button" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center" id="demoDataBtn" onclick="fillDemoData()" style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+        <i class="fa-solid fa-wand-sparkles"></i>
+    </button>
+</div>
 <hr />
+
 <div class="row">
     <div class="d-flex">
         <form asp-action="Create" method="post" enctype="multipart/form-data" class="w-100">
@@ -327,6 +347,58 @@
                 const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.hide();
             });
+
+            // ====== 一鍵輸入（示範用資料） ======
+            window.fillDemoData = function () {
+
+              const $id = (x) => document.getElementById(x);
+              const setSelect = (el, val) => {
+                if (!el) return;
+                const exists = [...el.options].some(o => o.value === val);
+                if (!exists) { const opt = document.createElement('option'); opt.value = val; opt.textContent = val; el.appendChild(opt); }
+                el.value = val;
+                el.dispatchEvent(new Event('change'));
+              };
+
+              // 基本資料
+              const title = $id('Title');
+              if (title) title.value = '星座占卜：屬於我們的愛情密碼';
+
+              setSelect($id('Category'), '星知講座');   // 活動種類
+              setSelect($id('MaxParticipants'), '50');   // 人數上限
+
+              // 費用
+              const fee = $id('Fee');       if (fee)     fee.value = '100';
+              const deposit = $id('Deposit');if (deposit)deposit.value = '100';
+
+              // 說明
+              const desc = $id('Desc');
+              if (desc) desc.value =
+            `這場活動結合了天文學知識與占星學的浪漫元素。
+活動開始時，專業講師會簡介天文學上的星座劃分與起源，接著，將引導你們利用彼此的出生日期，找出專屬的「戀人星座圖」。
+我們將共同解讀星座之間的關係、特質與配對，並探討這些天體如何「影響」我們的個性和情感互動。
+這並非嚴肅的占卜，而是一個有趣又富有啟發性的互動體驗，讓你們透過星空，更深入地了解彼此，並找到屬於你們的愛情密碼。`;
+
+              // 時間（保持固定格式）
+              const start = $id('StartDate'); if (start) start.value = '2025-11-06T19:00';
+              const end   = $id('EndDate');   if (end)   end.value   = '2025-11-06T20:30';
+
+              // 發佈方式：切到「排程時間」，但保持時間空白
+              const pmNow = $id('pmNow');
+              const pmSchedule = $id('pmSchedule');
+              const release = $id('ReleaseDate');
+              const expire  = $id('ExpirationDate');
+
+              if (pmSchedule) pmSchedule.checked = true;
+              if (pmNow)      pmNow.checked = false;
+
+              // 只啟用欄位，不自動填任何值
+              if (release) { release.disabled = false; release.value = ''; }
+              if (expire)  { expire.disabled  = false; expire.value  = ''; expire.min = ''; }
+
+              // 不動：地點、狀態、圖片 → 維持目前頁面預設
+            };
+
         });
     </script>
 }

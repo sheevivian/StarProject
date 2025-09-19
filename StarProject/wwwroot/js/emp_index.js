@@ -63,53 +63,115 @@ function bindFilterEvents() {
     });
 }
 
-// 綁定核取方塊事件
+// 綁定核取方塊事件（移除全選功能，只保留批量離職）
 function bindCheckboxEvents() {
-    // 全選功能
-    $(document).on('change', '#checkAll', function () {
-        const isChecked = $(this).prop('checked');
-        $('.checkbox').prop('checked', isChecked);
-        updateSelectCount();
-    });
-
     // 單一核取方塊
     $(document).on('change', '.checkbox', function () {
         updateSelectCount();
+    });
 
-        // 更新全選狀態
-        const totalCheckboxes = $('.checkbox').length;
-        const checkedCheckboxes = $('.checkbox:checked').length;
+    // 批量離職事件處理
+    $(document).on('click', '#delectAllYes', function () {
+        const selectedIds = [];
+        $('.checkbox:checked').each(function () {
+            const empId = $(this).val();
+            if (empId) {
+                selectedIds.push(empId);
+            }
+        });
 
-        if (checkedCheckboxes === 0) {
-            $('#checkAll').prop('indeterminate', false);
-            $('#checkAll').prop('checked', false);
-        } else if (checkedCheckboxes === totalCheckboxes) {
-            $('#checkAll').prop('indeterminate', false);
-            $('#checkAll').prop('checked', true);
-        } else {
-            $('#checkAll').prop('indeterminate', true);
+        if (selectedIds.length === 0) {
+            alert('請選擇要離職的員工');
+            return;
+        }
+
+        console.log('準備批量離職的員工ID:', selectedIds);
+
+        // 顯示載入狀態
+        const $btn = $(this);
+        const originalText = $btn.html();
+        $btn.html('<i class="fas fa-spinner fa-spin"></i> 處理中...');
+        $btn.prop('disabled', true);
+
+        deleteSelectedEmps(selectedIds, function () {
+            // 恢復按鈕狀態
+            $btn.html(originalText);
+            $btn.prop('disabled', false);
+        });
+    });
+}
+
+// 綁定詳細資料事件
+function bindDetailEvents() {
+    // 使用事件委託處理動態載入的詳細按鈕
+    $(document).on('click', '.btn-detail', function (e) {
+        e.preventDefault();
+
+        console.log('詳細按鈕被點擊');
+
+        const $btn = $(this);
+        const empData = {
+            id: $btn.data('id'),
+            name: $btn.data('name'),
+            empcode: $btn.data('empcode'),
+            department: $btn.data('department'),
+            role: $btn.data('role'),
+            hiredate: $btn.data('hiredate'),
+            status: $btn.data('status')
+        };
+
+        // 載入員工詳細資料到 modal
+        loadEmployeeDetails(
+            empData.id,
+            empData.empcode,
+            empData.name,
+            empData.department,
+            empData.role,
+            empData.hiredate,
+            empData.status
+        );
+    });
+
+    // 處理 Modal 中的離職按鈕
+    $(document).on('click', '#modalDeleteBtn', function (e) {
+        e.preventDefault();
+
+        const empId = $(this).data('id');
+        const empName = $('#modalName').text();
+
+        if (!empId) {
+            console.error('未找到員工ID');
+            alert('無法執行離職操作');
+            return;
+        }
+
+        if (confirm(`確定要將員工「${empName}」設為離職狀態嗎？`)) {
+            submitResignation(empId);
         }
     });
 
-    // 批量刪除
-    $('#delectAllYes').click(function () {
-        const selectedIds = [];
-        $('.checkbox:checked').each(function () {
-            selectedIds.push($(this).val());
-        });
+    // 處理表格中直接的離職按鈕
+    $(document).on('click', '.btn-resign', function (e) {
+        e.preventDefault();
 
-        if (selectedIds.length > 0) {
-            deleteSelectedEmps(selectedIds);
+        const empId = $(this).data('id');
+        const empName = $(this).data('name');
+
+        if (!empId) {
+            console.error('未找到員工ID');
+            return;
+        }
+
+        if (confirm(`確定要將員工「${empName}」設為離職狀態嗎？`)) {
+            submitResignation(empId);
         }
     });
 }
 
-
-// 修改：將 loadEmployeeDetails 函數中的 offcanvas 相關操作改為 modal
+// 載入員工詳細資料
 function loadEmployeeDetails(id, empcode, name, department, role, hiredate, status) {
     console.log('載入員工詳細資料:', { id, empcode, name, department, role, hiredate, status });
 
-    // 建立員工資料物件
     const empData = {
         id: id,
         empcode: empcode,
@@ -120,14 +182,13 @@ function loadEmployeeDetails(id, empcode, name, department, role, hiredate, stat
         status: status
     };
 
-    // 檢查是否有必要的資料
     if (!empData.id) {
         console.error('找不到員工 ID');
         alert('無法載入員工詳細資料');
         return;
     }
 
-    // 填入詳細資料到 modal (offcanvas的ID已在HTML中改為modal)
+    // 填入詳細資料到 modal
     $('#modalName').text(empData.name || '未知');
     $('#modalEmpCode').text(empData.empcode || '未知');
     $('#modalDepartment').text(empData.department || '未知');
@@ -143,65 +204,171 @@ function loadEmployeeDetails(id, empcode, name, department, role, hiredate, stat
     }
     $('#modalStatus').text(statusText);
 
-    // 設定按鈕連結 (Offcanvas按鈕的ID已在HTML中改為modal)
+    // 設定按鈕連結和 data 屬性
     const editUrl = `/Emps/Edit/${empData.id}`;
-    const deleteUrl = `/Emps/Delete/${empData.id}`;
-
     $('#modalEditBtn').attr('href', editUrl);
-    $('#modalDeleteBtn').attr('data-id', empData.id);
-
-    // 設定刪除表單的 action
-    // 注意: 您原程式碼中 offcanvasDetailsBtn 可能不存在，已移除。
-    // 注意: deleteOne 表單的 action 會在 deleteModal 彈出時動態更新，這裡不需額外設定
-    // $('#deleteOne').attr('action', `/Emps/Delete/${empData.id}`);
+    $('#modalDeleteBtn').data('id', empData.id);
 
     // 顯示 modal
-    const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
-    detailModal.show();
+    $('#detailModal').modal('show');
 }
 
-// 綁定詳細資料事件
-function bindDetailEvents() {
-    // 使用事件委託處理動態載入的按鈕
-    $(document).on('click', '.btn-detail', function (e) {
-        e.preventDefault();
+// 提交離職請求
+function submitResignation(empId) {
+    // 顯示載入狀態
+    const $modalBtn = $('#modalDeleteBtn');
+    const originalText = $modalBtn.html();
+    $modalBtn.html('<i class="fas fa-spinner fa-spin"></i> 處理中...');
+    $modalBtn.prop('disabled', true);
 
-        console.log('詳細按鈕被點擊'); // Debug 用
+    // 獲取 CSRF token
+    const token = $('input[name="__RequestVerificationToken"]').val();
 
-        // 取得按鈕上的 data 屬性
-        const $btn = $(this);
-        const empData = {
-            id: $btn.attr('data-id') || $btn.data('id'),
-            name: $btn.attr('data-name') || $btn.data('name'),
-            empcode: $btn.attr('data-empcode') || $btn.data('empcode'),
-            department: $btn.attr('data-department') || $btn.data('department'),
-            role: $btn.attr('data-role') || $btn.data('role'),
-            hiredate: $btn.attr('data-hiredate') || $btn.data('hiredate'),
-            status: $btn.attr('data-status') || $btn.data('status')
-        };
+    if (!token) {
+        console.error('找不到 CSRF token');
+        alert('頁面錯誤，請重新整理');
+        // 恢復按鈕狀態
+        $modalBtn.html(originalText);
+        $modalBtn.prop('disabled', false);
+        return;
+    }
 
-        // 使用統一的載入函數
-        loadEmployeeDetails(
-            empData.id,
-            empData.empcode,
-            empData.name,
-            empData.department,
-            empData.role,
-            empData.hiredate,
-            empData.status
-        );
-    });
+    $.ajax({
+        url: `/Emps/Delete/${empId}`,
+        type: 'POST',
+        data: {
+            __RequestVerificationToken: token
+        },
+        success: function (response) {
+            console.log('單一離職成功回應:', response);
 
-    // 處理單一刪除按鈕的資料傳遞
-    // 注意: offcanvasDeleteBtn 的 ID 已改為 modalDeleteBtn
-    $(document).on('click', '#modalDeleteBtn', function () {
-        const empId = $(this).attr('data-id');
-        $('#deleteOne').attr('action', `/Emps/Delete/${empId}`);
+            // 恢復按鈕狀態
+            $modalBtn.html(originalText);
+            $modalBtn.prop('disabled', false);
+
+            // 關閉 modal
+            $('#detailModal').modal('hide');
+
+            // 顯示成功訊息
+            showSuccessMessage('員工已成功設為離職狀態');
+
+            // 重新載入員工列表
+            refreshEmpTable();
+        },
+        error: function (xhr, status, error) {
+            console.error('單一離職失敗:', error);
+            console.error('Status:', status);
+            console.error('Response:', xhr.responseText);
+
+            // 恢復按鈕狀態
+            $modalBtn.html(originalText);
+            $modalBtn.prop('disabled', false);
+
+            let errorMessage = '離職操作失敗，請稍後再試';
+
+            if (xhr.status === 404) {
+                errorMessage = '找不到該員工';
+            } else if (xhr.status === 403) {
+                errorMessage = '沒有權限執行此操作';
+            }
+
+            showErrorMessage(errorMessage);
+        }
     });
 }
 
-// 將 loadEmployeeDetails 設為全域函數，供外部調用
-window.loadEmployeeDetails = loadEmployeeDetails;
+// 批量刪除選取的員工
+function deleteSelectedEmps(empIds, callback) {
+    const token = $('input[name="__RequestVerificationToken"]').val();
+
+    if (!token) {
+        console.error('找不到 CSRF token');
+        alert('頁面錯誤，請重新整理');
+        if (callback) callback();
+        return;
+    }
+
+    console.log('發送批量離職請求:', empIds);
+
+    $.ajax({
+        url: '/Emps/DeleteMultiple',
+        type: 'POST',
+        data: JSON.stringify(empIds),
+        contentType: 'application/json',
+        headers: {
+            'RequestVerificationToken': token
+        },
+        success: function (response) {
+            console.log('批量離職成功回應:', response);
+
+            if (callback) callback();
+
+            if (response && response.success) {
+                // 關閉批量刪除 modal
+                $('#deleteAllModal').modal('hide');
+
+                // 顯示成功訊息
+                showSuccessMessage(`成功將 ${empIds.length} 位員工設為離職狀態`);
+
+                // 清除選取狀態
+                $('.checkbox').prop('checked', false);
+                updateSelectCount();
+
+                // 重新載入表格
+                refreshEmpTable(1);
+            } else {
+                showErrorMessage(response?.message || '批量離職操作失敗');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('批量離職失敗:', error);
+            console.error('Status:', status);
+            console.error('Response:', xhr.responseText);
+
+            if (callback) callback();
+
+            let errorMessage = '批量離職操作失敗，請稍後再試';
+
+            if (xhr.status === 403) {
+                errorMessage = '沒有權限執行此操作';
+            }
+
+            showErrorMessage(errorMessage);
+        }
+    });
+}
+
+// 顯示成功訊息
+function showSuccessMessage(message) {
+    const alertHtml = `
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+
+    $('main .d-flex.align-items-center.mb-3').after(alertHtml);
+
+    setTimeout(function () {
+        $('.alert-success').alert('close');
+    }, 5000);
+}
+
+// 顯示錯誤訊息
+function showErrorMessage(message) {
+    const alertHtml = `
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+
+    $('main .d-flex.align-items-center.mb-3').after(alertHtml);
+
+    setTimeout(function () {
+        $('.alert-danger').alert('close');
+    }, 5000);
+}
 
 // 更新篩選計數
 function updateFilterCount() {
@@ -380,7 +547,7 @@ function refreshEmpTable(page = 1) {
         },
         success: function (response) {
             try {
-                console.log('後端回應:', response);
+                console.log('搜尋成功回應:', response);
 
                 if (response.success === false) {
                     alert(response.message || '搜尋失敗');
@@ -400,14 +567,13 @@ function refreshEmpTable(page = 1) {
                 }
 
                 // 重置選取狀態
-                $('#checkAll').prop('checked', false).prop('indeterminate', false);
+                $('.checkbox').prop('checked', false);
                 updateSelectCount();
 
                 // 重新初始化工具提示
                 initializeTooltips();
 
-                // 重要：重新綁定詳細按鈕事件（因為內容是動態載入的）
-                console.log('重新綁定詳細按鈕事件');
+                console.log('表格更新完成');
 
             } catch (error) {
                 console.error('處理響應時發生錯誤:', error);
@@ -448,32 +614,6 @@ function refreshEmpTable(page = 1) {
     });
 }
 
-// 刪除選取的員工
-function deleteSelectedEmps(empIds) {
-    $.ajax({
-        url: '/Emps/DeleteMultiple',
-        type: 'POST',
-        data: JSON.stringify(empIds),
-        contentType: 'application/json',
-        headers: {
-            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
-        success: function (response) {
-            if (response.success) {
-                // 重新載入表格
-                refreshEmpTable(1);
-                alert('刪除成功');
-            } else {
-                alert('刪除失敗: ' + response.message);
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error('刪除失敗:', error);
-            alert('刪除失敗，請稍後再試');
-        }
-    });
-}
-
 // 顯示載入中
 function showLoading() {
     $('#tableBody').html('<tr><td colspan="8" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> 載入中...</td></tr>');
@@ -484,5 +624,6 @@ function hideLoading() {
     // 由 AJAX 成功回調處理
 }
 
-// 全域函數：刷新表格（供分頁按鈕使用）
+// 設為全域函數，供外部調用
+window.loadEmployeeDetails = loadEmployeeDetails;
 window.refreshEmpTable = refreshEmpTable;

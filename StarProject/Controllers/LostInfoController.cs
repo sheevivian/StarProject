@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using NuGet.Protocol.Core.Types;
+using StarProject.Attributes;
 using StarProject.Helpers;
 using StarProject.Models;
 using StarProject.ViewModels;
@@ -28,9 +29,9 @@ namespace StarProject.Controllers
         {
             _context = context;
         }
-
-        // GET: LostInfo
-        public async Task<IActionResult> Index(int page = 1, int pageSize = pageNumber)
+		[Permission("info")]
+		// GET: LostInfo
+		public async Task<IActionResult> Index(int page = 1, int pageSize = pageNumber)
         {
 			// 先組 IQueryable (全部資料，還沒篩選)
 			var query = _context.LostInfos.OrderByDescending(x => x.CreatedDate);

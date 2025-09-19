@@ -35,14 +35,16 @@ namespace StarProject.Attributes
 			var dbContext = context.HttpContext.RequestServices.GetService<StarProjectContext>();
 			if (dbContext == null)
 			{
-				context.Result = new ForbidResult();
+				// 修正：重定向到正確的 Error Controller
+				context.Result = new RedirectToActionResult("AccessDenied", "Error", null);
 				return;
 			}
 
 			var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 			if (string.IsNullOrEmpty(userIdClaim))
 			{
-				context.Result = new ForbidResult();
+				// 修正：重定向到正確的 Error Controller
+				context.Result = new RedirectToActionResult("AccessDenied", "Error", null);
 				return;
 			}
 
@@ -51,12 +53,14 @@ namespace StarProject.Attributes
 				bool hasPermission = CheckUserPermissionsFromDatabase(dbContext, userIdClaim, _permissions);
 				if (!hasPermission)
 				{
-					context.Result = new ForbidResult();
+					// 修正：重定向到正確的 Error Controller
+					context.Result = new RedirectToActionResult("AccessDenied", "Error", null);
 				}
 			}
 			catch
 			{
-				context.Result = new ForbidResult();
+				// 修正：重定向到正確的 Error Controller
+				context.Result = new RedirectToActionResult("AccessDenied", "Error", null);
 			}
 		}
 

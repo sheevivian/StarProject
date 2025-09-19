@@ -87,9 +87,9 @@ namespace StarProject.Controllers
 			}
 			return View(companyNotify);
 		}
-
-        // GET: CompanyNotifies/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+		[Permission("conlist,cone")]
+		// GET: CompanyNotifies/Edit/5
+		public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
@@ -103,11 +103,11 @@ namespace StarProject.Controllers
             }
             return View(companyNotify);
         }
-
-        // POST: CompanyNotifies/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+		[Permission("conlist,cone")]
+		// POST: CompanyNotifies/Edit/5
+		// To protect from overposting attacks, enable the specific properties you want to bind to.
+		// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+		[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("No,Title,Content,Category,PublishDate")] CompanyNotify companyNotify)
         {
@@ -145,9 +145,9 @@ namespace StarProject.Controllers
             }
             return View(companyNotify);
         }
-
-        // GET: CompanyNotifies/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+		[Permission("conlist,cone")]
+		// GET: CompanyNotifies/Delete/5
+		public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
@@ -165,9 +165,9 @@ namespace StarProject.Controllers
 
 			return View(companyNotify);
 		}
-
-        // POST: CompanyNotifies/Delete/5
-        [HttpPost, ActionName("Delete")]
+		[Permission("conlist,cone")]
+		// POST: CompanyNotifies/Delete/5
+		[HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -180,7 +180,7 @@ namespace StarProject.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
+		[Permission("conlist,cone")]
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteMultiple(int[] ids)
@@ -200,9 +200,9 @@ namespace StarProject.Controllers
 
 			return Ok();
 		}
-
-        // POST: CompanyNotifies/SearchSelect
-        [HttpPost]
+		
+		// POST: CompanyNotifies/SearchSelect
+		[HttpPost]
 		public async Task<IActionResult> SearchSelect([FromBody] SearchFilterVM filters)
 		{
 			// 從 filters 取得 pageSize，如果沒有就給預設值

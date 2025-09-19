@@ -32,10 +32,12 @@
     </style>
     <link href="~/css/textediting.css" rel="stylesheet" />
 </head>
-<h1 class="fw-bold">常見問題新增</h1>
-<hr />
 
-<div class="row" style="width:100%">
+<div class="position-relative">
+    <h1 class="fw-bold">常見問題新增</h1>
+    <hr />
+
+    <div class="row" style="width:100%">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-2">
@@ -46,9 +48,9 @@
                 <input asp-for="Question" class="form-control flex-grow-1" id="inputQuestion" maxlength="100" />
             </div>
 
-        <div class="form-group mb-2">
+            <div class="form-group mb-2">
                 <label asp-for="CategoryNo" class="control-label fw-bold fs-5"></label><span asp-validation-for="CategoryNo" class="text-danger ms-3"></span>
-                <select asp-for="CategoryNo" class="form-select" asp-items="ViewBag.CategoryNo"></select>
+                <select asp-for="CategoryNo" class="form-select" asp-items="ViewBag.CategoryNo" id="categoryHidden"></select>
             </div>
 
             <div class="form-group mb-2">
@@ -63,7 +65,16 @@
                 <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
             </div>
         </form>
+    </div>
+
+    <div class="position-absolute top-0 end-0 m-2 me-4">
+        <button type="button" id="fillTestData" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center"
+                style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+            <i class="fa-solid fa-wand-sparkles"></i>
+        </button>
+    </div>
 </div>
+
 
 @section Scripts {
     @{
@@ -86,36 +97,60 @@
 
     <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const textarea = document.querySelector('#editor');
 
-            ClassicEditor
-                .create(textarea, {
-                    language: 'zh',
-                    toolbar: [
-                        'heading', '|',
-                        'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
-                        'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
-                        'undo', 'redo'
-                    ],
-                    ckfinder: {
-                        uploadUrl: '/CompanyNotifies/UploadImage'
-                    }
-                })
-                .then(editor => {
-                   // 將 CKEditor 的內容同步回原本的 textarea
-                    editor.model.document.on('change:data', () => {
-                        // 同步內容回 textarea
-                        editor.model.document.on('change:data', () => {
-                            textarea.value = editor.getData();
-                            console.log(textarea.value);
-                        });
-                    });
-                })
-                .catch(error => {
-                    console.error(error);
+    <script>
+        let myEditor; // 全域變數
+
+        $(document).ready(function(){
+
+            // 初始化 CKEditor
+            ClassicEditor.create(document.querySelector('#editor'), {
+                language: 'zh',
+                toolbar: [
+                    'heading', '|',
+                    'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
+                    'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
+                    'undo', 'redo'
+                ],
+                ckfinder: {
+                    uploadUrl: '/CompanyNotifies/UploadImage'
+                }
+            }).then(editor => {
+                myEditor = editor;
+                editor.model.document.on('change:data', () => {
+                    $("#editor").val(editor.getData());
                 });
+            }).catch(error => console.error(error));
+
+
+            // 填入測試資料按鈕
+            // 填入測試資料按鈕
+            $("#fillTestData").on("click", function() {
+                // 填入問題
+                $("#inputQuestion").val("我想了解公司最新產品的售價與規格，該如何查詢？");
+                $("#wordCount").text($("#inputQuestion").val().length);
+
+                // 選擇分類，改成對應 value
+                $("#categoryHidden").val("2").trigger("change"); // 假設 1 對應「商品/服務資訊」
+
+                // 填入內容到 CKEditor
+                const faqContent = `
+                    <ol>
+                        <li>請登入公司內部產品資訊系統。</li>
+                        <li>點擊「產品資訊」或「商品目錄」分頁。</li>
+                        <li>使用搜尋功能輸入產品名稱或型號。</li>
+                        <li>點擊產品項目即可查看詳細規格、售價及庫存狀態。</li>
+                        <li>如需下載產品型錄，請點擊「下載 PDF 型錄」按鈕。</li>
+                        <li>若有進一步問題，可聯絡銷售或客服部門。</li>
+                    </ol>
+                `;
+
+                if (myEditor) {
+                    myEditor.setData(faqContent);
+                } else {
+                    $("#editor").val(faqContent);
+                }
+                    });
         });
     </script>
 }

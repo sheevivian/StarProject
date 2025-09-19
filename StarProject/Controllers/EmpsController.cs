@@ -651,39 +651,137 @@ namespace StarProject.Controllers
 			return View(emp);
 		}
 
+		// 修改你的 EmpsController 中的 DeleteMultiple 方法
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Permission("emp")] // 加上權限檢查
+		public async Task<IActionResult> DeleteMultiple([FromBody] List<string> empIds)
+		{
+			try
+			{
+				if (empIds == null || empIds.Count == 0)
+				{
+					return Json(new { success = false, message = "沒有選取任何員工" });
+				}
+
+				// 驗證所有 ID 是否存在
+				var existingEmps = await _context.Emps
+					.Where(e => empIds.Contains(e.No))
+					.ToListAsync();
+
+				if (existingEmps.Count == 0)
+				{
+					return Json(new { success = false, message = "找不到選取的員工" });
+				}
+
+				if (existingEmps.Count != empIds.Count)
+				{
+					return Json(new
+					{
+						success = false,
+						message = $"部分員工不存在，找到 {existingEmps.Count} 位員工，但選取了 {empIds.Count} 位"
+					});
+				}
+
+				// 執行軟刪除：設定為離職狀態
+				foreach (var emp in existingEmps)
+				{
+					emp.Status = false; // 設為離職狀態
+				}
+
+				await _context.SaveChangesAsync();
+
+				// 記錄操作日誌（可選）
+				var empNames = existingEmps.Select(e => e.Name).ToList();
+				System.Diagnostics.Debug.WriteLine($"批量設定離職完成，員工: {string.Join(", ", empNames)}");
+
+				return Json(new
+				{
+					success = true,
+					message = $"成功將 {existingEmps.Count} 位員工設為離職狀態",
+					affectedCount = existingEmps.Count
+				});
+			}
+			catch (Exception ex)
+			{
+				// 記錄錯誤
+				System.Diagnostics.Debug.WriteLine($"批量離職操作失敗: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+
+				return Json(new
+				{
+					success = false,
+					message = "批量離職操作失敗，請稍後再試",
+					error = ex.Message // 在開發環境可以包含詳細錯誤
+				});
+			}
+		}
+
+		// 同時也修改單一刪除的方法，讓它回傳 JSON（如果是 AJAX 請求）
 		[Permission("emp")]
 		[HttpPost, ActionName("Delete")]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteConfirmed(string id)
 		{
-			var emp = await _context.Emps.FindAsync(id);
-			if (emp != null)
+			try
 			{
+				if (string.IsNullOrEmpty(id))
+				{
+					if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+						return Json(new { success = false, message = "員工 ID 不能為空" });
+
+					return NotFound();
+				}
+
+				var emp = await _context.Emps.FindAsync(id);
+				if (emp == null)
+				{
+					if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+						return Json(new { success = false, message = "找不到該員工" });
+
+					return NotFound();
+				}
+
 				// 軟刪除：只改變狀態，不實際刪除記錄
 				emp.Status = false; // 設為離職狀態
-
 				await _context.SaveChangesAsync();
+
+				// 記錄操作
+				System.Diagnostics.Debug.WriteLine($"員工離職操作完成: {emp.Name} ({emp.EmpCode})");
+
+				// 如果是 AJAX 請求，回傳 JSON
+				if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+				{
+					return Json(new
+					{
+						success = true,
+						message = $"員工 {emp.Name} 已設為離職狀態",
+						empName = emp.Name,
+						empCode = emp.EmpCode
+					});
+				}
+
 				TempData["SuccessMessage"] = "員工已設為離職狀態";
+				return RedirectToAction(nameof(Index));
 			}
-			return RedirectToAction(nameof(Index));
-		}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"單一離職操作失敗: {ex.Message}");
 
-		// 批量刪除
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> DeleteMultiple([FromBody] List<string> empIds)
-		{
-			if (empIds == null || empIds.Count == 0)
-				return Json(new { success = false, message = "沒有選取任何員工" });
+				if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+				{
+					return Json(new
+					{
+						success = false,
+						message = "離職操作失敗，請稍後再試",
+						error = ex.Message
+					});
+				}
 
-			var emps = await _context.Emps.Where(e => empIds.Contains(e.No)).ToListAsync();
-			if (emps.Count == 0)
-				return Json(new { success = false, message = "找不到選取的員工" });
-
-			_context.Emps.RemoveRange(emps);
-			await _context.SaveChangesAsync();
-
-			return Json(new { success = true });
+				TempData["ErrorMessage"] = "離職操作失敗，請稍後再試";
+				return RedirectToAction(nameof(Index));
+			}
 		}
 
 		// Helper: 把 PartialView Render 成字串

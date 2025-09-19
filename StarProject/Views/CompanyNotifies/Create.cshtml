@@ -33,10 +33,10 @@
     <link href="~/css/textediting.css" rel="stylesheet" />
 </head>
 
-
-<h1 class="fw-bold">內部公告新增</h1>
-<hr />
-<div class="row" style="width:100%">
+<div class="position-relative">
+    <h1 class="fw-bold">內部公告新增</h1>
+    <hr />
+    <div class="row" style="width:100%">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group mb-2">
@@ -78,15 +78,93 @@
                 <a asp-action="Index" class="btn btn-outline-back fw-bold fs-5" style="width:303px">返回列表</a>
             </div>
         </form>
+    </div>
+
+    <div class="position-absolute top-0 end-0 m-2 me-4">
+        <button type="button" id="fillTestData" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center"
+                style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+            <i class="fa-solid fa-wand-sparkles"></i>
+        </button>
+    </div>
+
 </div>
+
+
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>
 
     <script>
-        $(function(){
+        let myEditor; // 全域變數
+
+        $(document).ready(function(){
+
+            // 初始化 CKEditor
+            ClassicEditor.create(document.querySelector('#editor'), {
+                language: 'zh',
+                toolbar: [
+                    'heading', '|',
+                    'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
+                    'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
+                    'undo', 'redo'
+                ],
+                ckfinder: {
+                    uploadUrl: '/CompanyNotifies/UploadImage'
+                }
+            }).then(editor => {
+                myEditor = editor;
+                editor.model.document.on('change:data', () => {
+                    $("#editor").val(editor.getData());
+                });
+            }).catch(error => console.error(error));
+
+
+            // 填入測試資料按鈕
+            $("#fillTestData").on("click", function() {
+                $("#inputTitle").val("2025 年度冬季員工旅遊活動通知：日本溫泉與滑雪之旅");
+                $("#wordCount").text($("#inputTitle").val().length);
+                $("#categoryHidden").val("活動公告");
+                $("#categorySelect").val("活動公告").trigger("change");
+
+                if (myEditor) {
+                    // 填入 CKEditor
+                    myEditor.setData(`
+                        <p>親愛的同仁們：</p>
+                        <p>為增進同事間的情誼並放鬆身心，本公司將於 <strong>2025 年 12 月 20 日（星期六）至 12 月 24 日（星期三）</strong> 舉辦年度冬季員工旅遊活動，前往日本體驗溫泉與滑雪，活動安排如下：</p>
+                        <ul>
+                            <li>第一天：抵達東京，市區觀光與團隊晚餐</li>
+                            <li>第二天：前往北海道滑雪場，享受滑雪課程與自由活動</li>
+                            <li>第三天：泡湯溫泉與團隊互動活動</li>
+                            <li>第四天：日本文化體驗與購物行程</li>
+                            <li>第五天：返回台灣</li>
+                        </ul>
+                        <p>交通及住宿皆由公司統一安排，住宿提供舒適雙人房。請各位同仁於 <strong>2025 年 12 月 10 日前</strong> 線上報名。</p>
+                        <p>提醒同仁攜帶保暖衣物、滑雪裝備（可自備或租借）及護照，遵守導遊指示並注意安全。</p>
+                        <p>人資部敬上</p>
+                    `);
+                } else {
+                    // fallback 到 textarea
+                    $("#editor").val(`
+                        <p>親愛的同仁們：</p>
+                        <p>為增進同事間的情誼並放鬆身心，本公司將於 <strong>2025 年 12 月 20 日（星期六）至 12 月 24 日（星期三）</strong> 舉辦年度冬季員工旅遊活動，前往日本體驗溫泉與滑雪，活動安排如下：</p>
+                        <ul>
+                            <li>第一天：抵達東京，市區觀光與團隊晚餐</li>
+                            <li>第二天：前往北海道滑雪場，享受滑雪課程與自由活動</li>
+                            <li>第三天：泡湯溫泉與團隊互動活動</li>
+                            <li>第四天：日本文化體驗與購物行程</li>
+                            <li>第五天：返回台灣</li>
+                        </ul>
+                        <p>交通及住宿皆由公司統一安排，住宿提供舒適雙人房。請各位同仁於 <strong>2025 年 12 月 10 日前</strong> 線上報名。</p>
+                        <p>提醒同仁攜帶保暖衣物、滑雪裝備（可自備或租借）及護照，遵守導遊指示並注意安全。</p>
+                        <p>人資部敬上</p>
+                    `);
+                }
+            });
+
+            // 其他表單邏輯
             const select = document.getElementById("categorySelect");
             const otherInput = document.getElementById("otherCategoryInput");
             const hiddenInput = document.getElementById("categoryHidden");
@@ -94,58 +172,21 @@
             select.addEventListener("change", function () {
                 if (this.value === "其他") {
                     otherInput.classList.remove("d-none");
-                    hiddenInput.value = ""; // 清空，等使用者輸入
+                    hiddenInput.value = "";
                 } else {
                     otherInput.classList.add("d-none");
-                    hiddenInput.value = this.value; // 選擇一般分類時直接帶值
+                    hiddenInput.value = this.value;
                 }
             });
 
             otherInput.addEventListener("input", function () {
-                hiddenInput.value = this.value; // 使用者輸入時，更新隱藏欄位
+                hiddenInput.value = this.value;
             });
 
             $("#inputTitle").on("keyup", function(){
-                let count =$(this).val().length;
-                if (count == 0){
-                    $("#wordCount").text("0");
-                }else{
-                    $("#wordCount").text(count);
-                }
+                $("#wordCount").text($(this).val().length);
             });
-        });
-        
-    </script>
 
-    <script src="~/lib/ckeditor5-build-classic-master/build/ckeditor.js"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const textarea = document.querySelector('#editor');
-
-            ClassicEditor
-                .create(textarea, {
-                    language: 'zh',
-                    toolbar: [
-                        'heading', '|',
-                        'bold', 'italic', 'blockQuote', 'bulletedList', 'numberedList', '|',
-                        'imageUpload', 'link', 'mediaEmbed', 'insertTable', '|',
-                        'undo', 'redo'
-                    ],
-                    ckfinder: {
-                        uploadUrl: '/CompanyNotifies/UploadImage'
-                    }
-                })
-                .then(editor => {
-                    // 只綁一次事件
-                    editor.model.document.on('change:data', () => {
-                        textarea.value = editor.getData();
-                        // console.log(textarea.value); // 可以保留或刪掉
-                    });
-                })
-                .catch(error => {
-                    console.error(error);
-                });
         });
     </script>
 }

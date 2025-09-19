@@ -14,6 +14,13 @@ public class AnalysisController : Controller
     // 首頁 View
     public IActionResult Index()
     {
+
+        ViewBag.ProductCategories = new List<string>
+    {
+        "卡片書籤", "服包飾品", "益智桌遊", "地球儀",
+        "生活雜貨", "書籍刊物", "餐廚用品", "交通卡",
+        "設計文具", "望遠鏡"
+    };
         return View(); // Views/Chart/analysis.cshtml
     }
 
@@ -115,7 +122,9 @@ public class AnalysisController : Controller
         var productCategories = new List<string> {
         "卡片書籤","服包飾品","益智桌遊","地球儀","生活雜貨",
         "書籍刊物","餐廚用品","交通卡","設計文具","望遠鏡"
-    };
+        };
+
+
 
         if (!productCategories.Contains(category))
             return Json(new List<object>());
@@ -123,7 +132,8 @@ public class AnalysisController : Controller
         var data = _context.OrderItems
             .Where(o => o.Category == category)
             .GroupBy(o => o.Name)
-            .Select(g => new {
+            .Select(g => new
+            {
                 name = g.Key,
                 value = g.Sum(x => x.Quantity)
             })
@@ -145,7 +155,7 @@ public class AnalysisController : Controller
         var data = (from item in _context.OrderItems
                     join order in _context.OrderMasters
                     on item.OrderNo equals order.No
-                    where ticketCategories.Contains(item.Category)
+                    where ticketCategories.Contains(item.Category) && item.Type != null
                           && order.Date.Year == year
                           && order.Date.Month == month
                     group item by item.Type into g
@@ -161,7 +171,3 @@ public class AnalysisController : Controller
     }
 
 }
-
-
-
-

@@ -15,7 +15,7 @@
 <!-- 中間：垂直打卡按鈕區 -->
 <div class="clock-section text-center me-4 d-flex flex-column align-items-center mb-0 mt-4">
     <div class="clock-button-container mb-3">
-        <button id="clockInBtn" class="clock-btn btn-clock-in mb-2">🕐 上班打卡</button>
+        <button id="clockInBtn" class="clock-btn btn-clock-in mb-2" onclick="clockIn()">🕐 上班打卡</button>
         @if (ViewBag.TodayRecord?.ClockInTime != null)
         {
             <span id="clockInTime" class="clock-time">
@@ -25,7 +25,7 @@
     </div>
 
     <div class="clock-button-container mb-3">
-        <button id="clockOutBtn" class="clock-btn btn-clock-out mb-2">🕕 下班打卡</button>
+        <button id="clockOutBtn" class="clock-btn btn-clock-out mb-2" onclick="clockOut()">🕕 下班打卡</button>
         @if (ViewBag.TodayRecord?.ClockOutTime != null)
         {
             var workHours = (DateTime)ViewBag.TodayRecord.ClockOutTime - (DateTime)ViewBag.TodayRecord.ClockInTime;

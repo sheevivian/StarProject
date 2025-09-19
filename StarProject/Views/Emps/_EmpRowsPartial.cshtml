@@ -3,7 +3,6 @@
 
 @foreach (var item in Model)
 {
-    // 根據你的實際資料結構
     var deptCode = item.DeptNoNavigation?.DeptCode ?? "UNKNOWN";
     var roleInfo = RoleHelper.GetRoleDisplayInfo(deptCode, item.RoleNoNavigation);
 
@@ -17,12 +16,16 @@
         data-department-display="@roleInfo.DepartmentDisplayName"
         data-role-display="@roleInfo.RoleDisplayName">
 
+        <!-- 重要：添加 value 屬性 -->
         <td style="width:50px">
-            <input class="form-check-input ms-4 checkbox" type="checkbox" data-emp-id="@item.No">
+            <input class="form-check-input ms-4 checkbox"
+                   type="checkbox"
+                   value="@item.No"
+                   data-emp-id="@item.No">
         </td>
 
         <td style="width:200px">
-            <div>@item.Name</div>
+            <div class="emp-name">@item.Name</div>
         </td>
 
         <td style="width:150px">
@@ -57,20 +60,28 @@
         <td>
             @if (item.Status)
             {
-                <span>在職</span>
+                <span class="badge bg-success">在職</span>
             }
             else
             {
-                <span>離職</span>
+                <span class="badge bg-secondary">離職</span>
             }
         </td>
 
+        <!-- 修改：使用正確的 data-bs-target 和 CSS 類別 -->
         <td style="width:116px">
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-primary"
-                        data-bs-toggle="offcanvas"
-                        data-bs-target="#offcanvasDetail"
-                        onclick="loadEmployeeDetails('@item.No', '@item.EmpCode', '@item.Name', '@roleInfo.DepartmentDisplayName', '@roleInfo.RoleDisplayName', '@item.HireDate.ToString("yyyy-MM-dd")', '@(item.Status ? "在職" : "離職")')">
+                <button type="button"
+                        class="btn btn-color btn-sm btn-detail"
+                        data-bs-toggle="modal"
+                        data-bs-target="#detailModal"
+                        data-id="@item.No"
+                        data-name="@item.Name"
+                        data-empcode="@item.EmpCode"
+                        data-department="@roleInfo.DepartmentDisplayName"
+                        data-role="@roleInfo.RoleDisplayName"
+                        data-hiredate="@item.HireDate.ToString("yyyy-MM-dd")"
+                        data-status="@(item.Status ? "在職" : "離職")">
                     詳細內容
                 </button>
             </div>

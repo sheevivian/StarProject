@@ -236,39 +236,48 @@
     }
 
     .card-darkblue {
-        color: #423A3A;
-        border: solid 1px #89BEEB;
+        color: whitesmoke;
+        border: solid 1px #EC7357;
         padding: 20px;
         border-radius: 26px;
-        background: #89BEEB;
+        background: #EC7357;
     }
 
     .card-user {
         color: #423A3A;
-        border: solid 1px #DCDCDC;
+        border: solid 1px #FEEE7D;
         padding: 20px;
-        background: #DCDCDC;
+        background: #FEEE7D;
         border-radius: 26px;
     }
 
     .card-money {
-        color: #423A3A;
-        border: solid 1px #C0C6DD;
+        color: whitesmoke;
+        border: solid 1px #60C5BA;
         padding: 20px;
-        background-color: #C0C6DD;
+        background-color: #60C5BA;
         border-radius: 26px;
     }
 
     .card-stock {
         color: #423A3A;
-        border: solid 1px #FEA757;
+        border: solid 1px #A5DFF9;
         padding: 20px;
-        background-color: #FEA757;
+        background-color: #A5DFF9;
         border-radius: 26px;
     }
 
     .letter-spaced {
         letter-spacing: 0.4em; /* 調整字距，越大越分開 */
+    }
+
+    .btn {
+        height: 60px;
+        font-size: 16px;
+    }
+
+    .iconsize{
+        font-size: 40px;
     }
 </style>
 
@@ -295,12 +304,12 @@
                 <div class="card shadow-sm text-center p-3 card-darkblue card-size">
                     <i class="bi bi-cart-check fs-1"></i>
                     <h5 class="card-title mt-2 fw-bold">本月訪客數</h5>
-                    <p class="card-text">1200人</p>
+                    <p class="card-text">36000人</p>
                 </div>
                 <div class="card shadow-sm text-center p-3 card-money card-size">
                     <i class="bi bi-cash-coin fs-1"></i>
                     <h5 class="card-title mt-2 fw-bold">累計營收</h5>
-                    <p class="card-text">$15,000</p>
+                    <p class="card-text">$150,000</p>
                 </div>
                 <div class="card shadow-sm text-center p-3 card-user card-size">
                     <i class="bi bi-people fs-1"></i>
@@ -320,14 +329,90 @@
 <!-- 第二列：商品和票券營收分析圖表 -->
 <div class="container-fluid p-4">
     <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card rounded-4 h-100" style="background: transparent; box-shadow: none; border: none;">
+                <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+                    <!-- 圖片指示點 -->
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="4" aria-label="Slide 5"></button>
+                    </div>
+
+                    <!-- 輪播圖片 -->
+                    <div class="carousel-inner" style="height: 563px;">
+                        <div class="carousel-item active">
+                            <img src="https://i.ibb.co/35sqr1WX/utf-8-B-5py-I55-CD5ryr6-YGKLn-Bu-Zw.png"
+                                 class="d-block w-100 rounded-4"
+                                 alt="Slide 1"
+                                 style="height:563px; object-fit: cover; object-position: center;">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="https://i.ibb.co/p6fVzdWd/utf-8-B-57-Wm5a6-H5a6-Z55q-E5o-KE5o-KE6-Kmx-Ln-Bu-Zw.png"
+                                 class="d-block w-100 rounded-4"
+                                 alt="Slide 2"
+                                 style="height:563px; object-fit: cover; object-position: center;">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="https://i.ibb.co/KpWCY3G0/6-La-K5pm-C56m677ya5o-GG5pif55q-E5-Li-A55-Sf6-Ii-H5a6-H5a6-Z55q-E57-WQ5b-GALmpw-Zw.jpg"
+                                 class="d-block w-100 rounded-4"
+                                 alt="Slide 3"
+                                 style="height:563px; object-fit: cover; object-position: center;">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="https://i.ibb.co/7JC5YMLY/utf-8-B-5a-WU5py-I6-L-95a-Si77ya5-Lit56e-L5a-Sc6-KGM5pif5beh56au-Lmpw-Zw.jpg"
+                                 class="d-block w-100 rounded-4"
+                                 alt="Slide 4"
+                                 style="height:563px; object-fit: cover; object-position: center;">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="https://i.ibb.co/0RVc21z3/utf-8-B-6-Ke-A5pif5-YWl6-Za-A6-Kqy77ya5b6e6-Zu26-Za-L5ae-L6-Kq-N6-K2-Y5pif56m6-Lmpw-Zw.jpg"
+                                 class="d-block w-100 rounded-4"
+                                 alt="Slide 5"
+                                 style="height:563px; object-fit: cover; object-position: center;">
+                        </div>
+                    </div>
+
+                    <!-- 左右切換按鈕 -->
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-8">
+            <div class="card shadow-sm bg-white rounded-4 h-100">
+                <div class="card shadow-sm bg-white rounded-4 h-100">
+                    <div class="card-header fw-bold fs-4 text-center letter-spaced">
+                        活動參與統計
+                    </div>
+                    <div id="categoryChart" style="height:500px; margin-top:10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 第三列：商品和票券營收分析圖表 -->
+<div class="container-fluid p-4">
+    <div class="row g-4">
         <div class="col-md-6">
             <div class="card shadow-sm bg-white rounded-4 h-100">
                 <div class="card-header fw-bold fs-4 text-center letter-spaced">
                     商品營收分析
                 </div>
-                
+
                 <div id="productChart" style="height:340px;"></div>
-                
+
             </div>
         </div>
         <!-- 右側可以添加其他內容或保持空白 -->
@@ -344,20 +429,6 @@
     </div>
 </div>
 
-<div class="container-fluid p-4">
-    <div class="row g-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm bg-white rounded-4 h-100">
-                <div class="card-header fw-bold fs-4 text-center letter-spaced">
-                    活動參與統計
-                </div>
-
-                <div id="categoryChart" style="height:500px; margin-top:10px;"></div>
-
-            </div>
-        </div>
-    </div>
-</div>
     
  
   
@@ -369,85 +440,136 @@
 @Html.AntiForgeryToken()
 
 <script>
-          
 
-        // 商品
-        var productChart = echarts.init(document.getElementById('productChart'));
-        $.getJSON('/Chart/GetCategoryNestedData', function (res) {
-            const blueColors = [ '#200d7d','#23458b','#0008ff','#1f87d6','#2bc1f3','#0ddfe3','#7cb7cb','#bbebf7',];
 
-            res.counts.forEach((item, index) => {
-                item.itemStyle = { color: blueColors[index % blueColors.length] };
-            });
+            // 商品
+    var productChart = echarts.init(document.getElementById('productChart'));
+    $.getJSON('/Chart/GetCategoryNestedData', function (res) {
+        const blueColors = ['#200d7d','#23458b','#0008ff','#1f87d6','#2bc1f3','#0ddfe3','#7cb7cb','#bbebf7'];
 
-            res.revenues.forEach((item, index) => {
-                item.itemStyle = { color: blueColors[index % blueColors.length] };
-            });
-
-            var option = {
-                tooltip: { trigger: 'item' },
-                             legend: {
-        top: '90%',   // ✅ 這邊就是放在 option 裡面
-        left: 'center'},
-                series: [
-                    {
-                        name: '營收金額',
-                        type: 'pie',
-                        radius: [0, '40%'],
-                        label: { position: 'inside' },
-                        data: res.revenues
-                    },
-
-                    {
-                        name: '銷售筆數',
-                        type: 'pie',
-                        radius: ['55%', '70%'],
-                        label: { position: 'outside' },
-                        data: res.counts
-                    }
-                ]
-            };
-            productChart.setOption(option);
+        res.counts.forEach((item, index) => {
+            item.itemStyle = { color: blueColors[index % blueColors.length] };
         });
+
+        res.revenues.forEach((item, index) => {
+            item.itemStyle = { color: blueColors[index % blueColors.length] };
+        });
+
+        var option = {
+            tooltip: { trigger: 'item' },
+
+            legend: {
+                top: '90%',
+                left: 'center',
+                textStyle: {
+                    fontFamily: 'font1', // ✅ 套用字型
+                    fontSize: 16,
+                    color: '#333'
+                }
+            },
+
+            series: [
+                {
+                    name: '營收金額',
+                    type: 'pie',
+                    radius: [0, '40%'],
+                    label: {
+                        position: 'inside',
+                        fontFamily: 'font1', // ✅ 餅圖內文字
+                        fontSize: 14,
+                        color: '#fff'
+                    },
+                    data: res.revenues
+                },
+
+                {
+                    name: '銷售筆數',
+                    type: 'pie',
+                    radius: ['55%', '70%'],
+                    label: {
+                        position: 'outside',
+                        fontFamily: 'font1', // ✅ 餅圖外文字
+                        fontSize: 14,
+                        color: '#000'
+                    },
+                    data: res.counts
+                }
+            ],
+
+            // ✅ 全局字型
+            textStyle: {
+                fontFamily: 'font1',
+                fontSize: 14,
+                color: '#000'
+            }
+        };
+
+        productChart.setOption(option);
+    });
+
 
         // 票券
-        var ticketChart = echarts.init(document.getElementById('ticketChart'));
-        $.getJSON('/Chart/GetTicketCategoryData', function (res) {
-            const redColors = ['#4F0202','#7A0101','#FF0505','#F25C5C','#FC9292','#F2B1B1','#FADEDE','#DBC5C5'];
+            var ticketChart = echarts.init(document.getElementById('ticketChart'));
+    $.getJSON('/Chart/GetTicketCategoryData', function (res) {
+        const redColors = ['#4F0202','#7A0101','#FF0505','#F25C5C','#FC9292','#F2B1B1','#FADEDE','#DBC5C5'];
 
-            res.counts.forEach((item, index) => {
-                item.itemStyle = { color: redColors[index % redColors.length] };
-            });
-            res.revenues.forEach((item, index) => {
-                item.itemStyle = { color: redColors[index % redColors.length] };
-            });
-
-            var option = {
-                tooltip: { trigger: 'item' },
-                
-                  legend: {
-        top: '90%',   // ✅ 這邊就是放在 option 裡面
-        left: 'center'},
-
-                series: [
-                    {
-                        name: '銷售筆數',
-                        type: 'pie',
-                        radius: ['50%', '70%'],
-                        label: { position: 'outside' },
-                        data: res.counts
-                    },
-                    {
-                        name: '營收金額',
-                        type: 'pie',
-                        radius: ['0%', '40%'],
-                        label: { position: 'inside' },
-                        data: res.revenues
-                    }
-                ]
-            };
-            ticketChart.setOption(option);
+        res.counts.forEach((item, index) => {
+            item.itemStyle = { color: redColors[index % redColors.length] };
         });
+        res.revenues.forEach((item, index) => {
+            item.itemStyle = { color: redColors[index % redColors.length] };
+        });
+
+        var option = {
+            tooltip: { trigger: 'item' },
+
+            legend: {
+                top: '90%',
+                left: 'center',
+                textStyle: {
+                    fontFamily: 'font1', // ✅ 自訂字型
+                    fontSize: 16,        // ✅ 字體大小
+                    color: '#333'        // ✅ 字體顏色
+                }
+            },
+
+            series: [
+                {
+                    name: '銷售筆數',
+                    type: 'pie',
+                    radius: ['50%', '70%'],
+                    label: {
+                        position: 'outside',
+                        fontFamily: 'font1', // ✅ 餅圖外文字
+                        fontSize: 14,
+                        color: '#000'
+                    },
+                    data: res.counts
+                },
+                {
+                    name: '營收金額',
+                    type: 'pie',
+                    radius: ['0%', '40%'],
+                    label: {
+                        position: 'inside',
+                        fontFamily: 'font1', // ✅ 餅圖內文字
+                        fontSize: 12,
+                        color: '#fff'
+                    },
+                    data: res.revenues
+                }
+            ],
+
+            // ✅ 全局字型
+            textStyle: {
+                fontFamily: 'font1',
+                fontSize: 14,
+                color: '#000'
+            }
+        };
+
+        ticketChart.setOption(option);
+    });
 
         var chartDom = document.getElementById('categoryChart');
         var myChart = echarts.init(chartDom);
@@ -463,35 +585,57 @@
                 let categories = data.map(d => d.category);
                 let counts = data.map(d => d.participantCount);
                   const colors = ['#3453a2', '#75c8f9', '#499b8a', '#82d38d', '#f1c232', '#b9635d', '#811313', '#F44336'];
+            // 👉 就在這裡
                 myChart.setOption({
-                
-                tooltip: {},
-                grid: {
-                    left: '10px',   // 左邊距離
-                    right: '10px',  // 右邊距離
-                    top: '30px',    // 上邊距離
-                    bottom: '30px', // 下邊距離
-                    containLabel: true // 確保軸標籤顯示
-                },
-                xAxis: {
-                    type: 'category',
-                    data: categories,
-                    axisLabel: {
-                        interval: 0, // 每個都顯示
-                        rotate: 30   // 適度旋轉防重疊
-                    }
-                },
-                yAxis: { type: 'value' },
+                    tooltip: {},
+                    grid: {
+                        left: '10px',
+                        right: '10px',
+                        top: '50px',   // ↑ 提高上邊距，避免文字擋住
+                        bottom: '50px', // ↑ 增加下邊距，讓 x 軸文字下移
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: categories,
+                        axisLabel: {
+                            interval: 0,
+                            rotate: 0,
+                            fontFamily: 'font1',   // 套用字型
+                            fontSize: 15,
+                            margin: 20
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: {
+                            fontFamily: 'font1',   // 套用字型
+                            fontSize: 14
+                        }
+                    },
                     series: [{
-                    name: '參與人數',
-                    type: 'bar',
-                    data: counts.map((c, i) => ({
-                        value: c,
-                        itemStyle: { color: colors[i % colors.length] }, // 每個柱子不同顏色
-                        label: { show: true, position: 'top', formatter: '{c}' } // 顯示數字
-                         }))
-                }]  
-            });
+                        name: '參與人數',
+                        type: 'bar',
+                        data: counts.map((c, i) => ({
+                            value: c,
+                            itemStyle: { color: colors[i % colors.length] },
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: '{c}',
+                                fontFamily: 'font1',   // 套用字型
+                                fontSize: 14,
+                                distance: 10
+                            }
+                        }))
+                    }],
+                    legend: {
+                        textStyle: {
+                            fontFamily: 'font1',   // 套用字型
+                            fontSize: 14
+                        }
+                    }
+                });
         });
 
     </script>

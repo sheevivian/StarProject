@@ -133,7 +133,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="MG" id="dept8">
                                     <label class="form-check-label" for="dept8">
-                                        導覽服務部
+                                        天文館總管
                                     </label>
                                 </div>
                             </div>
@@ -286,6 +286,16 @@
         <span id="selectedFiltersText" class="text-secondary"></span>
     </div>
 
+    <!-- 已選取項目提示 -->
+    <div class="mt-2" style="display:none" id="selectNum">
+        已選取0項
+    </div>
+    <div class="mt-2" style="display:none" id="delectAll">
+        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
+            <i class="fas fa-trash-can"></i> 批量離職
+        </button>
+    </div>
+
     <!-- 列表 -->
     @if (Model.Any())
     {
@@ -295,8 +305,7 @@
                 <thead>
                     <tr>
                         <th style="width:50px">
-                            <input class="form-check-input ms-4" type="checkbox" value="" id="checkAll" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                   data-bs-title="全選" data-bs-trigger="hover">
+                            <!-- 移除全選 checkbox -->
                         </th>
                         <th style="width:160px">
                             姓名
@@ -311,10 +320,10 @@
                             職位
                         </th>
                         <th style="width:140px">
-                           入職日期
+                            入職日期
                         </th>
                         <th style="width:80px">
-                            在職狀態
+                            狀態
                         </th>
                         <th style="width:116px">
 
@@ -368,29 +377,20 @@
                 </div>
             </div>
 
-            <!-- 全選垃圾桶及文字 -->
-            <div class="float-end position-absolute top-0 end-0 me-4 mt-2 d-flex justify-content-center selectColor">
-                <span id="selectNum" style="display:none" class="fw-bold fs18px me-2">已選取0項</span>
-
-                <button type="button" class="btn p-0 selectColor fs18px" id="delectAll" data-bs-toggle="" data-bs-target="#deleteAllModal" style="display:none">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </div>
-
-            <!-- 全選刪除彈窗 -->
+            <!-- 批量離職確認 Modal -->
             <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="deleteAllModalLabel">確認離職</h5>
+                            <h5 class="modal-title" id="deleteAllModalLabel">批量離職確認</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            確定已選取員工離職嗎？
+                            <p>確定要將選取的員工設為離職狀態嗎？此操作無法復原。</p>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-delect br20px" id="delectAllYes" data-bs-dismiss="modal">確定離職</button>
-                            <button type="button" class="btn btn-secondary br20px" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-danger" id="delectAllYes">確定離職</button>
                         </div>
                     </div>
                 </div>

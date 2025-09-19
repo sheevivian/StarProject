@@ -94,49 +94,44 @@
             let count = $("#inputTitle").val().length;
             $("#wordCount").text(count);
 
-            document.addEventListener("DOMContentLoaded", function() {
-                const select = document.getElementById("categorySelect");
-                const otherInput = document.getElementById("otherCategoryInput");
-                const hiddenInput = document.getElementById("categoryHidden");
+            const select = document.getElementById("categorySelect");
+            const otherInput = document.getElementById("otherCategoryInput");
+            const hiddenInput = document.getElementById("categoryHidden");
 
-                // ===== 初始化：把 hidden 的值帶入 select / 文字框 =====
-                const predefinedOptions = ["行政公告","人事公告","活動公告","制度公告","資訊系統公告"];
-                if(predefinedOptions.includes(hiddenInput.value)) {
-                    select.value = hiddenInput.value;
-                    otherInput.classList.add("d-none");
-                } else if(hiddenInput.value) {
-                    select.value = "其他";
+            // ===== 初始化：把 hidden 的值帶入 select / 文字框 =====
+            const predefinedOptions = ["行政公告","人事公告","活動公告","制度公告","資訊系統公告"];
+            if(predefinedOptions.includes(hiddenInput.value)) {
+                select.value = hiddenInput.value;
+                otherInput.classList.add("d-none");
+            } else if(hiddenInput.value) {
+                select.value = "其他";
+                otherInput.classList.remove("d-none");
+                otherInput.value = hiddenInput.value;
+            } else {
+                select.value = "";
+                otherInput.classList.add("d-none");
+            }
+
+            // ===== 選單變更事件 =====
+            select.addEventListener("change", function () {
+                if (this.value === "其他") {
                     otherInput.classList.remove("d-none");
-                    otherInput.value = hiddenInput.value;
+                    hiddenInput.value = ""; // 等使用者輸入
                 } else {
-                    select.value = "";
                     otherInput.classList.add("d-none");
-                }
-
-                // ===== 選單變更事件 =====
-                select.addEventListener("change", function () {
-                    if (this.value === "其他") {
-                        otherInput.classList.remove("d-none");
-                        hiddenInput.value = ""; // 等使用者輸入
-                    } else {
-                        otherInput.classList.add("d-none");
-                        hiddenInput.value = this.value;
-                    }
-                });
-
-                // ===== 文字框輸入事件 =====
-                otherInput.addEventListener("input", function () {
                     hiddenInput.value = this.value;
-                });
+                }
             });
 
+            // ===== 文字框輸入事件 =====
+            otherInput.addEventListener("input", function () {
+                hiddenInput.value = this.value;
+            });
+
+            // ===== Title 字數統計 =====
             $("#inputTitle").on("keyup", function(){
                 let count =$(this).val().length;
-                if (count == 0){
-                    $("#wordCount").text("0");
-                }else{
-                    $("#wordCount").text(count);
-                }
+                $("#wordCount").text(count);
             });
         });
     </script>

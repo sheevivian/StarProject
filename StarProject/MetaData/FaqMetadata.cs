@@ -21,7 +21,7 @@ namespace StarProject.MetaData
 		public string Answer { get; set; } = null!;
 
 		[Display(Name = "更新日期")]
-		[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
+		[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
 		public DateTime UpdateDate { get; set; }
 
 		[ValidateNever]

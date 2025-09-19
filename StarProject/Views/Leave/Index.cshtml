@@ -13,7 +13,7 @@
 		max-width: 1200px;
 		margin: 0 auto 30px auto;
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 2fr 1fr;
 		gap: 24px;
 		align-items: stretch; /* 等高 */
 	}
@@ -123,7 +123,7 @@
 	}
 
 	/* 統一按鈕樣式（底部置中） */
-	.btn {
+	.btn1 {
 		font-size: 18px;
 		padding: 15px 30px;
 		border: none;
@@ -272,127 +272,147 @@
 	}
 </style>
 
-<form id="leaveForm">
-	@Html.AntiForgeryToken()
+<div class="position-relative">
 
-	<h1>📝 請假申請系統</h1>
-	<div class="employee-info">@ViewBag.EmployeeName</div>
 
-	<div class="leave-layout">
-		<!-- 左欄：我的請假記錄（灰底等高） -->
-		<div class="leave-container">
-			<div class="form-section">
-				<h3>📊 我的請假記錄</h3>
-				<div class="table-rounded">
-					<table class="records-table">
-						<thead style="background-color:#2B4C8C !important">
-							<tr>
-								<th>假別</th>
-								<th>申請日期</th>
-								<th>請假期間</th>
-								<th>天數</th>
-								<th>狀態</th>
-								<th>請假原因</th>
-							</tr>
-						</thead>
-						<tbody>
-							@if (ViewBag.MyApplications != null && ((List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications).Any())
-							{
-								foreach (var app in (List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications)
-								{
+		<form id="leaveForm">
+			@Html.AntiForgeryToken()
+
+			<h1>📝 請假申請系統</h1>
+			<div class="employee-info">@ViewBag.EmployeeName</div>
+
+			<div class="leave-layout">
+				<!-- 左欄：我的請假記錄（灰底等高） -->
+				<div class="leave-container">
+					<div class="form-section">
+						<h3>📊 我的請假記錄</h3>
+						<div class="table-rounded">
+							<table class="records-table">
+								<thead style="background-color:#2B4C8C !important">
 									<tr>
-										<td>@app.LeaveType.TypeName</td>
-										<td>@app.AppliedAt.ToString("MM/dd HH:mm")</td>
-										<td>
-											@app.StartDate.ToString("MM/dd")
-											@if (app.StartDate != app.EndDate)
-											{
-												<span> ~ @app.EndDate.ToString("MM/dd")</span>
-											}
-										</td>
-										<td>@app.TotalDays 天</td>
-										<td>
-											@switch (app.Status)
-											{
-												case "pending":
-													<span class="leave-status status-pending">待審核</span>
-													; break;
-												case "approved":
-													<span class="leave-status status-approved">已核准</span>
-													; break;
-												case "rejected":
-													<span class="leave-status status-rejected">已拒絕</span>
-													; break;
-												default:
-													<span class="leave-status">@app.Status</span>
-													; break;
-											}
-										</td>
-										<td style="max-width: 200px; word-wrap: break-word;">@app.Reason</td>
+										<th>假別</th>
+										<th>申請日期</th>
+										<th>請假期間</th>
+										<th>天數</th>
+										<th>狀態</th>
+										<th>請假原因</th>
 									</tr>
+								</thead>
+								<tbody>
+									@if (ViewBag.MyApplications != null && ((List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications).Any())
+									{
+										foreach (var app in (List<StarProject.Models.LeaveApplication>)ViewBag.MyApplications)
+										{
+											<tr>
+												<td>@app.LeaveType.TypeName</td>
+												<td>@app.AppliedAt.ToString("MM/dd HH:mm")</td>
+												<td>
+													@app.StartDate.ToString("MM/dd")
+													@if (app.StartDate != app.EndDate)
+													{
+														<span> ~ @app.EndDate.ToString("MM/dd")</span>
+													}
+												</td>
+												<td>@app.TotalDays 天</td>
+												<td>
+													@switch (app.Status)
+													{
+														case "pending":
+															<span class="leave-status status-pending">待審核</span>
+															; break;
+														case "approved":
+															<span class="leave-status status-approved">已核准</span>
+															; break;
+														case "rejected":
+															<span class="leave-status status-rejected">已拒絕</span>
+															; break;
+														default:
+															<span class="leave-status">@app.Status</span>
+															; break;
+													}
+												</td>
+												<td style="max-width: 200px; word-wrap: break-word;">@app.Reason</td>
+											</tr>
+										}
+									}
+									else
+									{
+										<tr>
+											<td colspan="6" style="color: #666; font-style: italic;">還沒有請假記錄</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<!-- 右欄：新增請假申請（灰底等高） -->
+				<div class="leave-container">
+					<div class="form-section">
+						<h3>💼 新增請假申請</h3>
+
+						<div class="form-group">
+							<label for="LeaveTypeId">假別<span class="required-mark">*</span></label>
+							<select id="LeaveTypeId" name="LeaveTypeId" required>
+								<option value="">請選擇假別</option>
+								@if (ViewBag.LeaveTypes != null)
+								{
+									foreach (var type in (List<StarProject.Models.LeaveType>)ViewBag.LeaveTypes)
+									{
+										<option value="@type.No">@type.TypeName</option>
+									}
 								}
-							}
-							else
-							{
-								<tr>
-									<td colspan="6" style="color: #666; font-style: italic;">還沒有請假記錄</td>
-								</tr>
-							}
-						</tbody>
-					</table>
+							</select>
+						</div>
+
+						<div class="form-group">
+							<label for="StartDate">開始日期<span class="required-mark">*</span></label>
+							<input type="date" id="StartDate" name="StartDate" required />
+						</div>
+
+						<div class="form-group">
+							<label for="EndDate">結束日期<span class="required-mark">*</span></label>
+							<input type="date" id="EndDate" name="EndDate" required />
+						</div>
+
+						<div class="form-group">
+							<label for="Reason">請假原因<span class="required-mark">*</span></label>
+							<textarea id="Reason" name="Reason" placeholder="請輸入請假原因..." required></textarea>
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- 右欄：新增請假申請（灰底等高） -->
-		<div class="leave-container">
-			<div class="form-section">
-				<h3>💼 新增請假申請</h3>
-
-				<div class="form-group">
-					<label for="LeaveTypeId">假別<span class="required-mark">*</span></label>
-					<select id="LeaveTypeId" name="LeaveTypeId" required>
-						<option value="">請選擇假別</option>
-						@if (ViewBag.LeaveTypes != null)
-						{
-							foreach (var type in (List<StarProject.Models.LeaveType>)ViewBag.LeaveTypes)
-							{
-								<option value="@type.No">@type.TypeName</option>
-							}
-						}
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="StartDate">開始日期<span class="required-mark">*</span></label>
-					<input type="date" id="StartDate" name="StartDate" required />
-				</div>
-
-				<div class="form-group">
-					<label for="EndDate">結束日期<span class="required-mark">*</span></label>
-					<input type="date" id="EndDate" name="EndDate" required />
-				</div>
-
-				<div class="form-group">
-					<label for="Reason">請假原因<span class="required-mark">*</span></label>
-					<textarea id="Reason" name="Reason" placeholder="請輸入請假原因..." required></textarea>
-				</div>
+			<div class="page-actions">
+				<a href="@Url.Action("Index", "Home")" class="btn1 btn-back">🔙 回到首頁</a>
+				<button type="submit" class="btn1 btn-submit" id="submitBtn">📤 送出申請</button>
 			</div>
+		</form>
+
+		<div id="messageAlert" class="message-alert">
+			<span id="messageText"></span>
 		</div>
+	<div class="position-absolute top-0 end-0 m-2 me-4">
+		<button type="button" id="fillTestData" class="btn btn-light fw-bold fs-6 d-flex justify-content-center align-items-center p-0"
+				style="width:40px; height:40px; border-radius:50%; border: 1px solid #D0CBCB;">
+			<i class="fa-solid fa-wand-sparkles"></i>
+		</button>
 	</div>
-
-	<div class="page-actions">
-		<a href="@Url.Action("Index", "Home")" class="btn btn-back">🔙 回到首頁</a>
-		<button type="submit" class="btn btn-submit" id="submitBtn">📤 送出申請</button>
-	</div>
-</form>
-
-<div id="messageAlert" class="message-alert">
-	<span id="messageText"></span>
 </div>
+
+
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+		$("#fillTestData").on("click", function () {
+		$('#LeaveTypeId').val("65").trigger("change");
+		$('#StartDate').val("2025-09-21");
+		$('#EndDate').val("2025-09-25");
+		$("#Reason").val("特休");
+	})
+
 	function showMessage(message, isError = false) {
 		const alertDiv = document.getElementById('messageAlert');
 		const messageText = document.getElementById('messageText');
